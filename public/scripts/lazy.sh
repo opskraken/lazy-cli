@@ -10,11 +10,14 @@ Usage:
   lazy [command] [subcommand]
 
 Examples:
-  lazy github push         Push your code to GitHub
-  lazy github clone        Clone a GitHub repo and setup project
-  lazy node-js init        Init a Node.js project
-  lazy --version           Show version
-  lazy --help              Show help
+  lazy github push "Fix: Login API bug"         Push your code with a commit message
+  lazy github clone https://github.com/user/repo.git next-js
+                                                Clone a GitHub repo and auto-setup project
+  lazy github pull development "Add: dark mode" next-js
+                                                Pull from base branch, build, commit & create pull request
+  lazy node-js init                             Init a Node.js project
+  lazy --version                                Show version
+  lazy --help                                   Show help
 
 Available Commands:
   github        Git operations (push, clone)
@@ -233,6 +236,19 @@ case "$1" in
     ;;
   --version | -v )
     echo "LazyCLI v$VERSION"
+    ;;
+  upgrade )
+    echo "🔄 Upgrading LazyCLI..."
+
+    # Remove old version
+    rm -f "$HOME/.lazycli/lazy"
+
+    # Download new version
+    curl -s https://lazycli.vercel.app/scripts/lazy.sh -o "$HOME/.lazycli/lazy"
+    chmod +x "$HOME/.lazycli/lazy"
+
+    echo "✅ LazyCLI upgraded to latest version!"
+    exit 0
     ;;
   github )
     case "$2" in

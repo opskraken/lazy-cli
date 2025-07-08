@@ -2,16 +2,22 @@
 
 echo "🛠️ Installing LazyCLI..."
 
+# Remove old version if exists
+rm -f ~/.lazycli/lazy
+
+# Create directory (if not already exists)
 mkdir -p ~/.lazycli
+
+# Download latest lazy.sh
 curl -s https://lazycli.vercel.app/scripts/lazy.sh -o ~/.lazycli/lazy
 chmod +x ~/.lazycli/lazy
 
-# Add to PATH if not already added
+# Add to PATH only if not already added
 if ! grep -qx 'export PATH="$HOME/.lazycli:$PATH"' ~/.bashrc; then
   echo 'export PATH="$HOME/.lazycli:$PATH"' >> ~/.bashrc
 fi
 
-# Apply to current session if possible
+# Source updated path if interactive shell
 if [ -n "$BASH_VERSION" ]; then
   source ~/.bashrc 2>/dev/null
 else
