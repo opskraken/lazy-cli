@@ -7,11 +7,15 @@ curl -s https://lazycli.vercel.app/scripts/lazy.sh -o ~/.lazycli/lazy
 chmod +x ~/.lazycli/lazy
 
 # Add to PATH if not already added
-if ! grep -q 'export PATH="$HOME/.lazycli:$PATH"' ~/.bashrc; then
+if ! grep -qx 'export PATH="$HOME/.lazycli:$PATH"' ~/.bashrc; then
   echo 'export PATH="$HOME/.lazycli:$PATH"' >> ~/.bashrc
 fi
 
-# Source to update current shell environment, if possible
-source ~/.bashrc 2>/dev/null || echo "⚠️ Please restart your terminal or run 'source ~/.bashrc'"
+# Apply to current session if possible
+if [ -n "$BASH_VERSION" ]; then
+  source ~/.bashrc 2>/dev/null
+else
+  echo "⚠️ Please restart your terminal or run: source ~/.bashrc"
+fi
 
-echo "✅ Installed! Run 'lazy --help'"
+echo "✅ LazyCLI installed! Run 'lazy --help' to begin. 😎"

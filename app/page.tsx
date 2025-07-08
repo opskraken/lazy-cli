@@ -331,9 +331,12 @@ export default function Home() {
           content="Automate your development workflow with Lazycli- supporting GitHub, Node.js, Next.js, Vite.js and more platforms."
         />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://lazycli.com" />
-        <meta property="og:image" content="https://lazycli.com/og-image.png" />
-        <meta property="og:site_name" content="Clivault" />
+        <meta property="og:url" content="https://lazycli.vercel.app/" />
+        <meta
+          property="og:image"
+          content="https://lazycli.vercel.app//og-image.png"
+        />
+        <meta property="og:site_name" content="Lazycli" />
 
         <meta name="twitter:card" content="summary_large_image" />
         <meta
@@ -346,7 +349,7 @@ export default function Home() {
         />
         <meta
           name="twitter:image"
-          content="https://lazycli.com/twitter-image.png"
+          content="https://lazycli.vercel.app//twitter-image.png"
         />
         <meta name="twitter:creator" content="@lazycli" />
 
@@ -356,7 +359,7 @@ export default function Home() {
 
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <link rel="canonical" href="https://lazycli.com" />
+        <link rel="canonical" href="https://lazycli.vercel.app/" />
 
         <script
           type="application/ld+json"
@@ -364,9 +367,9 @@ export default function Home() {
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
-              name: "Clivault",
+              name: "Lazycli",
               description: "Modern CLI tool for developer workflow automation",
-              url: "https://lazycli.com",
+              url: "https://lazycli.vercel.app/",
               applicationCategory: "DeveloperApplication",
               operatingSystem: "Cross-platform",
             }),
@@ -399,7 +402,7 @@ export default function Home() {
                   />
                 </div>
                 <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                  Clivault
+                  Lazycli
                 </span>
               </motion.div>
 
@@ -1023,7 +1026,7 @@ export default function Home() {
                     />
                   </div>
                   <span className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                    Clivault
+                    Lazycli
                   </span>
                 </div>
                 <p className="text-slate-400 max-w-md">
@@ -1076,7 +1079,7 @@ export default function Home() {
               className="border-t border-slate-800 mt-12 pt-8 text-center text-slate-500"
             >
               <p>
-                &copy; 2025 Clivault. All rights reserved. Empowering developers
+                &copy; 2025 Lazycli. All rights reserved. Empowering developers
                 globally.
               </p>
             </motion.div>

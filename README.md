@@ -12,12 +12,12 @@ Lazycliis a powerful, Bash-based command-line interface that simplifies your dev
 Install globally with one command (macOS/Linux):
 
 ```bash
-curl -s https://lazycli.com | bash
+curl -s https://lazycli.vercel.app/ | bash
 ```
 
 ````
 
-> ℹ️ On Windows? [See installation guide →](https://lazycli.com/windows)
+> ℹ️ On Windows? [See installation guide →](https://lazycli.vercel.app//windows)
 
 ---
 
@@ -56,7 +56,7 @@ lazycli next-js i
 lazycli vite-js init
 ```
 
-More commands and options can be found on [lazycli.com](https://lazycli.com).
+More commands and options can be found on [lazycli.com](https://lazycli.vercel.app/).
 
 ---
 
@@ -64,7 +64,7 @@ More commands and options can be found on [lazycli.com](https://lazycli.com).
 
 - ✅ macOS
 - ✅ Linux (Ubuntu, Arch, etc.)
-- ⚠️ Windows (requires WSL or Git Bash — [see guide](https://lazycli.com/windows))
+- ⚠️ Windows (requires WSL or Git Bash — [see guide](https://lazycli.vercel.app//windows))
 
 ---
 
