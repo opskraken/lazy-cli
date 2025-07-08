@@ -1,7 +1,7 @@
 #!/bin/bash
 
-VERSION="1.0.0"
-BASE_DIR="$(dirname "$0")"
+VERSION="1.0.1"
+BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 show_help() {
   cat << EOF
