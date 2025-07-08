@@ -133,6 +133,10 @@ export default function Home() {
             "Initialize a new GitHub repository with standard configuration",
         },
         {
+          command: "lazycli github clone",
+          description: "Clone a GitHub repository and setup the project",
+        },
+        {
           command: "lazycli github push",
           description: "Push changes to GitHub with automated commit messages",
         },
@@ -278,7 +282,7 @@ export default function Home() {
     {
       step: 1,
       title: "Install via Bash",
-      command: "curl -s https://lazycli.dev | bash",
+      command: "curl -s https://lazycli.vercel.app/install.sh | bash",
       description:
         "Install LazyCLI globally using a simple shell script. No config required.",
     },
