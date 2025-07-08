@@ -66,7 +66,7 @@ export default function Home() {
   const [activeCommand, setActiveCommand] = useState<string>("github");
   const [copiedCommand, setCopiedCommand] = useState<string>("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
-  const installCommand = "curl -s https://lazycli.dev | bash";
+  const installCommand = "curl -s https://lazycli.vercel.app/install.sh | bash";
 
   // Copy to clipboard function with feedback
   const copyToClipboard = (text: string) => {
