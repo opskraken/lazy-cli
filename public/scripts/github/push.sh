@@ -8,3 +8,5 @@ git commit -m "$msg"
 
 echo "🚀 Pushing to origin/main..."
 git push origin main
+
+echo "✅ All done! 🎉"

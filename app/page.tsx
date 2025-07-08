@@ -66,12 +66,13 @@ export default function Home() {
   const [activeCommand, setActiveCommand] = useState<string>("github");
   const [copiedCommand, setCopiedCommand] = useState<string>("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+  const installCommand = "curl -s https://lazycli.dev | bash";
 
   // Copy to clipboard function with feedback
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopiedCommand(text);
-    setTimeout(() => setCopiedCommand(""), 2000);
+    setTimeout(() => setCopiedCommand(""), 2000); // reset after 2 seconds
   };
 
   // Animation variants
@@ -570,10 +571,10 @@ export default function Home() {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => copyToClipboard("npm install -g lazycli")}
+                  onClick={() => copyToClipboard(installCommand)}
                   className="text-cyan-400 hover:text-cyan-300 text-sm flex items-center px-3 py-1 bg-cyan-400/10 rounded-lg border border-cyan-400/20 transition-colors"
                 >
-                  {copiedCommand === "npm install -g lazycli" ? (
+                  {copiedCommand === installCommand ? (
                     <>
                       <CheckCircle className="w-4 h-4 mr-1" />
                       Copied!
@@ -586,8 +587,8 @@ export default function Home() {
                   )}
                 </motion.button>
               </div>
-              <code className="text-cyan-400 text-lg md:text-xl font-mono block">
-                $ npm install -g lazycli
+              <code className="text-cyan-400 text-lg md:text-xl font-mono block break-all">
+                $ {installCommand}
               </code>
             </motion.div>
 
