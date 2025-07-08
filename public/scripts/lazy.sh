@@ -10,6 +10,7 @@ Usage:
   lazy [command] [subcommand]
 
 Examples:
+  lazy github init                              Initialize a new Git repository
   lazy github push "Fix: Login API bug"         Push your code with a commit message
   lazy github clone https://github.com/user/repo.git next-js
                                                 Clone a GitHub repo and auto-setup project
@@ -28,70 +29,17 @@ Available Commands:
 EOF
 }
 
-github_push() {
-  echo "📦 Staging changes..."
-  git add .
+github_init() {
+  echo "🛠️ Initializing new Git repository..."
 
-  msg="$1"
-  if [[ -z "$msg" ]]; then
-    echo "⚠️ Commit message is required. Example:"
-    echo "   lazy github push \"Your message here\""
+  if [ -d ".git" ]; then
+    echo "⚠️ Git repository already initialized in this directory."
     exit 1
   fi
 
-  echo "📝 Committing changes..."
-  if ! git commit -m "$msg"; then
-    echo "❌ Commit failed. Nothing to commit or error occurred."
-    exit 1
-  fi
+  git init
 
-  BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
-  if [[ -z "$BRANCH" ]]; then
-    echo "❌ Could not detect branch. Are you in a git repo?"
-    exit 1
-  fi
-
-  echo "🚀 Pushing to origin/$BRANCH..."
-  if ! git push origin "$BRANCH"; then
-    echo "❌ Push failed. Please check your network or branch."
-    exit 1
-  fi
-
-  echo "✅ Changes pushed to origin/$BRANCH 🎉"
-}
-
-
-github_clone() {
-  read -p "🔗 Enter GitHub repo URL to clone: " repo
-  if [[ -z "$repo" ]]; then
-    echo "❌ Repo URL cannot be empty."
-    exit 1
-  fi
-
-  git clone "$repo" || { echo "❌ Clone failed."; exit 1; }
-  dir_name=$(basename "$repo" .git)
-  cd "$dir_name" || exit 1
-
-  # Auto detect package manager and install
-  if [[ -f package.json ]]; then
-    if command -v npm &> /dev/null; then
-      echo "📦 Installing npm packages..."
-      npm install
-    elif command -v yarn &> /dev/null; then
-      echo "📦 Installing yarn packages..."
-      yarn
-    else
-      echo "⚠️ Neither npm nor yarn found. Please install dependencies manually."
-    fi
-
-    # Try to start project if scripts.start exists
-    if grep -q '"start"' package.json; then
-      echo "▶️ Starting project..."
-      npm start
-    fi
-  else
-    echo "⚠️ No package.json found; skipping install/start steps."
-  fi
+  echo "✅ Git repository initialized successfully!"
 }
 
 github_clone() {
@@ -131,13 +79,23 @@ github_clone() {
       echo "⚠️ No supported package manager found. Please install manually."
     fi
 
-    # Start the project only if a start script exists
-    if grep -q '"start"' package.json; then
-      echo "▶️ Starting the project..."
-      npm start
+    # Check if build script exists
+    if grep -q '"build"' package.json; then
+      echo "🏗️ Build script found. Building the project..."
+      if command -v npm &> /dev/null; then
+        npm run build
+      elif command -v yarn &> /dev/null; then
+        yarn build
+      elif command -v pnpm &> /dev/null; then
+        pnpm run build
+      elif command -v bun &> /dev/null; then
+        bun run build
+      fi
+    else
+      echo "ℹ️ No build script found; skipping build."
     fi
   else
-    echo "⚠️ No package.json found; skipping dependency installation."
+    echo "⚠️ No package.json found; skipping dependency install & build."
   fi
 
   if command -v code &> /dev/null; then
@@ -147,7 +105,39 @@ github_clone() {
     echo "💡 VS Code not found. You can manually open the project folder."
   fi
 
-  echo "✅ Clone setup complete!"
+  echo "✅ Clone setup complete! Don't forget to commit and push your changes."
+}
+
+github_push() {
+  echo "📦 Staging changes..."
+  git add .
+
+  msg="$1"
+  if [[ -z "$msg" ]]; then
+    echo "⚠️ Commit message is required. Example:"
+    echo "   lazy github push \"Your message here\""
+    exit 1
+  fi
+
+  echo "📝 Committing changes..."
+  if ! git commit -m "$msg"; then
+    echo "❌ Commit failed. Nothing to commit or error occurred."
+    exit 1
+  fi
+
+  BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+  if [[ -z "$BRANCH" ]]; then
+    echo "❌ Could not detect branch. Are you in a git repo?"
+    exit 1
+  fi
+
+  echo "🚀 Pushing to origin/$BRANCH..."
+  if ! git push origin "$BRANCH"; then
+    echo "❌ Push failed. Please check your network or branch."
+    exit 1
+  fi
+
+  echo "✅ Changes pushed to origin/$BRANCH 🎉"
 }
 
 github_pull_request() {
@@ -175,7 +165,7 @@ github_pull_request() {
     echo "📦 Installing dependencies..."
     if command -v npm &> /dev/null; then
       echo "🔧 Using npm..."
-      npm install
+      npm run build
     elif command -v yarn &> /dev/null; then
       echo "🔧 Using yarn..."
       yarn
@@ -252,11 +242,14 @@ case "$1" in
     ;;
   github )
     case "$2" in
-      push)
-       github_push "$3"
+      init)
+        github_init
         ;;
       clone)
         github_clone "$3" "$4"
+        ;;
+      push)
+        github_push "$3"
         ;;
       pull)
         github_pull_request "$3" "$4" "$5"
