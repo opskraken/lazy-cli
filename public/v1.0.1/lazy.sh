@@ -234,7 +234,7 @@ case "$1" in
     rm -f "$HOME/.lazycli/lazy"
 
     # Download new version
-    curl -s https://lazycli.vercel.app/scripts/lazy.sh -o "$HOME/.lazycli/lazy"
+    curl -s https://lazycli.xyz/scripts/lazy.sh -o "$HOME/.lazycli/lazy"
     chmod +x "$HOME/.lazycli/lazy"
 
     echo "✅ LazyCLI upgraded to latest version!"

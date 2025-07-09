@@ -552,7 +552,7 @@ upgrade_lazycli() {
     
     local temp_file="/tmp/lazy_new"
     
-    if ! curl -fsSL https://lazycli.vercel.app/scripts/lazy.sh -o "$temp_file"; then
+    if ! curl -fsSL https://lazycli.xyz/scripts/lazy.sh -o "$temp_file"; then
         log "ERROR" "Failed to download latest version"
         exit 1
     fi

@@ -56,9 +56,9 @@ install_lazycli() {
 
     local url=""
     if [[ "$version" == "latest" ]]; then
-        url="https://lazycli.vercel.app/scripts/lazy.sh"
+        url="https://lazycli.xyz/scripts/lazy.sh"
     else
-        url="https://lazycli.vercel.app/versions/$version/lazy.sh"
+        url="https://lazycli.xyz/versions/$version/lazy.sh"
     fi
 
     print_status "Downloading from: $url"
