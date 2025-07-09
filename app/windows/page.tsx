@@ -694,7 +694,7 @@ sudo apt install curl wget git build-essential -y`,
 
       <div className="relative z-10 flex">
         {/* Sidebar Navigation */}
-        <div className="w-80 h-screen bg-slate-900/50 backdrop-blur-sm border-r border-slate-700/50 p-6 sticky top-0">
+        <div className="w-80 h-screen bg-slate-900/50 backdrop-blur-sm border-r border-slate-700/50 p-6 pt-24 sticky top-0">
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-white mb-2">
               Windows Setup Guide
@@ -724,7 +724,7 @@ sudo apt install curl wget git build-essential -y`,
 
         {/* Main Content */}
         <motion.div
-          className="flex-1 p-8 max-w-4xl mx-auto"
+          className="flex-1 p-8 pt-24 max-w-4xl mx-auto"
           variants={containerVariants}
           initial="hidden"
           animate="visible"

@@ -158,6 +158,10 @@
 
 
 #!/bin/bash
+#!/bin/bash
+#!/bin/bash
+
+
 
 echo "🛠️ Installing LazyCLI..."
 

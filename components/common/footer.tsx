@@ -53,31 +53,84 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6">
-            <motion.a
-              whileHover={{ scale: 1.05, y: -2 }}
-              href="#"
-              className="text-slate-400 hover:text-cyan-400 transition-colors flex items-center px-4 py-2 bg-slate-800/50 rounded-lg border border-slate-700 hover:border-cyan-400/50"
-            >
-              <Github className="w-5 h-5 mr-2" />
-              GitHub
-            </motion.a>
-            <motion.a
-              whileHover={{ scale: 1.05, y: -2 }}
-              href="#"
-              className="text-slate-400 hover:text-cyan-400 transition-colors flex items-center px-4 py-2 bg-slate-800/50 rounded-lg border border-slate-700 hover:border-cyan-400/50"
-            >
-              <BookOpen className="w-5 h-5 mr-2" />
-              Documentation
-            </motion.a>
-            <motion.a
-              whileHover={{ scale: 1.05, y: -2 }}
-              href="#"
-              className="text-slate-400 hover:text-cyan-400 transition-colors flex items-center px-4 py-2 bg-slate-800/50 rounded-lg border border-slate-700 hover:border-cyan-400/50"
-            >
-              <ExternalLink className="w-5 h-5 mr-2" />
-              Support
-            </motion.a>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div>
+              <h3 className="text-white font-semibold mb-3">Navigation</h3>
+              <div className="space-y-2">
+                {[
+                  { name: "Features", href: "#features" },
+                  { name: "Installation", href: "#installation" },
+                  { name: "Commands", href: "#commands" }
+                ].map((item) => (
+                  <motion.a
+                    key={item.name}
+                    whileHover={{ x: 5 }}
+                    href={item.href}
+                    className="block text-slate-400 hover:text-cyan-400 transition-colors text-sm"
+                  >
+                    {item.name}
+                  </motion.a>
+                ))}
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="text-white font-semibold mb-3">Pages</h3>
+              <div className="space-y-2">
+                {[
+                  { name: "Guideline", href: "/guideline" },
+                  { name: "Contribute", href: "/contribute" },
+                  { name: "Version", href: "/version" },
+                  { name: "Windows", href: "/windows" }
+                ].map((item) => (
+                  <motion.a
+                    key={item.name}
+                    whileHover={{ x: 5 }}
+                    href={item.href}
+                    className="block text-slate-400 hover:text-cyan-400 transition-colors text-sm"
+                  >
+                    {item.name}
+                  </motion.a>
+                ))}
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="text-white font-semibold mb-3">Resources</h3>
+              <div className="space-y-2">
+                <motion.a
+                  whileHover={{ x: 5 }}
+                  href="https://github.com/lazycli/lazycli"
+                  className="block text-slate-400 hover:text-cyan-400 transition-colors text-sm flex items-center"
+                >
+                  <Github className="w-4 h-4 mr-2" />
+                  GitHub
+                </motion.a>
+                <motion.a
+                  whileHover={{ x: 5 }}
+                  href="/guideline"
+                  className="block text-slate-400 hover:text-cyan-400 transition-colors text-sm flex items-center"
+                >
+                  <BookOpen className="w-4 h-4 mr-2" />
+                  Documentation
+                </motion.a>
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="text-white font-semibold mb-3">Support</h3>
+              <div className="space-y-2">
+                <motion.a
+                  whileHover={{ x: 5 }}
+                  href="/contribute"
+                  className="block text-slate-400 hover:text-cyan-400 transition-colors text-sm flex items-center"
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Contribute
+                </motion.a>
+                <span className="block text-slate-400 text-sm">MIT License</span>
+              </div>
+            </div>
           </div>
         </motion.div>
 
