@@ -7,6 +7,7 @@ import Installation from "@/features/home/components/installation/installation";
 import CurrentFeatures from "@/features/home/components/currentFeatures/currentFeatures";
 import UpcomingFeatures from "@/features/home/components/upcomingFeatures/upcomingFeatures";
 import InteractiveCommands from "@/features/home/components/interactiveCommands/interactiveCommands";
+import WindowsInstallPage from "@/features/home/components/windows/windows";
 
 // Initialize Inter font with Next.js optimization
 const inter = Inter({ subsets: ["latin"] });
@@ -66,6 +67,9 @@ export default function Home() {
 
         {/* Installation Process Section */}
         <Installation />
+
+        {/* Windows Setup for Git Bash & WSL */}
+        <WindowsInstallPage />
 
         {/* Current Features Section */}
         <CurrentFeatures
