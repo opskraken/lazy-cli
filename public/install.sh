@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# LazyCLI Cross-Platform Installer
-# Works on Linux, macOS, and Windows (Git Bash/WSL)
+# LazyCLI Cross-Platform Installer (Linux, macOS, Windows Git Bash/WSL)
 
 set -euo pipefail
 
@@ -13,12 +12,22 @@ print_warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
 print_error() { echo -e "${RED}❌ $1${NC}"; }
 
 detect_os() {
-    case "$OSTYPE" in
-        linux*) echo "linux" ;;
-        darwin*) echo "macos" ;;
-        msys*|cygwin*) echo "windows" ;;
-        *) echo "unknown" ;;
-    esac
+    if [[ -z "${OSTYPE:-}" ]]; then
+        unameOut="$(uname -s)"
+        case "${unameOut}" in
+            Linux*)     echo "linux";;
+            Darwin*)    echo "macos";;
+            CYGWIN*|MINGW*) echo "windows";;
+            *)          echo "unknown";;
+        esac
+    else
+        case "$OSTYPE" in
+            linux*) echo "linux" ;;
+            darwin*) echo "macos" ;;
+            msys*|cygwin*|mingw*) echo "windows" ;;
+            *) echo "unknown" ;;
+        esac
+    fi
 }
 
 get_shell_config() {
@@ -48,6 +57,8 @@ install_lazycli() {
     check_requirements
 
     local os=$(detect_os)
+    print_status "Detected OS: $os"
+
     local install_dir="$HOME/.lazycli"
     local binary_path="$install_dir/lazy"
 
@@ -55,20 +66,26 @@ install_lazycli() {
     mkdir -p "$install_dir" || { print_error "Permission denied to create $install_dir"; exit 1; }
 
     local url=""
-if [[ "$version" == "latest" ]]; then
-    url="https://lazycli.xyz/scripts/lazy.sh"
-else
-    url="https://lazycli.xyz/versions/$version/lazy.sh"
-fi
+    if [[ "$version" == "latest" ]]; then
+        url="https://lazycli.xyz/scripts/lazy.sh"
+    else
+        url="https://lazycli.xyz/versions/$version/lazy.sh"
+    fi
 
     print_status "Downloading from: $url"
     if command -v curl >/dev/null; then
-        curl -fsSL "$url" -o "$binary_path" || { print_error "Download failed."; exit 1; }
+        if ! curl -fsSL "$url" -o "$binary_path"; then
+            print_error "❌ Download failed from $url"
+            exit 1
+        fi
     else
-        wget -q "$url" -O "$binary_path" || { print_error "Download failed."; exit 1; }
+        if ! wget -q "$url" -O "$binary_path"; then
+            print_error "❌ Download failed from $url"
+            exit 1
+        fi
     fi
 
-    chmod +x "$binary_path"
+    chmod +x "$binary_path" 2>/dev/null || print_warning "chmod +x failed (may not be needed on Windows)"
 
     local shell_config=$(get_shell_config)
     local path_export='export PATH="$HOME/.lazycli:$PATH"'
@@ -86,6 +103,7 @@ fi
     fi
 
     [[ ":$PATH:" != *":$HOME/.lazycli:"* ]] && export PATH="$HOME/.lazycli:$PATH"
+
     print_success "LazyCLI $version installed!"
 
     echo
