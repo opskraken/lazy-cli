@@ -48,19 +48,25 @@ export default function Navbar() {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex space-x-8">
-              {["Features", "Installation", "Upcoming", "Commands"].map(
-                (item) => (
-                  <motion.a
-                    key={item}
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    href={`#${item.toLowerCase()}`}
-                    className="text-slate-300 hover:text-cyan-400 transition-colors relative group"
-                  >
-                    {item}
-                    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-400 to-blue-400 group-hover:w-full transition-all duration-300" />
-                  </motion.a>
-                )
-              )}
+              {[
+                { name: "Features", href: "#features" },
+                { name: "Installation", href: "#installation" },
+                { name: "Guideline", href: "/guideline" },
+                { name: "Contribute", href: "/contribute" },
+                { name: "Version", href: "/version" },
+                { name: "Windows", href: "/windows" },
+                { name: "Commands", href: "#commands" }
+              ].map((item) => (
+                <motion.a
+                  key={item.name}
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  href={item.href}
+                  className="text-slate-300 hover:text-cyan-400 transition-colors relative group"
+                >
+                  {item.name}
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-400 to-blue-400 group-hover:w-full transition-all duration-300" />
+                </motion.a>
+              ))}
             </div>
 
             {/* Mobile Menu Button */}
@@ -87,16 +93,23 @@ export default function Navbar() {
               className="md:hidden bg-slate-800/95 backdrop-blur-xl border-t border-slate-700"
             >
               <div className="px-4 py-2 space-y-1">
-                {["Features", "Installation", "Upcoming", "Commands"].map(
-                  (item) => (
-                    <motion.a
-                      key={item}
-                      whileHover={{ x: 10 }}
-                      href={`#${item.toLowerCase()}`}
-                      className="block px-3 py-2 text-slate-300 hover:text-cyan-400 hover:bg-slate-700/50 rounded-lg transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      {item}
+                {[
+                  { name: "Features", href: "#features" },
+                  { name: "Installation", href: "#installation" },
+                  { name: "Guideline", href: "/guideline" },
+                  { name: "Contribute", href: "/contribute" },
+                  { name: "Version", href: "/version" },
+                  { name: "Windows", href: "/windows" },
+                  { name: "Commands", href: "#commands" }
+                ].map((item) => (
+                  <motion.a
+                    key={item.name}
+                    whileHover={{ x: 10 }}
+                    href={item.href}
+                    className="block px-3 py-2 text-slate-300 hover:text-cyan-400 hover:bg-slate-700/50 rounded-lg transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {item.name}
                     </motion.a>
                   )
                 )}

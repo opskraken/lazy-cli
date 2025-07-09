@@ -444,7 +444,7 @@ const VersionDetailsPage = () => {
       </div>
 
       <motion.div
-        className="relative z-10 container mx-auto px-6 py-12"
+        className="relative z-10 container mx-auto px-6 pt-24 pb-16"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
