@@ -55,10 +55,10 @@ install_lazycli() {
     mkdir -p "$install_dir" || { print_error "Permission denied to create $install_dir"; exit 1; }
 
     local url=""
- if [[ "$version" == "latest" ]]; then
-    url="https://www.lazycli.xyz/scripts/lazy.sh"
+if [[ "$version" == "latest" ]]; then
+    url="https://lazycli.xyz/scripts/lazy.sh"
 else
-    url="https://www.lazycli.xyz/versions/$version/lazy.sh"
+    url="https://lazycli.xyz/versions/$version/lazy.sh"
 fi
 
     print_status "Downloading from: $url"
