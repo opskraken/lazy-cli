@@ -1,17 +1,4 @@
 {
-  "redirects": [
-    {
-      "source": "/(.*)",
-      "has": [
-        {
-          "type": "host",
-          "value": "lazycli.xyz"
-        }
-      ],
-      "destination": "https://www.lazycli.xyz/$1",
-      "permanent": false
-    }
-  ],
   "rewrites": [
     {
       "source": "/",
