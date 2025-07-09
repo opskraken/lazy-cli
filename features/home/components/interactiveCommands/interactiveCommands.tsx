@@ -1,0 +1,274 @@
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  Settings,
+  Terminal,
+  Zap,
+  Github,
+  Command,
+  CheckCircle,
+  Copy,
+} from "lucide-react";
+
+interface Command {
+  command: string;
+  description: string;
+}
+
+interface Feature {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  commands: Command[];
+}
+
+export default function InteractiveCommands({
+  setActiveCommand,
+  activeCommand,
+  copyToClipboard,
+  copiedCommand,
+}: {
+  setActiveCommand: (commandId: string) => void;
+  activeCommand: string;
+  copyToClipboard: (text: string) => void;
+  copiedCommand: string;
+}) {
+  // Current features data with Lucide icons
+  const currentFeatures: Feature[] = [
+    {
+      id: "github",
+      title: "GitHub Automation",
+      description:
+        "Streamline your GitHub workflow with automated repository management and CI/CD integration",
+      icon: Github,
+      color: "from-purple-500 via-pink-500 to-red-500",
+      commands: [
+        {
+          command: "lazycli github init",
+          description:
+            "Initialize a new GitHub repository with standard configuration",
+        },
+        {
+          command: "lazycli github clone",
+          description: "Clone a GitHub repository and setup the project",
+        },
+        {
+          command: "lazycli github push",
+          description: "Push changes to GitHub with automated commit messages",
+        },
+        {
+          command: "lazycli github pull",
+          description: "Create pull requests with predefined templates",
+        },
+      ],
+    },
+    {
+      id: "nodejs",
+      title: "Node.js Project Setup",
+      description:
+        "Bootstrap Node.js projects with best practices, TypeScript, and modern configurations",
+      icon: Settings,
+      color: "from-green-400 via-emerald-500 to-teal-500",
+      commands: [
+        {
+          command: "lazycli node-js init",
+          description:
+            "Create a new Node.js project with package.json and basic structure",
+        },
+        {
+          command: "lazycli node-js deps",
+          description: "Install common dependencies and dev tools",
+        },
+        {
+          command: "lazycli node-js scripts",
+          description:
+            "Add standard npm scripts for development and production",
+        },
+      ],
+    },
+    {
+      id: "nextjs",
+      title: "Next.js Scaffolding",
+      description:
+        "Generate optimized Next.js applications with TypeScript, Tailwind, and modern tooling",
+      icon: Zap,
+      color: "from-blue-400 via-cyan-500 to-teal-500",
+      commands: [
+        {
+          command: "lazycli next-js i",
+          description:
+            "Initialize a new Next.js project with TypeScript and Tailwind CSS",
+        },
+        {
+          command: "lazycli next-js api",
+          description: "Generate API routes with authentication boilerplate",
+        },
+        {
+          command: "lazycli next-js deploy",
+          description: "Configure deployment settings for Vercel",
+        },
+      ],
+    },
+    {
+      id: "vitejs",
+      title: "Vite.js Project Setup",
+      description:
+        "Create lightning-fast Vite.js projects with modern tooling and optimized builds",
+      icon: Terminal,
+      color: "from-orange-400 via-red-500 to-pink-500",
+      commands: [
+        {
+          command: "lazycli vite init",
+          description: "Bootstrap a new Vite project with React or Vue",
+        },
+        {
+          command: "lazycli vite config",
+          description: "Configure build optimization and environment variables",
+        },
+        {
+          command: "lazycli vite preview",
+          description: "Set up local preview server with hot reload",
+        },
+      ],
+    },
+  ];
+  return (
+    <>
+      <section id="commands" className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+              <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                Commands & Usage
+              </span>
+            </h2>
+            <p className="text-xl text-slate-400 max-w-3xl mx-auto">
+              Explore detailed command examples and usage patterns for each
+              platform
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="bg-slate-800/50 backdrop-blur-xl border border-slate-700 rounded-2xl overflow-hidden"
+          >
+            {/* Command Tabs */}
+            <div className="flex flex-wrap border-b border-slate-700">
+              {currentFeatures.map((feature) => {
+                const IconComponent = feature.icon;
+                return (
+                  <motion.button
+                    key={feature.id}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setActiveCommand(feature.id)}
+                    className={`flex-1 min-w-0 py-6 px-6 text-center font-medium transition-all ${
+                      activeCommand === feature.id
+                        ? "text-cyan-400 border-b-2 border-cyan-400 bg-slate-700/50"
+                        : "text-slate-400 hover:text-white hover:bg-slate-700/30"
+                    }`}
+                  >
+                    <IconComponent className="w-5 h-5 mx-auto mb-2" />
+                    <span className="hidden sm:inline text-sm">
+                      {feature.title}
+                    </span>
+                  </motion.button>
+                );
+              })}
+            </div>
+
+            {/* Command Content */}
+            <div className="p-8">
+              <AnimatePresence mode="wait">
+                {currentFeatures.map((feature) => (
+                  <motion.div
+                    key={feature.id}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.3 }}
+                    className={`${
+                      activeCommand === feature.id ? "block" : "hidden"
+                    }`}
+                  >
+                    <div className="mb-8">
+                      <div className="flex items-center mb-4">
+                        <div
+                          className={`w-10 h-10 rounded-xl bg-gradient-to-r ${feature.color} flex items-center justify-center mr-4`}
+                        >
+                          <feature.icon className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="text-2xl font-bold text-white">
+                            {feature.title}
+                          </h3>
+                          <p className="text-slate-400">
+                            {feature.description}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-6">
+                      {feature.commands.map((cmd, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1, duration: 0.5 }}
+                          whileHover={{ scale: 1.02 }}
+                          className="bg-slate-900/50 backdrop-blur-xl border border-slate-700 rounded-xl p-6 group hover:border-cyan-400/50 transition-all"
+                        >
+                          <div className="flex items-center justify-between mb-4">
+                            <span className="text-slate-400 text-sm flex items-center">
+                              <Command className="w-4 h-4 mr-2" />
+                              Command
+                            </span>
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => copyToClipboard(cmd.command)}
+                              className="text-cyan-400 hover:text-cyan-300 text-sm flex items-center px-3 py-1 bg-cyan-400/10 rounded-lg border border-cyan-400/20 transition-colors"
+                            >
+                              {copiedCommand === cmd.command ? (
+                                <>
+                                  <CheckCircle className="w-4 h-4 mr-1" />
+                                  Copied!
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-4 h-4 mr-1" />
+                                  Copy
+                                </>
+                              )}
+                            </motion.button>
+                          </div>
+                          <code className="text-cyan-400 text-lg font-mono block mb-4 group-hover:text-cyan-300 transition-colors">
+                            $ {cmd.command}
+                          </code>
+                          <p className="text-slate-300 text-sm leading-relaxed">
+                            {cmd.description}
+                          </p>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+    </>
+  );
+}
