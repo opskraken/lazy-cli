@@ -34,7 +34,7 @@ export default function Navbar() {
   const latestVersion = {
     version: "v1.0.2",
     title: "Cross-Platform Support",
-    date: "2024-01-15",
+    date: "2025-07-10",
     isNew: true,
     type: "patch",
   };
@@ -43,14 +43,14 @@ export default function Navbar() {
     {
       version: "v1.0.2",
       title: "Cross-Platform Support",
-      date: "2024-01-15",
+      date: "2025-07-10",
       status: "current",
       type: "patch",
     },
     {
       version: "v1.0.1",
       title: "Initial Integration Suite",
-      date: "2023-12-20",
+      date: "2025-7-9",
       status: "previous",
       type: "patch",
     },

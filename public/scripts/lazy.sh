@@ -520,7 +520,8 @@ else
   sed -i.bak '/"scripts":/,/},/d' package.json
 
   # Ensure dependencies section ends with a comma
-  sed -i.bak '/"dependencies": {[^}]*}/ s/}/},/' package.json
+  sed -i.bak '/"dependencies": {[^}]*}[^,]$/ s/}/},/' package.json
+  sed -i.bak '/"devDependencies": {[^}]*}[^,]$/ s/}/},/' package.json
 
   # Inject scripts block before final closing brace
   if [[ "$pkg_manager" == "bun" ]]; then
