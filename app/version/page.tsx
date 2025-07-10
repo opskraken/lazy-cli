@@ -27,10 +27,10 @@ import {
   FileText,
   Target,
   Award,
-  ChevronRight,
   Activity,
   Hash,
 } from "lucide-react";
+import InstallCommandButton from "@/features/version/components/installCommandButton/InstallCommandButton";
 
 const VersionDetailsPage = () => {
   const [activeTab, setActiveTab] = useState("current");
@@ -462,20 +462,21 @@ const VersionDetailsPage = () => {
           </motion.div>
 
           <motion.h1
-            className="text-6xl font-bold text-white mb-6 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent"
+            className="text-6xl font-bold mb-6 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            Git Automation CLI
+            LazyCLI – Dev Automation, Your Way
           </motion.h1>
 
           <motion.p
-            className="text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed"
+            className="text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed"
             variants={itemVariants}
           >
-            Streamline your development workflow with intelligent Git automation
-            and seamless platform integrations.
+            A cross-platform, customizable CLI toolkit that helps you automate
+            Git, Node.js, PM2, Vite, Next.js, AWS workflows and more — tailored
+            to your personal dev setup.
           </motion.p>
         </motion.div>
 
@@ -654,17 +655,7 @@ const VersionDetailsPage = () => {
         </AnimatePresence>
 
         {/* Download CTA */}
-        <motion.div className="text-center mt-16" variants={itemVariants}>
-          <motion.button
-            className="inline-flex items-center space-x-3 bg-gradient-to-r from-cyan-400 to-blue-400 hover:from-cyan-500 hover:to-blue-500 text-white px-8 py-4 rounded-xl font-medium transition-all duration-300 shadow-lg shadow-cyan-400/25"
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Download className="w-5 h-5" />
-            <span>Download Latest Version</span>
-            <ChevronRight className="w-4 h-4" />
-          </motion.button>
-        </motion.div>
+        <InstallCommandButton />
       </motion.div>
     </div>
   );

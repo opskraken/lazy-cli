@@ -12,7 +12,7 @@ Lazycliis a powerful, Bash-based command-line interface that simplifies your dev
 Install globally with one command (macOS/Linux):
 
 ```bash
-curl -s lazycli.xyz | bash
+curl -s https://lazycli.xyz/install.sh | bash
 
 ```
 

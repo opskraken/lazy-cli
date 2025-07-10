@@ -336,7 +336,7 @@ const GuidelinePage = () => {
                   Install globally with one command
                 </p>
                 <code className="bg-black/30 px-3 py-2 rounded text-sm block text-cyan-300">
-                  curl -s lazycli.xyz | bash
+                  curl -s https://lazycli.xyz/install.sh | bash
                 </code>
               </div>
 
