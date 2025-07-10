@@ -331,6 +331,7 @@ github_create_pr() {
 # Initialize a Node.js project with interactive package selection
 # Detects available package manager and prompts for common dependencies
 # Supports: express, dotenv, nodemon, cors, zod
+
 node_js_init() {
   detect_package_manager
   local pkg_manager="$PKG_MANAGER"
@@ -466,77 +467,68 @@ EOF
   echo "🛠️ Configuring package.json scripts..."
   
   # Create scripts object if it doesn't exist and add appropriate scripts
-  if command -v jq &>/dev/null; then
-    # Use jq for reliable JSON manipulation
-    if [[ "$pkg_manager" == "bun" ]]; then
-      if [[ "$ans_nodemon" == "1" ]]; then
-        jq '.scripts = {
-          "start": "bun run index.ts",
-          "dev": "nodemon --watch index.ts --exec bun run index.ts",
-          "test": "bun test"
-        }' package.json > tmp.json && mv tmp.json package.json
-      else
-        jq '.scripts = {
-          "start": "bun run index.ts",
-          "build": "bun build index.ts",
-          "test": "bun test"
-        }' package.json > tmp.json && mv tmp.json package.json
-      fi
-    elif [[ "$pkg_manager" == "npm" ]]; then
-      if [[ "$ans_nodemon" == "1" ]]; then
-        jq '.scripts = {
-          "start": "ts-node index.ts",
-          "dev": "nodemon index.ts",
-          "build": "tsc",
-          "test": "echo \"Error: no test specified\" && exit 1"
-        }' package.json > tmp.json && mv tmp.json package.json
-      else
-        jq '.scripts = {
-          "start": "ts-node index.ts",
-          "build": "tsc",
-          "test": "echo \"Error: no test specified\" && exit 1"
-        }' package.json > tmp.json && mv tmp.json package.json
-      fi
+if command -v jq &>/dev/null; then
+  # ✅ Use jq for safe, structured JSON editing
+  if [[ "$pkg_manager" == "bun" ]]; then
+    if [[ "$ans_nodemon" == "1" ]]; then
+      jq '.scripts = {
+        "start": "bun run index.ts",
+        "dev": "nodemon --watch index.ts --exec bun run index.ts",
+        "test": "bun test"
+      }' package.json > tmp.json && mv tmp.json package.json
     else
-      # pnpm, yarn
-      if [[ "$ans_nodemon" == "1" ]]; then
-        jq '.scripts = {
-          "start": "ts-node index.ts",
-          "dev": "nodemon index.ts",
-          "build": "tsc",
-          "test": "echo \"Error: no test specified\" && exit 1"
-        }' package.json > tmp.json && mv tmp.json package.json
-      else
-        jq '.scripts = {
-          "start": "ts-node index.ts",
-          "build": "tsc",
-          "test": "echo \"Error: no test specified\" && exit 1"
-        }' package.json > tmp.json && mv tmp.json package.json
-      fi
+      jq '.scripts = {
+        "start": "bun run index.ts",
+        "build": "bun build index.ts",
+        "test": "bun test"
+      }' package.json > tmp.json && mv tmp.json package.json
     fi
   else
-    # Fallback: manual JSON editing (less reliable but works without jq)
-    echo "⚠️ jq not found, using manual JSON editing..."
-    
-    # Remove existing scripts section if present
-    sed -i.bak '/"scripts":/,/},/d' package.json
-    
-    # Add new scripts section before the closing brace
-    if [[ "$pkg_manager" == "bun" ]]; then
-      if [[ "$ans_nodemon" == "1" ]]; then
-        sed -i.bak '$i\  "scripts": {\n    "start": "bun run index.ts",\n    "dev": "nodemon --watch index.ts --exec bun run index.ts",\n    "test": "bun test"\n  },' package.json
-      else
-        sed -i.bak '$i\  "scripts": {\n    "start": "bun run index.ts",\n    "build": "bun build index.ts",\n    "test": "bun test"\n  },' package.json
-      fi
+    if [[ "$ans_nodemon" == "1" ]]; then
+      jq '.scripts = {
+        "start": "ts-node index.ts",
+        "dev": "nodemon index.ts",
+        "build": "tsc",
+        "test": "echo \"Error: no test specified\" && exit 1"
+      }' package.json > tmp.json && mv tmp.json package.json
     else
-      if [[ "$ans_nodemon" == "1" ]]; then
-        sed -i.bak '$i\  "scripts": {\n    "start": "ts-node index.ts",\n    "dev": "nodemon index.ts",\n    "build": "tsc",\n    "test": "echo \"Error: no test specified\" && exit 1"\n  },' package.json
-      else
-        sed -i.bak '$i\  "scripts": {\n    "start": "ts-node index.ts",\n    "build": "tsc",\n    "test": "echo \"Error: no test specified\" && exit 1"\n  },' package.json
-      fi
+      jq '.scripts = {
+        "start": "ts-node index.ts",
+        "build": "tsc",
+        "test": "echo \"Error: no test specified\" && exit 1"
+      }' package.json > tmp.json && mv tmp.json package.json
     fi
-    rm -f package.json.bak
   fi
+
+else
+  # ⚠️ Fallback: Manual sed-based editing (less robust)
+  echo "⚠️ jq not found, using manual JSON editing..."
+
+  # Remove existing scripts section if present
+  sed -i.bak '/"scripts":/,/},/d' package.json
+
+  # Ensure dependencies section ends with a comma
+  sed -i.bak '/"dependencies": {[^}]*}/ s/}/},/' package.json
+
+  # Inject scripts block before final closing brace
+  if [[ "$pkg_manager" == "bun" ]]; then
+    if [[ "$ans_nodemon" == "1" ]]; then
+      sed -i.bak '$i\  "scripts": {\n    "start": "bun run index.ts",\n    "dev": "nodemon --watch index.ts --exec bun run index.ts",\n    "test": "bun test"\n  },' package.json
+    else
+      sed -i.bak '$i\  "scripts": {\n    "start": "bun run index.ts",\n    "build": "bun build index.ts",\n    "test": "bun test"\n  },' package.json
+    fi
+  else
+    if [[ "$ans_nodemon" == "1" ]]; then
+      sed -i.bak '$i\  "scripts": {\n    "start": "ts-node index.ts",\n    "dev": "nodemon index.ts",\n    "build": "tsc",\n    "test": "echo \\"Error: no test specified\\" && exit 1"\n  },' package.json
+    else
+      sed -i.bak '$i\  "scripts": {\n    "start": "ts-node index.ts",\n    "build": "tsc",\n    "test": "echo \\"Error: no test specified\\" && exit 1"\n  },' package.json
+    fi
+  fi
+
+  # Clean up backup file
+  rm -f package.json.bak
+fi
+
   
   if [[ "$ans_nodemon" == "1" ]]; then
     echo "✅ Run with: $pkg_manager run dev (development with auto-reload)"
