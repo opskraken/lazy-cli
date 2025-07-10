@@ -230,8 +230,7 @@ github_create_pr() {
     return 1
   fi
 
-  # Detect project type by checking for specific configuration files
-  # Supports: Node.js, Python, Go, Java (Maven/Gradle)
+  # Detect project type
   local PROJECT_TYPE="unknown"
   if [[ -f "package.json" ]]; then
     PROJECT_TYPE="node"
@@ -245,9 +244,9 @@ github_create_pr() {
 
   echo "🔍 Detected project type: $PROJECT_TYPE"
 
-  # Execute project-specific dependency installation and build commands
+  # Project-specific install/build
   case "$PROJECT_TYPE" in
-    node) # Node.js projects - install deps and run build
+    node)
       echo "📦 Installing Node.js dependencies..."
       detect_package_manager
       if [[ -z "$PKG_MANAGER" ]]; then
@@ -260,7 +259,7 @@ github_create_pr() {
         fi
       fi
       ;;
-    python) # Python projects - handle pip, poetry, or pipenv
+    python)
       echo "📦 Installing Python dependencies..."
       if command -v pip &> /dev/null; then
         if [[ -f "requirements.txt" ]]; then
@@ -280,7 +279,7 @@ github_create_pr() {
         echo "⚠️ pip not installed."
       fi
       ;;
-    go) # Go projects - tidy modules
+    go)
       echo "📦 Tidying Go modules..."
       if command -v go &> /dev/null; then
         go mod tidy || echo "⚠️ go mod tidy failed."
@@ -288,7 +287,7 @@ github_create_pr() {
         echo "⚠️ Go not installed."
       fi
       ;;
-    java) # Java projects - Maven or Gradle builds
+    java)
       echo "📦 Building Java project..."
       if [[ -f "pom.xml" ]]; then
         if command -v mvn &> /dev/null; then
@@ -306,7 +305,7 @@ github_create_pr() {
         echo "⚠️ No recognized Java build files found."
       fi
       ;;
-    *) # Handle unknown commands
+    *)
       echo "⚠️ Dependency install & build not implemented for project type: $PROJECT_TYPE"
       ;;
   esac
@@ -325,8 +324,21 @@ github_create_pr() {
     return 1
   fi
 
+  # Create pull request if GitHub CLI is available
+  if command -v gh &> /dev/null; then
+    echo "🔁 Creating pull request: $CURRENT_BRANCH → $BASE_BRANCH"
+    if ! gh pr create --base "$BASE_BRANCH" --head "$CURRENT_BRANCH" --title "$COMMIT_MSG" --body "$COMMIT_MSG"; then
+      echo "❌ Pull request creation failed."
+      return 1
+    fi
+  else
+    echo "⚠️ GitHub CLI (gh) not installed. Skipping PR creation."
+    echo "👉 Install it from https://cli.github.com/"
+  fi
+
   echo "✅ Pull request workflow completed successfully."
 }
+
 
 # Initialize a Node.js project with interactive package selection
 # Detects available package manager and prompts for common dependencies

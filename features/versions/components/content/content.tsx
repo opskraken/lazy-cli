@@ -2,8 +2,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Terminal,
-  GitBranch,
   Settings,
   Code,
   Zap,
@@ -17,8 +15,6 @@ import {
   Users,
   Calendar,
   Github,
-  Command,
-  FileText,
   Target,
   Award,
   Activity,
@@ -173,34 +169,6 @@ export default function Content({
         "git-auto init",
         "git-auto status",
       ],
-    },
-    {
-      version: "v1.0.0",
-      title: "Foundation Release",
-      date: "2023-11-30",
-      status: "previous",
-      type: "major",
-      features: [
-        {
-          icon: <Terminal className="w-5 h-5" />,
-          title: "Core Automation",
-          description: "Basic Git command automation and workflow management",
-        },
-        {
-          icon: <Command className="w-5 h-5" />,
-          title: "CLI Interface",
-          description: "Simple command-line interface for Git operations",
-        },
-        {
-          icon: <FileText className="w-5 h-5" />,
-          title: "Script Foundation",
-          description: "Robust bash script architecture for extensibility",
-        },
-      ],
-      integrations: [
-        { name: "Git", icon: <GitBranch className="w-4 h-4" />, status: "new" },
-      ],
-      commands: ["git-auto --help", "git-auto push", "git-auto pull"],
     },
   ];
   const roadmapItems = [
