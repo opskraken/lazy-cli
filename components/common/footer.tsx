@@ -58,7 +58,7 @@ export default function Footer() {
                 />
               </div>
               <span className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                Lazycli
+                LazyCLI
               </span>
             </div>
             <p className="text-slate-400 text-sm sm:text-base mb-4 px-4 sm:px-0">
@@ -201,7 +201,7 @@ export default function Footer() {
           className="border-t border-slate-800 mt-8 sm:mt-12 pt-6 sm:pt-8 text-center text-slate-500"
         >
           <p>
-            &copy; 2025 Lazycli. All rights reserved. Empowering developers
+            &copy; 2025 LazyCLI. All rights reserved. Empowering developers
             globally.
           </p>
         </motion.div>

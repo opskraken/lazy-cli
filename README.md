@@ -1,6 +1,6 @@
-# ⚡ Lazycli– The Universal CLI Vault
+# ⚡ LazyCLI– The Universal CLI Vault
 
-Lazycliis a powerful, Bash-based command-line interface that simplifies your development and deployment workflow — from initializing projects to pushing code to GitHub — all in a single CLI tool.
+LazyCLI a powerful, Bash-based command-line interface that simplifies your development and deployment workflow — from initializing projects to pushing code to GitHub — all in a single CLI tool.
 
 > ✅ Currently supports Node.js, Next.js, Vite.js, and GitHub automation.  
 > 🔜 Python, Docker, Flutter, Rust, and more are coming soon.
