@@ -1,7 +1,10 @@
 #!/bin/bash
 
+# LazyCLI - A command-line tool to automate development workflows
+# Version information
 VERSION="1.0.2"
 
+# Display help information with usage examples and available commands
 show_help() {
   cat << EOF
 LazyCLI – Automate your dev flow like a lazy pro 💤
@@ -24,7 +27,7 @@ Examples:
       push to current branch, and create a GitHub pull request.
 
   lazy node-js init
-      Initialize a Node.js project with npm init -y and optional boilerplate package installation.
+      Initialize a Node.js project with init -y and optional boilerplate package installation.
 
   lazy next-js create
       Scaffold a new Next.js application with recommended defaults and optional packages.
@@ -62,7 +65,9 @@ EOF
 }
 
 
-# Detect which package manager is available (priority: bun > pnpm > yarn > npm)
+# Detect which package manager is available on the system
+# Priority order: bun > pnpm > yarn > npm
+# Sets the global PKG_MANAGER variable for use throughout the script
 detect_package_manager() {
   if command -v bun >/dev/null 2>&1; then
     PKG_MANAGER="bun"
@@ -80,6 +85,8 @@ detect_package_manager() {
   echo "📦 Using package manager: $PKG_MANAGER"
 }
 
+# Initialize a new Git repository in the current directory
+# Checks if .git directory already exists to avoid conflicts
 github_init() {
   echo "🛠️ Initializing new Git repository..."
 
@@ -94,6 +101,9 @@ github_init() {
   }
 }
 
+# Clone a GitHub repository and automatically set up the project
+# Detects project type, installs dependencies, and optionally opens in VS Code
+# Args: $1 = repository URL, $2 = tech stack (optional)
 github_clone() {
   local repo="$1"
   local tech="$2"
@@ -159,6 +169,8 @@ github_clone() {
 }
 
 
+# Stage all changes, commit with provided message, and push to current branch
+# Args: $1 = commit message
 github_push() {
   echo "📦 Staging changes..."
   git add .
@@ -192,6 +204,9 @@ github_push() {
   echo "✅ Changes pushed to origin/$BRANCH 🎉"
 }
 
+# Create a pull request workflow: pull latest changes, install dependencies, commit, push, and create PR
+# Automatically detects project type and runs appropriate build/install commands
+# Args: $1 = base branch, $2 = commit message
 github_create_pr() {
   local BASE_BRANCH="$1"
   local COMMIT_MSG="$2"
@@ -215,7 +230,8 @@ github_create_pr() {
     return 1
   fi
 
-  # Detect project type by presence of files/folders
+  # Detect project type by checking for specific configuration files
+  # Supports: Node.js, Python, Go, Java (Maven/Gradle)
   local PROJECT_TYPE="unknown"
   if [[ -f "package.json" ]]; then
     PROJECT_TYPE="node"
@@ -229,8 +245,9 @@ github_create_pr() {
 
   echo "🔍 Detected project type: $PROJECT_TYPE"
 
+  # Execute project-specific dependency installation and build commands
   case "$PROJECT_TYPE" in
-    node)
+    node) # Node.js projects - install deps and run build
       echo "📦 Installing Node.js dependencies..."
       detect_package_manager
       if [[ -z "$PKG_MANAGER" ]]; then
@@ -243,7 +260,7 @@ github_create_pr() {
         fi
       fi
       ;;
-    python)
+    python) # Python projects - handle pip, poetry, or pipenv
       echo "📦 Installing Python dependencies..."
       if command -v pip &> /dev/null; then
         if [[ -f "requirements.txt" ]]; then
@@ -263,7 +280,7 @@ github_create_pr() {
         echo "⚠️ pip not installed."
       fi
       ;;
-    go)
+    go) # Go projects - tidy modules
       echo "📦 Tidying Go modules..."
       if command -v go &> /dev/null; then
         go mod tidy || echo "⚠️ go mod tidy failed."
@@ -271,7 +288,7 @@ github_create_pr() {
         echo "⚠️ Go not installed."
       fi
       ;;
-    java)
+    java) # Java projects - Maven or Gradle builds
       echo "📦 Building Java project..."
       if [[ -f "pom.xml" ]]; then
         if command -v mvn &> /dev/null; then
@@ -289,7 +306,7 @@ github_create_pr() {
         echo "⚠️ No recognized Java build files found."
       fi
       ;;
-    *)
+    *) # Handle unknown commands
       echo "⚠️ Dependency install & build not implemented for project type: $PROJECT_TYPE"
       ;;
   esac
@@ -308,7 +325,7 @@ github_create_pr() {
     return 1
   fi
 
-  # Create PR with GitHub CLI if available
+  # Attempt to create pull request using GitHub CLI if installed
   if command -v gh &> /dev/null; then
     echo "🔁 Creating pull request: $CURRENT_BRANCH → $BASE_BRANCH"
     if ! gh pr create --base "$BASE_BRANCH" --head "$CURRENT_BRANCH" --title "$COMMIT_MSG" --body "$COMMIT_MSG"; then
@@ -323,6 +340,9 @@ github_create_pr() {
   echo "✅ Pull request workflow completed successfully."
 }
 
+# Initialize a Node.js project with interactive package selection
+# Detects available package manager and prompts for common dependencies
+# Supports: express, dotenv, nodemon, cors, zod
 node_js_init() {
   detect_package_manager
   local pkg_manager="$PKG_MANAGER"
@@ -338,7 +358,6 @@ node_js_init() {
   echo ""
   echo "🧠 LazyCLI Smart Stack Setup: Answer once and make yourself gloriously lazy"
 
-  # Prompt helper
   prompt_or_exit() {
     local prompt_text=$1
     local answer
@@ -351,7 +370,6 @@ node_js_init() {
     done
   }
 
-  # Ask for package preferences
   ans_express=$(prompt_or_exit "➕ Install express?")
   [[ "$ans_express" == "-1" ]] && echo "⏹️ Setup exited." && return
 
@@ -367,7 +385,6 @@ node_js_init() {
   ans_zod=$(prompt_or_exit "🧪 Install zod?")
   [[ "$ans_zod" == "-1" ]] && echo "⏹️ Setup exited." && return
 
-  # Prepare install lists
   deps=""
   dev_deps=""
 
@@ -377,7 +394,6 @@ node_js_init() {
   [[ "$ans_zod" == "1" ]] && deps="$deps zod"
   [[ "$ans_nodemon" == "1" ]] && dev_deps="$dev_deps nodemon"
 
-  # Install dependencies
   if [[ -n "$deps" ]]; then
     echo "📦 Installing dependencies: $deps"
     if [[ "$pkg_manager" == "npm" ]]; then
@@ -396,9 +412,58 @@ node_js_init() {
     fi
   fi
 
+  # Create a basic index.js if not exists
+  if [[ ! -f index.js ]]; then
+    echo "📝 Creating basic index.js file..."
+    cat > index.js <<EOF
+const express = require('express');
+const app = express();
+const port = process.env.PORT || 3000;
+
+console.log("🚀 Welcome to your LazyCLI-powered Node.js server! 💤");
+
+app.get('/', (req, res) => {
+  res.send('Hello from LazyCLI Node.js server!');
+});
+
+app.listen(port, () => {
+  console.log(\`Server is running on http://localhost:\${port}\`);
+});
+EOF
+  else
+    echo "⚠️ index.js already exists, skipping creation."
+  fi
+
+  # Add nodemon dev script if nodemon installed
+  if [[ "$ans_nodemon" == "1" ]]; then
+    echo "🛠️ Adding 'dev' script to package.json for nodemon..."
+
+    # Use jq if available to safely modify package.json, fallback to sed
+    if command -v jq &>/dev/null; then
+      jq '.scripts.dev="nodemon index.js"' package.json > package.tmp.json && mv package.tmp.json package.json
+    else
+      # crude sed based script add/update for 'dev'
+      if grep -q "\"dev\"" package.json; then
+        # Replace existing dev script
+        sed -i.bak 's/"dev": *"[^"]*"/"dev": "nodemon index.js"/' package.json
+        rm package.json.bak
+      else
+        # Add dev script inside scripts object
+        sed -i.bak '/"scripts": *{/a\    "dev": "nodemon index.js",' package.json
+        rm package.json.bak
+      fi
+    fi
+
+    echo "✅ 'dev' script added. You can now run 'npm run dev' to start the server."
+  fi
+
   echo "✅ Node.js project initialized successfully!"
 }
 
+
+# Create a new Next.js application with TypeScript, Tailwind, and optional packages
+# Uses create-next-app with predefined settings and interactive package selection
+# Supports: zod, bcrypt, js-cookie, swr, lucide-react, react-hot-toast, shadcn-ui
 next_js_create() {
   echo "🛠️ Creating Next.js app..."
 
@@ -418,11 +483,29 @@ next_js_create() {
   read -p "✅ Continue with these settings? (y/n): " confirm_next
   [[ "$confirm_next" != "y" ]] && echo "❌ Cancelled." && return
 
+  # Ask about using src directory (1 = yes, 0 = no)
+  while true; do
+    read -p "📂 Use 'src/' directory? (1/0): " use_src
+    if [[ "$use_src" == "1" || "$use_src" == "0" ]]; then
+      break
+    else
+      echo "Please enter 1 or 0."
+    fi
+  done
+
+  # Prepare src dir flag for create-next-app
+  if [[ "$use_src" == "1" ]]; then
+    src_flag="--src-dir"
+  else
+    src_flag="--no-src-dir"
+  fi
+
   npx create-next-app@latest "$project_name" \
     --typescript \
     --eslint \
     --tailwind \
     --app \
+    $src_flag \
     --import-alias "@/*" \
     --no-interactive
 
@@ -442,7 +525,6 @@ next_js_create() {
     done
   }
 
-  # Collect inputs first
   ans_zod=$(prompt_or_exit "➕ Install zod?")
   [[ "$ans_zod" == "-1" ]] && echo "🚫 Setup skipped." && return
 
@@ -466,7 +548,6 @@ next_js_create() {
 
   detect_package_manager
 
-  # Build package list
   packages=""
   [[ "$ans_zod" == "1" ]] && packages="$packages zod"
   [[ "$ans_bcrypt" == "1" ]] && packages="$packages bcrypt"
@@ -496,6 +577,10 @@ next_js_create() {
   echo "🚀 Your Next.js app is ready!"
 }
 
+
+# Create a new Vite application with framework selection and optional packages
+# Supports multiple frameworks: Vanilla, React, Vue, Svelte
+# Includes optional packages: axios, clsx, zod, react-hot-toast, react-router-dom, lucide-react, Tailwind CSS, DaisyUI
 vite_js_create() {
   echo "🛠️ Creating Vite app for you..."
 
@@ -505,6 +590,7 @@ vite_js_create() {
     return
   fi
 
+  # Framework selection for Vite project
   echo "✨ Choose a framework:"
   echo "1) Vanilla"
   echo "2) React"
@@ -523,9 +609,10 @@ vite_js_create() {
   detect_package_manager
 
   echo "🧠 LazyCLI Smart Stack Setup: Answer once and make yourself gloriously lazy"
+  # Interactive package selection with exit option
   echo "   1 = Yes, 0 = No, -1 = Skip all remaining prompts"
 
-  # Ask for each package and store choice
+  # Helper function to prompt for package installation with exit option
   ask_package() {
     local label="$1"
     local var_name="$2"
@@ -547,7 +634,7 @@ vite_js_create() {
     done
   }
 
-  # Individual choices
+  # Collect user preferences for common packages
   SKIP_ALL=false
   [[ "$SKIP_ALL" == false ]] && ask_package "axios" INSTALL_AXIOS
   [[ "$SKIP_ALL" == false ]] && ask_package "clsx" INSTALL_CLSX
@@ -562,12 +649,12 @@ vite_js_create() {
     ask_package "DaisyUI (Tailwind plugin)" INSTALL_DAISY
   fi
 
-  # === Scaffold project ===
+  # Create the Vite project with selected framework
   echo "🚀 Scaffolding Vite + $framework..."
   if [[ "$PKG_MANAGER" == "npm" ]]; then
-    npm create vite@latest "$project_name" -- --template "$framework"
+    npm create vite@latest "$project_name" -- --template "$framework" --no-interactive
   else
-    $PKG_MANAGER create vite@latest "$project_name" -- --template "$framework"
+    $PKG_MANAGER create vite@latest "$project_name" -- --template "$framework" --no-interactive
   fi
 
   cd "$project_name" || return
@@ -579,7 +666,7 @@ vite_js_create() {
     $PKG_MANAGER install
   fi
 
-  # === Install packages based on answers ===
+  # Install selected packages based on user choices
   packages=()
 
   [[ "$INSTALL_AXIOS" == "1" ]] && packages+=("axios")
@@ -598,7 +685,7 @@ vite_js_create() {
     fi
   fi
 
-  # === Tailwind + DaisyUI ===
+  # Setup Tailwind CSS and optionally DaisyUI
   if [[ "$INSTALL_TAILWIND" == "1" ]]; then
     echo "🌬️ Setting up Tailwind CSS..."
     if [[ "$PKG_MANAGER" == "npm" ]]; then
@@ -633,15 +720,17 @@ vite_js_create() {
   echo "✅ Vite project setup complete!"
 }
 
-# Main CLI router
+# Main command-line interface router
+# Handles all primary commands and subcommands
+# Routes to appropriate functions based on user input
 case "$1" in
-  --help | help )
+  --help | help ) # Display help information
     show_help
     ;;
-  --version | -v )
+  --version | -v ) # Show version number
     echo "LazyCLI v$VERSION"
     ;;
-  upgrade )
+  upgrade ) # Upgrade LazyCLI to latest version
     echo "🔄 Upgrading LazyCLI..."
 
     # Remove old version
@@ -654,7 +743,7 @@ case "$1" in
     echo "✅ LazyCLI upgraded to latest version!"
     exit 0
     ;;
-  github )
+  github ) # GitHub-related commands
     case "$2" in
       init)
         github_init
@@ -675,7 +764,7 @@ case "$1" in
         ;;
     esac
     ;;
-  node-js )
+  node-js ) # Node.js project commands
     case "$2" in
       init)
         node_js_init
@@ -687,7 +776,7 @@ case "$1" in
         ;;
     esac
     ;;
-  next-js )
+  next-js ) # Next.js project commands
     case "$2" in
       create)
         next_js_create
@@ -699,7 +788,7 @@ case "$1" in
         ;;
     esac
     ;;
-  vite-js )
+  vite-js ) # Vite.js project commands
     case "$2" in
       create)
         vite_js_create
@@ -711,7 +800,7 @@ case "$1" in
         ;;
     esac
     ;;
-  *)
+  *) # Handle unknown commands - show error and help
     echo "❌ Unknown command: $1"
     show_help
     exit 1
