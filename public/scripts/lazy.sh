@@ -325,18 +325,6 @@ github_create_pr() {
     return 1
   fi
 
-  # Attempt to create pull request using GitHub CLI if installed
-  if command -v gh &> /dev/null; then
-    echo "🔁 Creating pull request: $CURRENT_BRANCH → $BASE_BRANCH"
-    if ! gh pr create --base "$BASE_BRANCH" --head "$CURRENT_BRANCH" --title "$COMMIT_MSG" --body "$COMMIT_MSG"; then
-      echo "❌ Pull request creation failed."
-      return 1
-    fi
-  else
-    echo "⚠️ GitHub CLI (gh) not installed. Skipping PR creation."
-    echo "👉 Install it from https://cli.github.com/"
-  fi
-
   echo "✅ Pull request workflow completed successfully."
 }
 
