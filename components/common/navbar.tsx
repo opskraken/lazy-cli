@@ -166,7 +166,7 @@ export default function Navbar() {
                   />
                 </div>
                 <span className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                  Lazycli
+                  LazyCLI
                 </span>
               </motion.div>
             </Link>

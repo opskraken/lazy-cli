@@ -141,7 +141,7 @@ export default function Hero({
             transition={{ delay: 0.3, duration: 0.8 }}
             className="text-xl md:text-2xl text-slate-300 mb-12 max-w-4xl mx-auto leading-relaxed"
           >
-            Lazycliis a powerful CLI tool that streamlines GitHub automation,
+            LazyCLI is a powerful CLI tool that streamlines GitHub automation,
             project scaffolding, and development workflows. Build faster, deploy
             smarter, code better.
           </motion.p>
