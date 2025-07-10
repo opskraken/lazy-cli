@@ -12,29 +12,39 @@ import {
   Code,
   Zap,
   Star,
+  Clock,
+  Package,
   Globe,
   Server,
+  Database,
+  Cloud,
+  Monitor,
+  Workflow,
+  Rocket,
   Shield,
+  Users,
+  Calendar,
   Github,
   Command,
   FileText,
+  Target,
+  Award,
+  Activity,
   Hash,
+  X,
   ChevronDown,
   CheckCircle,
 } from "lucide-react";
 import InstallCommandButton from "@/features/versions/components/installCommandButton/InstallCommandButton";
 import SuspenseFallback from "@/components/common/suspense-fallback";
-import Header from "@/features/versions/components/header/header";
-import Stats from "@/features/versions/components/stats/stats";
-import NavigationTabs from "@/features/versions/components/navigationTabs/navigationTabs";
-import Content from "@/features/versions/components/content/content";
 
 // Wrapper component to handle search params with Suspense
 function VersionContent() {
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("current");
   const [selectedVersion, setSelectedVersion] = useState("v1.0.2");
-
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredVersions, setFilteredVersions] = useState<any>([]);
   const selectedVersionRef = useRef(null);
   // State for collapsible sections
   const [expandedSections, setExpandedSections] = useState({
@@ -71,6 +81,36 @@ function VersionContent() {
     }
   }, [selectedVersion, activeTab]);
 
+  // Filter versions based on search query
+  useEffect(() => {
+    if (searchQuery) {
+      const filtered = versions.filter(
+        (version) =>
+          version.version.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          version.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          version.features.some(
+            (feature) =>
+              feature.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              feature.description
+                .toLowerCase()
+                .includes(searchQuery.toLowerCase())
+          )
+      );
+      setFilteredVersions(filtered);
+
+      // If we have filtered results and the currently selected version is not in the filtered list,
+      // select the first filtered version
+      if (
+        filtered.length > 0 &&
+        !filtered.some((v) => v.version === selectedVersion)
+      ) {
+        setSelectedVersion(filtered[0].version);
+      }
+    } else {
+      setFilteredVersions(versions);
+    }
+  }, [searchQuery, selectedVersion]);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -79,6 +119,28 @@ function VersionContent() {
         duration: 0.6,
         staggerChildren: 0.1,
       },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5 },
+    },
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 0.4 },
+    },
+    hover: {
+      scale: 1.02,
+      transition: { duration: 0.2 },
     },
   };
 
@@ -209,6 +271,97 @@ function VersionContent() {
         { name: "Git", icon: <GitBranch className="w-4 h-4" />, status: "new" },
       ],
       commands: ["git-auto --help", "git-auto push", "git-auto pull"],
+    },
+  ];
+
+  const roadmapItems = [
+    {
+      version: "v1.1.0",
+      title: "Process Management",
+      quarter: "Q2 2024",
+      status: "planned",
+      features: [
+        {
+          icon: <Activity className="w-5 h-5" />,
+          title: "PM2 Integration",
+          description: "Advanced process management for Node.js applications",
+        },
+        {
+          icon: <Monitor className="w-5 h-5" />,
+          title: "Process Monitoring",
+          description: "Real-time application monitoring and health checks",
+        },
+        {
+          icon: <Workflow className="w-5 h-5" />,
+          title: "Auto-restart Policies",
+          description: "Intelligent application restart and recovery",
+        },
+      ],
+    },
+    {
+      version: "v1.2.0",
+      title: "Cloud Integration",
+      quarter: "Q3 2024",
+      status: "planned",
+      features: [
+        {
+          icon: <Cloud className="w-5 h-5" />,
+          title: "AWS Integration",
+          description: "Deploy and manage applications on AWS infrastructure",
+        },
+        {
+          icon: <Database className="w-5 h-5" />,
+          title: "Database Management",
+          description: "Automated database migrations and backups",
+        },
+        {
+          icon: <Shield className="w-5 h-5" />,
+          title: "Security Scanning",
+          description: "Automated security vulnerability detection",
+        },
+      ],
+    },
+    {
+      version: "v1.3.0",
+      title: "Enterprise Features",
+      quarter: "Q4 2024",
+      status: "planned",
+      features: [
+        {
+          icon: <Users className="w-5 h-5" />,
+          title: "Team Collaboration",
+          description: "Multi-user workflows and team management",
+        },
+        {
+          icon: <Award className="w-5 h-5" />,
+          title: "Quality Gates",
+          description: "Automated code quality checks and standards",
+        },
+        {
+          icon: <Target className="w-5 h-5" />,
+          title: "Custom Pipelines",
+          description: "Build custom CI/CD pipelines with visual editor",
+        },
+      ],
+    },
+  ];
+
+  const stats = [
+    {
+      label: "Total Commands",
+      value: "45+",
+      icon: <Command className="w-6 h-6" />,
+    },
+    {
+      label: "Integrations",
+      value: "4",
+      icon: <Package className="w-6 h-6" />,
+    },
+    { label: "Platforms", value: "3", icon: <Globe className="w-6 h-6" /> },
+    {
+      label: "Active Users",
+      value: "1.2K+",
+      icon: <Users className="w-6 h-6" />,
     },
   ];
 
@@ -494,24 +647,242 @@ function VersionContent() {
         animate="visible"
       >
         {/* Header */}
-        <Header />
+        <motion.div variants={itemVariants} className="text-center mb-16">
+          <motion.div
+            className="flex justify-center mb-6"
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="bg-gradient-to-r from-cyan-400/20 to-blue-400/20 p-6 rounded-2xl backdrop-blur-sm border border-cyan-500/20">
+              <Terminal className="w-16 h-16 text-cyan-500" />
+            </div>
+          </motion.div>
+
+          <motion.h1
+            className="text-6xl font-bold mb-6 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            LazyCLI – Dev Automation, Your Way
+          </motion.h1>
+
+          <motion.p
+            className="text-xl text-slate-400 max-w-3xl mx-auto leading-relaxed"
+            variants={itemVariants}
+          >
+            A cross-platform, customizable CLI toolkit that helps you automate
+            Git, Node.js, PM2, Vite, Next.js, AWS workflows and more — tailored
+            to your personal dev setup.
+          </motion.p>
+        </motion.div>
 
         {/* Stats */}
-        <Stats />
+        <motion.div
+          className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16"
+          variants={itemVariants}
+        >
+          {stats.map((stat, index) => (
+            <motion.div
+              key={index}
+              className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 text-center"
+              whileHover={{ scale: 1.05 }}
+            >
+              <div className="flex justify-center mb-3">
+                <div className="text-cyan-400">{stat.icon}</div>
+              </div>
+              <div className="text-3xl font-bold text-white mb-1">
+                {stat.value}
+              </div>
+              <div className="text-slate-400 text-sm">{stat.label}</div>
+            </motion.div>
+          ))}
+        </motion.div>
 
         {/* Navigation Tabs */}
-        <NavigationTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+        <motion.div
+          className="flex justify-center mb-12"
+          variants={itemVariants}
+        >
+          <div className="bg-slate-800/50 backdrop-blur-sm p-2 rounded-2xl border border-slate-700/50">
+            <div className="flex space-x-2">
+              {[
+                {
+                  id: "current",
+                  label: "Current Version",
+                  icon: <Star className="w-5 h-5" />,
+                },
+                {
+                  id: "history",
+                  label: "Version History",
+                  icon: <Clock className="w-5 h-5" />,
+                },
+                {
+                  id: "roadmap",
+                  label: "Roadmap",
+                  icon: <Rocket className="w-5 h-5" />,
+                },
+              ].map((tab) => (
+                <motion.button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center space-x-2 px-8 py-4 rounded-xl font-medium transition-all duration-300 ${
+                    activeTab === tab.id
+                      ? "bg-gradient-to-r from-cyan-400 to-blue-400 text-white shadow-lg shadow-cyan-400/25"
+                      : "text-slate-400 hover:text-white hover:bg-slate-700/50"
+                  }`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {tab.icon}
+                  <span>{tab.label}</span>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+        </motion.div>
 
         {/* Content */}
-        <Content
-          containerVariants={containerVariants}
-          selectedVersion={selectedVersion}
-          activeTab={activeTab}
-          renderVersionDetails={renderVersionDetails}
-          setSelectedVersion={setSelectedVersion}
-          cardVariants={containerVariants}
-          getStatusColor={getStatusColor}
-        />
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            variants={containerVariants}
+            className="max-w-6xl mx-auto"
+          >
+            {activeTab === "current" && renderVersionDetails(versions[0])}
+
+            {activeTab === "history" && (
+              <div className="space-y-8">
+                {/* Search and filter */}
+                <div className="flex flex-col items-center mb-8 space-y-4">
+                  <div className="w-full max-w-md">
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Search by version or title..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-400/50"
+                      />
+                      {searchQuery && (
+                        <button
+                          onClick={() => setSearchQuery("")}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-800/50 backdrop-blur-sm p-2 rounded-xl border border-slate-700/50 w-full max-w-4xl overflow-x-auto">
+                    <div className="flex space-x-2 min-w-max">
+                      {filteredVersions.length > 0 ? (
+                        filteredVersions.map((version: any) => (
+                          <motion.button
+                            key={version.version}
+                            onClick={() => setSelectedVersion(version.version)}
+                            className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
+                              selectedVersion === version.version
+                                ? "bg-gradient-to-r from-cyan-400 to-blue-400 text-white"
+                                : "text-slate-400 hover:text-white hover:bg-slate-700/50"
+                            }`}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            {version.version}
+                          </motion.button>
+                        ))
+                      ) : (
+                        <div className="px-6 py-3 text-slate-400">
+                          No versions found
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {filteredVersions.length > 0 &&
+                  renderVersionDetails(
+                    filteredVersions.find(
+                      (v: any) => v.version === selectedVersion
+                    ) || filteredVersions[0]
+                  )}
+              </div>
+            )}
+
+            {activeTab === "roadmap" && (
+              <div className="space-y-8">
+                <div className="text-center mb-12">
+                  <h2 className="text-3xl font-bold text-white mb-4">
+                    Development Roadmap
+                  </h2>
+                  <p className="text-slate-400 text-lg">
+                    Upcoming features and integrations planned for future
+                    releases
+                  </p>
+                </div>
+
+                <div className="space-y-8">
+                  {roadmapItems.map((item, index) => (
+                    <motion.div
+                      key={index}
+                      variants={cardVariants}
+                      whileHover="hover"
+                      className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8"
+                    >
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center space-x-3">
+                          <span
+                            className={`px-3 py-1 rounded-full text-sm font-medium text-white bg-gradient-to-r ${getStatusColor(
+                              item.status
+                            )}`}
+                          >
+                            {item.version}
+                          </span>
+                          <h3 className="text-2xl font-bold text-white">
+                            {item.title}
+                          </h3>
+                        </div>
+                        <div className="flex items-center space-x-2 text-slate-400">
+                          <Calendar className="w-4 h-4" />
+                          <span>{item.quarter}</span>
+                        </div>
+                      </div>
+
+                      <div className="grid md:grid-cols-3 gap-6">
+                        {item.features.map(
+                          (feature: any, featureIndex: number) => (
+                            <div
+                              key={featureIndex}
+                              className="bg-slate-900/40 rounded-xl p-4"
+                            >
+                              <div className="flex items-center space-x-3 mb-3">
+                                <div className="text-cyan-400">
+                                  {feature.icon}
+                                </div>
+                                <h4 className="font-semibold text-white">
+                                  {feature.title}
+                                </h4>
+                              </div>
+                              <p className="text-sm text-slate-400">
+                                {feature.description}
+                              </p>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+
         {/* Download CTA */}
         <InstallCommandButton />
       </motion.div>
