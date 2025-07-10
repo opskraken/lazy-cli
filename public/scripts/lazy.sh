@@ -522,14 +522,14 @@ next_js_create() {
   echo "🚀 Creating Next.js project..."
 
   cmd="npx create-next-app@latest \"$project_name\""
-  [[ "$use_ts" == "1" ]] && cmd+=" --typescript"
-  [[ "$use_eslint" == "1" ]] && cmd+=" --eslint"
-  [[ "$use_tailwind" == "1" ]] && cmd+=" --tailwind"
-  [[ "$use_app" == "1" ]] && cmd+=" --app"
-  [[ "$use_src" == "1" ]] && cmd+=" --src-dir"
-  [[ "$use_alias" == "1" ]] && cmd+=' --import-alias "@/*"'
+  [[ "$use_ts" == "1" ]] && cmd+=" --typescript" || cmd+=" --no-typescript"
+  [[ "$use_eslint" == "1" ]] && cmd+=" --eslint" || cmd+=" --no-eslint"
+  [[ "$use_tailwind" == "1" ]] && cmd+=" --tailwind" || cmd+=" --no-tailwind"
+  [[ "$use_app" == "1" ]] && cmd+=" --app" || cmd+=" --no-app"
+  [[ "$use_src" == "1" ]] && cmd+=" --src-dir" || cmd+=" --no-src-dir"
+  [[ "$use_alias" == "1" ]] && cmd+=' --import-alias "@/*"' || cmd+=" --no-import-alias"
   [[ "$use_turbo" == "1" ]] && cmd+=" --turbo" || cmd+=" --no-turbo"
-  cmd+=" --no-interactive"
+  cmd+=" --yes"
 
   eval "$cmd"
 
@@ -669,50 +669,109 @@ vite_js_create() {
   fi
 
   if [[ "$INSTALL_TAILWIND" == "1" ]]; then
-    echo "🌬️ Setting up Tailwind CSS..."
-    if [[ "$PKG_MANAGER" == "npm" ]]; then
-      npm install -D tailwindcss postcss autoprefixer
+    echo "🌬️ Setting up Tailwind CSS with modern Vite plugin..."
+    
+    # Install modern Tailwind CSS packages
+    if [[ "$INSTALL_DAISY" == "1" ]]; then
+      echo "📦 Installing Tailwind CSS with DaisyUI..."
+      if [[ "$PKG_MANAGER" == "npm" ]]; then
+        npm install tailwindcss@latest @tailwindcss/vite@latest daisyui@latest
+      else
+        $PKG_MANAGER add tailwindcss@latest @tailwindcss/vite@latest daisyui@latest
+      fi
     else
-      $PKG_MANAGER add -D tailwindcss postcss autoprefixer
+      echo "📦 Installing Tailwind CSS..."
+      if [[ "$PKG_MANAGER" == "npm" ]]; then
+        npm install tailwindcss@latest @tailwindcss/vite@latest
+      else
+        $PKG_MANAGER add tailwindcss@latest @tailwindcss/vite@latest
+      fi
     fi
 
-    npx tailwindcss init -p
+    # Update vite.config.js with Tailwind plugin
+    echo "⚙️ Configuring vite.config.js..."
+    if [[ "$framework" == "react" ]]; then
+      cat > vite.config.js << 'EOF'
+import { defineConfig } from "vite";
+import tailwindcss from "@tailwindcss/vite";
+import react from "@vitejs/plugin-react";
 
-    # Update tailwind.config.js with proper content paths
-    cat > tailwind.config.js << 'EOF'
-/** @type {import('tailwindcss').Config} */
-export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
-}
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+});
 EOF
+    elif [[ "$framework" == "vue" ]]; then
+      cat > vite.config.js << 'EOF'
+import { defineConfig } from "vite";
+import tailwindcss from "@tailwindcss/vite";
+import vue from "@vitejs/plugin-vue";
 
-    # Add Tailwind directives to CSS file
-    if [[ -f "src/index.css" ]]; then
-      cat > src/index.css << 'EOF'
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [vue(), tailwindcss()],
+});
 EOF
-    elif [[ -f "src/style.css" ]]; then
-      cat > src/style.css << 'EOF'
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+    elif [[ "$framework" == "svelte" ]]; then
+      cat > vite.config.js << 'EOF'
+import { defineConfig } from "vite";
+import tailwindcss from "@tailwindcss/vite";
+import { svelte } from "@sveltejs/vite-plugin-svelte";
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [svelte(), tailwindcss()],
+});
 EOF
     else
-      # Create index.css if neither exists
-      cat > src/index.css << 'EOF'
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+      # Vanilla JS
+      cat > vite.config.js << 'EOF'
+import { defineConfig } from "vite";
+import tailwindcss from "@tailwindcss/vite";
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [tailwindcss()],
+});
 EOF
+    fi
+
+    # Update CSS file with modern Tailwind imports
+    echo "🎨 Configuring CSS imports..."
+    if [[ -f "src/index.css" ]]; then
+      if [[ "$INSTALL_DAISY" == "1" ]]; then
+        cat > src/index.css << 'EOF'
+@import "tailwindcss";
+@plugin "daisyui";
+EOF
+      else
+        cat > src/index.css << 'EOF'
+@import "tailwindcss";
+EOF
+      fi
+    elif [[ -f "src/style.css" ]]; then
+      if [[ "$INSTALL_DAISY" == "1" ]]; then
+        cat > src/style.css << 'EOF'
+@import "tailwindcss";
+@plugin "daisyui";
+EOF
+      else
+        cat > src/style.css << 'EOF'
+@import "tailwindcss";
+EOF
+      fi
+    else
+      # Create index.css if neither exists
+      if [[ "$INSTALL_DAISY" == "1" ]]; then
+        cat > src/index.css << 'EOF'
+@import "tailwindcss";
+@plugin "daisyui";
+EOF
+      else
+        cat > src/index.css << 'EOF'
+@import "tailwindcss";
+EOF
+      fi
       # Import it in main file if it's React
       if [[ "$framework" == "react" && -f "src/main.jsx" ]]; then
         sed -i.bak "1i import './index.css'" src/main.jsx && rm src/main.jsx.bak
@@ -722,31 +781,10 @@ EOF
     fi
 
     if [[ "$INSTALL_DAISY" == "1" ]]; then
-      echo "🎀 Installing DaisyUI..."
-      if [[ "$PKG_MANAGER" == "npm" ]]; then
-        npm install -D daisyui
-      else
-        $PKG_MANAGER add -D daisyui
-      fi
-
-      # Update tailwind.config.js to include DaisyUI plugin
-      cat > tailwind.config.js << 'EOF'
-/** @type {import('tailwindcss').Config} */
-export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [require("daisyui")],
-}
-EOF
-      echo "✅ DaisyUI configured in tailwind.config.js"
+      echo "✅ Tailwind CSS with DaisyUI configured using modern Vite plugin"
+    else
+      echo "✅ Tailwind CSS configured using modern Vite plugin"
     fi
-
-    echo "✅ Tailwind CSS setup complete."
   fi
 
   echo "✅ Vite project setup complete!"
