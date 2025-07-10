@@ -302,22 +302,24 @@ sudo apt install curl wget git build-essential -y`,
   ];
 
   const renderSteps = (steps: typeof gitBashSteps) => (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       {steps.map((step, index) => (
         <motion.div
           key={index}
           variants={cardVariants}
-          className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 hover:border-cyan-500/30 transition-all duration-300"
+          className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-4 sm:p-6 md:p-8 hover:border-cyan-500/30 transition-all duration-300"
         >
-          <div className="flex items-start space-x-4 mb-6">
-            <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-xl flex items-center justify-center text-white font-bold text-lg">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:space-x-4 mb-4 sm:mb-6">
+            <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-xl flex items-center justify-center text-white font-bold text-lg mb-3 sm:mb-0">
               {index + 1}
             </div>
             <div>
-              <h3 className="text-2xl font-semibold text-white mb-2">
+              <h3 className="text-xl sm:text-2xl font-semibold text-white mb-2">
                 {step.title}
               </h3>
-              <p className="text-slate-400 text-lg">{step.description}</p>
+              <p className="text-slate-400 text-base sm:text-lg">
+                {step.description}
+              </p>
             </div>
           </div>
 
@@ -328,7 +330,7 @@ sudo apt install curl wget git build-essential -y`,
                 {step.details.map((detail, idx) => (
                   <li
                     key={idx}
-                    className="flex items-start space-x-2 text-slate-300"
+                    className="flex items-start space-x-2 text-slate-300 text-sm sm:text-base"
                   >
                     <CheckCircle className="w-4 h-4 mt-1 text-cyan-400 flex-shrink-0" />
                     <span>{detail}</span>
@@ -340,18 +342,18 @@ sudo apt install curl wget git build-essential -y`,
             {step.code && (
               <div>
                 <h4 className="text-white font-medium mb-2">Commands:</h4>
-                <div className="bg-slate-900/60 rounded-lg p-4 border border-slate-700/50">
-                  <pre className="text-cyan-300 text-sm overflow-x-auto whitespace-pre-wrap">
+                <div className="bg-slate-900/60 rounded-lg p-3 sm:p-4 border border-slate-700/50">
+                  <pre className="text-cyan-300 text-xs sm:text-sm overflow-x-auto whitespace-pre-wrap">
                     <code>{step.code}</code>
                   </pre>
                 </div>
               </div>
             )}
 
-            <div className="bg-blue-400/10 border border-blue-400/20 rounded-lg p-4">
+            <div className="bg-blue-400/10 border border-blue-400/20 rounded-lg p-3 sm:p-4">
               <div className="flex items-start space-x-2">
                 <Info className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
-                <p className="text-blue-300 text-sm">{step.tips}</p>
+                <p className="text-blue-300 text-xs sm:text-sm">{step.tips}</p>
               </div>
             </div>
           </div>
@@ -364,15 +366,15 @@ sudo apt install curl wget git build-essential -y`,
     switch (activeSection) {
       case "overview":
         return (
-          <div className="space-y-8">
+          <div className="space-y-6 md:space-y-8">
             <motion.div
               variants={cardVariants}
-              className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8"
+              className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-4 sm:p-6 md:p-8"
             >
-              <h2 className="text-3xl font-bold text-white mb-6">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4 sm:mb-6">
                 Windows Development Setup
               </h2>
-              <p className="text-slate-300 text-lg leading-relaxed mb-6">
+              <p className="text-slate-300 text-base sm:text-lg leading-relaxed mb-4 sm:mb-6">
                 This comprehensive guide will help you set up a powerful
                 development environment on Windows. You have two main options:
                 Git Bash for simple Git operations and basic Unix commands, or
@@ -380,57 +382,67 @@ sudo apt install curl wget git build-essential -y`,
                 environment.
               </p>
 
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="bg-slate-900/40 rounded-xl p-6 border border-slate-700/50">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <GitBranch className="w-8 h-8 text-cyan-400" />
-                    <h3 className="text-xl font-semibold text-white">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                <div className="bg-slate-900/40 rounded-xl p-4 sm:p-6 border border-slate-700/50">
+                  <div className="flex items-center space-x-3 mb-3 sm:mb-4">
+                    <GitBranch className="w-6 h-6 sm:w-8 sm:h-8 text-cyan-400" />
+                    <h3 className="text-lg sm:text-xl font-semibold text-white">
                       Git Bash
                     </h3>
                   </div>
-                  <p className="text-slate-400 mb-4">
+                  <p className="text-slate-400 text-sm sm:text-base mb-3 sm:mb-4">
                     Lightweight solution that provides Git version control and
                     basic Unix commands in a familiar terminal.
                   </p>
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2 text-green-400">
                       <CheckCircle className="w-4 h-4" />
-                      <span className="text-sm">Quick to install</span>
+                      <span className="text-xs sm:text-sm">
+                        Quick to install
+                      </span>
                     </div>
                     <div className="flex items-center space-x-2 text-green-400">
                       <CheckCircle className="w-4 h-4" />
-                      <span className="text-sm">Minimal system impact</span>
+                      <span className="text-xs sm:text-sm">
+                        Minimal system impact
+                      </span>
                     </div>
                     <div className="flex items-center space-x-2 text-green-400">
                       <CheckCircle className="w-4 h-4" />
-                      <span className="text-sm">Perfect for Git workflows</span>
+                      <span className="text-xs sm:text-sm">
+                        Perfect for Git workflows
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-slate-900/40 rounded-xl p-6 border border-slate-700/50">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <Terminal className="w-8 h-8 text-purple-400" />
-                    <h3 className="text-xl font-semibold text-white">WSL</h3>
+                <div className="bg-slate-900/40 rounded-xl p-4 sm:p-6 border border-slate-700/50">
+                  <div className="flex items-center space-x-3 mb-3 sm:mb-4">
+                    <Terminal className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400" />
+                    <h3 className="text-lg sm:text-xl font-semibold text-white">
+                      WSL
+                    </h3>
                   </div>
-                  <p className="text-slate-400 mb-4">
+                  <p className="text-slate-400 text-sm sm:text-base mb-3 sm:mb-4">
                     Full Linux environment running natively on Windows with
                     excellent performance and compatibility.
                   </p>
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2 text-green-400">
                       <CheckCircle className="w-4 h-4" />
-                      <span className="text-sm">
+                      <span className="text-xs sm:text-sm">
                         Complete Linux environment
                       </span>
                     </div>
                     <div className="flex items-center space-x-2 text-green-400">
                       <CheckCircle className="w-4 h-4" />
-                      <span className="text-sm">Native Docker support</span>
+                      <span className="text-xs sm:text-sm">
+                        Native Docker support
+                      </span>
                     </div>
                     <div className="flex items-center space-x-2 text-green-400">
                       <CheckCircle className="w-4 h-4" />
-                      <span className="text-sm">
+                      <span className="text-xs sm:text-sm">
                         Advanced development tools
                       </span>
                     </div>
@@ -443,27 +455,31 @@ sudo apt install curl wget git build-essential -y`,
 
       case "requirements":
         return (
-          <div className="space-y-8">
+          <div className="space-y-6 md:space-y-8">
             <motion.div
               variants={cardVariants}
-              className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8"
+              className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-4 sm:p-6 md:p-8"
             >
-              <h2 className="text-3xl font-bold text-white mb-6">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4 sm:mb-6">
                 System Requirements
               </h2>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {requirements.map((req, index) => (
                   <div
                     key={index}
-                    className="bg-slate-900/40 rounded-xl p-6 border border-slate-700/50"
+                    className="bg-slate-900/40 rounded-xl p-4 sm:p-6 border border-slate-700/50"
                   >
-                    <div className="flex items-center space-x-3 mb-3">
-                      <div className="text-cyan-400">{req.icon}</div>
-                      <h3 className="text-lg font-semibold text-white">
+                    <div className="flex items-center space-x-3 mb-2 sm:mb-3">
+                      <div className="text-cyan-400 flex-shrink-0">
+                        {req.icon}
+                      </div>
+                      <h3 className="text-base sm:text-lg font-semibold text-white">
                         {req.title}
                       </h3>
                     </div>
-                    <p className="text-slate-400">{req.description}</p>
+                    <p className="text-slate-400 text-sm sm:text-base">
+                      {req.description}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -513,29 +529,31 @@ sudo apt install curl wget git build-essential -y`,
 
       case "troubleshooting":
         return (
-          <div className="space-y-8">
+          <div className="space-y-6 md:space-y-8">
             <motion.div
               variants={cardVariants}
-              className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8"
+              className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-4 sm:p-6 md:p-8"
             >
-              <h2 className="text-3xl font-bold text-white mb-6">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4 sm:mb-6">
                 Common Issues & Solutions
               </h2>
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {troubleshootingItems.map((item, index) => (
                   <div
                     key={index}
-                    className="bg-slate-900/40 rounded-xl p-6 border border-slate-700/50"
+                    className="bg-slate-900/40 rounded-xl p-4 sm:p-6 border border-slate-700/50"
                   >
-                    <div className="flex items-start space-x-3 mb-4">
-                      <AlertTriangle className="w-6 h-6 text-yellow-400 mt-1 flex-shrink-0" />
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:space-x-3 mb-3 sm:mb-4">
+                      <AlertTriangle className="w-6 h-6 text-yellow-400 mb-2 sm:mb-0 sm:mt-1 flex-shrink-0" />
                       <div>
-                        <h3 className="text-xl font-semibold text-white mb-2">
+                        <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">
                           {item.problem}
                         </h3>
-                        <p className="text-slate-300 mb-4">{item.solution}</p>
-                        <div className="bg-slate-900/60 rounded-lg p-4 border border-slate-700/50">
-                          <pre className="text-cyan-300 text-sm overflow-x-auto">
+                        <p className="text-slate-300 text-sm sm:text-base mb-3 sm:mb-4">
+                          {item.solution}
+                        </p>
+                        <div className="bg-slate-900/60 rounded-lg p-3 sm:p-4 border border-slate-700/50">
+                          <pre className="text-cyan-300 text-xs sm:text-sm overflow-x-auto">
                             <code>{item.code}</code>
                           </pre>
                         </div>
@@ -550,31 +568,31 @@ sudo apt install curl wget git build-essential -y`,
 
       case "resources":
         return (
-          <div className="space-y-8">
+          <div className="space-y-6 md:space-y-8">
             <motion.div
               variants={cardVariants}
-              className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8"
+              className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-4 sm:p-6 md:p-8"
             >
-              <h2 className="text-3xl font-bold text-white mb-6">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4 sm:mb-6">
                 Additional Resources
               </h2>
 
-              <div className="grid md:grid-cols-2 gap-6 mb-8">
-                <div className="bg-slate-900/40 rounded-xl p-6 border border-slate-700/50">
-                  <h3 className="text-xl font-semibold text-white mb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-8">
+                <div className="bg-slate-900/40 rounded-xl p-4 sm:p-6 border border-slate-700/50">
+                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">
                     Official Documentation
                   </h3>
                   <div className="space-y-3">
                     <a
                       href="https://git-scm.com/doc"
-                      className="flex items-center space-x-2 text-cyan-400 hover:text-cyan-300 transition-colors"
+                      className="flex items-center space-x-2 text-cyan-400 hover:text-cyan-300 transition-colors text-sm sm:text-base"
                     >
                       <ExternalLink className="w-4 h-4" />
                       <span>Git Documentation</span>
                     </a>
                     <a
                       href="https://docs.microsoft.com/en-us/windows/wsl/"
-                      className="flex items-center space-x-2 text-cyan-400 hover:text-cyan-300 transition-colors"
+                      className="flex items-center space-x-2 text-cyan-400 hover:text-cyan-300 transition-colors text-sm sm:text-base"
                     >
                       <ExternalLink className="w-4 h-4" />
                       <span>WSL Documentation</span>
@@ -582,21 +600,21 @@ sudo apt install curl wget git build-essential -y`,
                   </div>
                 </div>
 
-                <div className="bg-slate-900/40 rounded-xl p-6 border border-slate-700/50">
-                  <h3 className="text-xl font-semibold text-white mb-4">
+                <div className="bg-slate-900/40 rounded-xl p-4 sm:p-6 border border-slate-700/50">
+                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">
                     Community Resources
                   </h3>
                   <div className="space-y-3">
                     <a
                       href="https://stackoverflow.com/questions/tagged/git"
-                      className="flex items-center space-x-2 text-cyan-400 hover:text-cyan-300 transition-colors"
+                      className="flex items-center space-x-2 text-cyan-400 hover:text-cyan-300 transition-colors text-sm sm:text-base"
                     >
                       <ExternalLink className="w-4 h-4" />
                       <span>Stack Overflow - Git</span>
                     </a>
                     <a
                       href="https://stackoverflow.com/questions/tagged/wsl"
-                      className="flex items-center space-x-2 text-cyan-400 hover:text-cyan-300 transition-colors"
+                      className="flex items-center space-x-2 text-cyan-400 hover:text-cyan-300 transition-colors text-sm sm:text-base"
                     >
                       <ExternalLink className="w-4 h-4" />
                       <span>Stack Overflow - WSL</span>
@@ -605,15 +623,15 @@ sudo apt install curl wget git build-essential -y`,
                 </div>
               </div>
 
-              <div className="bg-slate-900/40 rounded-xl p-6 border border-slate-700/50">
-                <h3 className="text-xl font-semibold text-white mb-4">
+              <div className="bg-slate-900/40 rounded-xl p-4 sm:p-6 border border-slate-700/50">
+                <h3 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4">
                   Frequently Asked Questions
                 </h3>
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {faqs.map((faq, index) => (
                     <div
                       key={index}
-                      className="border-b border-slate-700/50 pb-4 last:border-b-0"
+                      className="border-b border-slate-700/50 pb-3 sm:pb-4 last:border-b-0"
                     >
                       <button
                         onClick={() =>
@@ -625,13 +643,13 @@ sudo apt install curl wget git build-essential -y`,
                         }
                         className="flex items-center justify-between w-full text-left"
                       >
-                        <span className="text-white font-medium">
+                        <span className="text-white font-medium text-sm sm:text-base">
                           {faq.question}
                         </span>
                         {expandedFaq === `faq-${index}` ? (
-                          <ChevronUp className="w-5 h-5 text-cyan-400" />
+                          <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400 flex-shrink-0 ml-2" />
                         ) : (
-                          <ChevronDown className="w-5 h-5 text-cyan-400" />
+                          <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400 flex-shrink-0 ml-2" />
                         )}
                       </button>
                       <AnimatePresence>
@@ -641,9 +659,11 @@ sudo apt install curl wget git build-essential -y`,
                             animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
                             transition={{ duration: 0.3 }}
-                            className="mt-3"
+                            className="mt-2 sm:mt-3"
                           >
-                            <p className="text-slate-300">{faq.answer}</p>
+                            <p className="text-slate-300 text-sm sm:text-base">
+                              {faq.answer}
+                            </p>
                           </motion.div>
                         )}
                       </AnimatePresence>
@@ -665,7 +685,7 @@ sudo apt install curl wget git build-essential -y`,
       {/* Animated Background */}
       <div className="absolute inset-0">
         <motion.div
-          className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl"
+          className="absolute top-0 left-0 w-64 sm:w-96 h-64 sm:h-96 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl"
           animate={{
             x: [0, 100, 0],
             y: [0, -50, 0],
@@ -678,7 +698,7 @@ sudo apt install curl wget git build-essential -y`,
           }}
         />
         <motion.div
-          className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-l from-purple-400/10 to-pink-400/10 rounded-full blur-3xl"
+          className="absolute bottom-0 right-0 w-64 sm:w-96 h-64 sm:h-96 bg-gradient-to-l from-purple-400/10 to-pink-400/10 rounded-full blur-3xl"
           animate={{
             x: [0, -100, 0],
             y: [0, 50, 0],
@@ -692,9 +712,32 @@ sudo apt install curl wget git build-essential -y`,
         />
       </div>
 
-      <div className="relative z-10 flex">
-        {/* Sidebar Navigation */}
-        <div className="w-80 h-screen bg-slate-900/50 backdrop-blur-sm border-r border-slate-700/50 p-6 pt-24 sticky top-0">
+      <div className="relative z-10 flex flex-col md:flex-row">
+        {/* Mobile Section Selector */}
+        <div className="md:hidden sticky top-16 z-20 bg-slate-900/90 backdrop-blur-xl border-b border-slate-700/50 px-4 py-3">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-bold text-white">
+              Windows Setup Guide
+            </h1>
+            <div className="relative">
+              <select
+                value={activeSection}
+                onChange={(e) => setActiveSection(e.target.value)}
+                className="appearance-none bg-slate-800 text-white px-4 py-2 pr-8 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+              >
+                {sections.map((section) => (
+                  <option key={section.id} value={section.id}>
+                    {section.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-cyan-400 pointer-events-none" />
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Sidebar Navigation */}
+        <div className="hidden md:block w-80 h-screen bg-slate-900/50 backdrop-blur-sm border-r border-slate-700/50 p-6 pt-24 sticky top-0">
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-white mb-2">
               Windows Setup Guide
@@ -724,7 +767,7 @@ sudo apt install curl wget git build-essential -y`,
 
         {/* Main Content */}
         <motion.div
-          className="flex-1 p-8 pt-24 max-w-4xl mx-auto"
+          className="flex-1 p-4 sm:p-6 md:p-8 pt-20 md:pt-24 max-w-4xl mx-auto w-full"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
