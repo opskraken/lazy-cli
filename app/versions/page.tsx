@@ -161,17 +161,20 @@ function VersionContent() {
         {
           icon: <Code className="w-5 h-5" />,
           title: "Advanced Node.js Setup",
-          description: "TypeScript configuration, comprehensive starter templates with Express.js API endpoints",
+          description:
+            "TypeScript configuration, comprehensive starter templates with Express.js API endpoints",
         },
         {
           icon: <Zap className="w-5 h-5" />,
           title: "Modern Tailwind & DaisyUI",
-          description: "Updated to use @tailwindcss/vite plugin with framework-specific configurations",
+          description:
+            "Updated to use @tailwindcss/vite plugin with framework-specific configurations",
         },
         {
           icon: <Settings className="w-5 h-5" />,
           title: "Improved Next.js Creation",
-          description: "Fixed interactive prompts with explicit flag handling and --yes option",
+          description:
+            "Fixed interactive prompts with explicit flag handling and --yes option",
         },
       ],
       integrations: [
@@ -199,7 +202,7 @@ function VersionContent() {
       ],
       commands: [
         'lazy github push "commit message"',
-        "lazy github pr main \"feature description\"",
+        'lazy github pr main "feature description"',
         "lazy node-js init",
         "lazy next-js create",
         "lazy vite-js create",
@@ -215,22 +218,26 @@ function VersionContent() {
         {
           icon: <Github className="w-5 h-5" />,
           title: "GitHub Workflow Management",
-          description: "Basic Git operations with repository cloning and push functionality",
+          description:
+            "Basic Git operations with repository cloning and push functionality",
         },
         {
           icon: <Package className="w-5 h-5" />,
           title: "Package Manager Detection",
-          description: "Intelligent detection of bun, pnpm, yarn, or npm for dependency management",
+          description:
+            "Intelligent detection of bun, pnpm, yarn, or npm for dependency management",
         },
         {
           icon: <Code className="w-5 h-5" />,
           title: "Framework Project Creation",
-          description: "Simplified Next.js and Vite project scaffolding with TypeScript defaults",
+          description:
+            "Simplified Next.js and Vite project scaffolding with TypeScript defaults",
         },
         {
           icon: <Server className="w-5 h-5" />,
           title: "Node.js Project Initialization",
-          description: "Basic Node.js project setup with package manager compatibility",
+          description:
+            "Basic Node.js project setup with package manager compatibility",
         },
       ],
       integrations: [
@@ -246,40 +253,12 @@ function VersionContent() {
       commands: [
         "lazy github init",
         "lazy github clone <repo-url>",
-        "lazy github push \"message\"",
-        "lazy github pr <base> \"message\"",
+        'lazy github push "message"',
+        'lazy github pr <base> "message"',
         "lazy node-js init",
         "lazy next-js create",
         "lazy vite-js create",
       ],
-    },
-    {
-      version: "v1.0.0",
-      title: "Foundation Release",
-      date: "2023-11-30",
-      status: "previous",
-      type: "major",
-      features: [
-        {
-          icon: <Terminal className="w-5 h-5" />,
-          title: "Core Automation",
-          description: "Basic Git command automation and workflow management",
-        },
-        {
-          icon: <Command className="w-5 h-5" />,
-          title: "CLI Interface",
-          description: "Simple command-line interface for Git operations",
-        },
-        {
-          icon: <FileText className="w-5 h-5" />,
-          title: "Script Foundation",
-          description: "Robust bash script architecture for extensibility",
-        },
-      ],
-      integrations: [
-        { name: "Git", icon: <GitBranch className="w-4 h-4" />, status: "new" },
-      ],
-      commands: ["git-auto --help", "git-auto push", "git-auto pull"],
     },
   ];
 
