@@ -394,47 +394,154 @@ node_js_init() {
   echo "⚙️ Generating tsconfig.json..."
   npx tsc --init
 
-  # Create index.ts or add LazyCLI message if it exists
+  # Create index.ts with comprehensive starter template
   if [[ ! -f index.ts ]]; then
     echo "📝 Creating index.ts with LazyCLI starter..."
-    cat > index.ts <<EOF
+    if [[ "$ans_express" == "1" ]]; then
+      cat > index.ts <<'EOF'
 import express from 'express';
 const app = express();
 const port = process.env.PORT || 3000;
 
 console.log("🚀 Booted with LazyCLI – stay lazy, code smart 😴");
 
+// Middleware
+app.use(express.json());
+
+// Routes
 app.get('/', (req, res) => {
-  res.send('Hello from LazyCLI!');
+  res.json({ message: 'Hello from LazyCLI!', status: 'success' });
+});
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
+
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'Test endpoint working!', 
+    method: req.method,
+    url: req.url,
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.post('/api/echo', (req, res) => {
+  res.json({ 
+    message: 'Echo endpoint', 
+    received: req.body,
+    timestamp: new Date().toISOString()
+  });
 });
 
 app.listen(port, () => {
-  console.log(\`Server running on http://localhost:\${port}\`);
+  console.log(`🌐 Server running on http://localhost:${port}`);
+  console.log(`📋 Test endpoints:`);
+  console.log(`   GET  http://localhost:${port}/`);
+  console.log(`   GET  http://localhost:${port}/api/health`);
+  console.log(`   GET  http://localhost:${port}/api/test`);
+  console.log(`   POST http://localhost:${port}/api/echo`);
 });
 EOF
+    else
+      cat > index.ts <<'EOF'
+console.log("🚀 Booted with LazyCLI – stay lazy, code smart 😴");
+console.log("📝 Basic Node.js + TypeScript setup ready!");
+console.log("💡 Add Express for web server functionality.");
+
+// Example function
+function greet(name: string): string {
+  return `Hello, ${name}! Welcome to your LazyCLI project.`;
+}
+
+console.log(greet("Developer"));
+EOF
+    fi
   else
     echo "ℹ️ index.ts already exists. Appending LazyCLI branding..."
     echo 'console.log("🚀 Booted with LazyCLI – stay lazy, code smart 😴");' >> index.ts
   fi
 
-  # Modify package.json scripts
-  if [[ "$ans_nodemon" == "1" ]]; then
-    echo "🛠️ Adding 'dev' script for nodemon..."
-    if command -v jq &>/dev/null; then
-      jq '.scripts.dev="nodemon index.ts"' package.json > tmp.json && mv tmp.json package.json
+  # Update package.json scripts with proper package manager commands
+  echo "🛠️ Configuring package.json scripts..."
+  
+  # Create scripts object if it doesn't exist and add appropriate scripts
+  if command -v jq &>/dev/null; then
+    # Use jq for reliable JSON manipulation
+    if [[ "$pkg_manager" == "bun" ]]; then
+      if [[ "$ans_nodemon" == "1" ]]; then
+        jq '.scripts = {
+          "start": "bun run index.ts",
+          "dev": "nodemon --watch index.ts --exec bun run index.ts",
+          "test": "bun test"
+        }' package.json > tmp.json && mv tmp.json package.json
+      else
+        jq '.scripts = {
+          "start": "bun run index.ts",
+          "build": "bun build index.ts",
+          "test": "bun test"
+        }' package.json > tmp.json && mv tmp.json package.json
+      fi
+    elif [[ "$pkg_manager" == "npm" ]]; then
+      if [[ "$ans_nodemon" == "1" ]]; then
+        jq '.scripts = {
+          "start": "ts-node index.ts",
+          "dev": "nodemon index.ts",
+          "build": "tsc",
+          "test": "echo \"Error: no test specified\" && exit 1"
+        }' package.json > tmp.json && mv tmp.json package.json
+      else
+        jq '.scripts = {
+          "start": "ts-node index.ts",
+          "build": "tsc",
+          "test": "echo \"Error: no test specified\" && exit 1"
+        }' package.json > tmp.json && mv tmp.json package.json
+      fi
     else
-      sed -i.bak '/"scripts": *{/a\    "dev": "nodemon index.ts",' package.json && rm package.json.bak
+      # pnpm, yarn
+      if [[ "$ans_nodemon" == "1" ]]; then
+        jq '.scripts = {
+          "start": "ts-node index.ts",
+          "dev": "nodemon index.ts",
+          "build": "tsc",
+          "test": "echo \"Error: no test specified\" && exit 1"
+        }' package.json > tmp.json && mv tmp.json package.json
+      else
+        jq '.scripts = {
+          "start": "ts-node index.ts",
+          "build": "tsc",
+          "test": "echo \"Error: no test specified\" && exit 1"
+        }' package.json > tmp.json && mv tmp.json package.json
+      fi
     fi
-    echo "✅ Run with: npm run dev"
   else
-    echo "🛠️ Adding 'start' script with ts-node..."
-    if command -v jq &>/dev/null; then
-      jq '.scripts.start="ts-node index.ts"' package.json > tmp.json && mv tmp.json package.json
+    # Fallback: manual JSON editing (less reliable but works without jq)
+    echo "⚠️ jq not found, using manual JSON editing..."
+    
+    # Remove existing scripts section if present
+    sed -i.bak '/"scripts":/,/},/d' package.json
+    
+    # Add new scripts section before the closing brace
+    if [[ "$pkg_manager" == "bun" ]]; then
+      if [[ "$ans_nodemon" == "1" ]]; then
+        sed -i.bak '$i\  "scripts": {\n    "start": "bun run index.ts",\n    "dev": "nodemon --watch index.ts --exec bun run index.ts",\n    "test": "bun test"\n  },' package.json
+      else
+        sed -i.bak '$i\  "scripts": {\n    "start": "bun run index.ts",\n    "build": "bun build index.ts",\n    "test": "bun test"\n  },' package.json
+      fi
     else
-      sed -i.bak '/"scripts": *{/a\    "start": "ts-node index.ts",' package.json && rm package.json.bak
+      if [[ "$ans_nodemon" == "1" ]]; then
+        sed -i.bak '$i\  "scripts": {\n    "start": "ts-node index.ts",\n    "dev": "nodemon index.ts",\n    "build": "tsc",\n    "test": "echo \"Error: no test specified\" && exit 1"\n  },' package.json
+      else
+        sed -i.bak '$i\  "scripts": {\n    "start": "ts-node index.ts",\n    "build": "tsc",\n    "test": "echo \"Error: no test specified\" && exit 1"\n  },' package.json
+      fi
     fi
-    echo "✅ Run with: npm start"
+    rm -f package.json.bak
   fi
+  
+  if [[ "$ans_nodemon" == "1" ]]; then
+    echo "✅ Run with: $pkg_manager run dev (development with auto-reload)"
+  fi
+  echo "✅ Run with: $pkg_manager run start (production)"
 
   echo "✅ Node.js + TypeScript project is ready!"
 }
