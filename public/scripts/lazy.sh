@@ -453,15 +453,15 @@ next_js_create() {
   fi
 
   echo "⚙️ Next.js will use default options:"
-  echo "- TypeScript: Yes"
-  echo "- ESLint: Yes"
-  echo "- Tailwind CSS: Yes"
-  echo "- App Router: Yes"
-  echo "- src/: No"
-  echo "- Import alias: @/*"
+  echo "- TypeScript: 1"
+  echo "- ESLint: 1"
+  echo "- Tailwind CSS: 1"
+  echo "- App Router: 1"
+  echo "- src/: 0"
+  echo "- Import alias: 1"
+  echo "- Turbopack: 1"
   read -p "✅ Continue with these settings? (1/0): " confirm_next
 
-  # Collect custom values if declined
   if [[ "$confirm_next" != "1" ]]; then
     echo "❌ Cancelled default setup. Let's go one-by-one instead."
 
@@ -471,6 +471,7 @@ next_js_create() {
     read -p "⚙️ Use TypeScript? (1/0): " use_ts
     read -p "🧪 Use App Router? (1/0): " use_app
     read -p "📌 Use import alias '@/*'? (1/0): " use_alias
+    read -p "🚀 Use Turbopack for dev? (1/0): " use_turbo
   else
     use_src=0
     use_tailwind=1
@@ -478,9 +479,9 @@ next_js_create() {
     use_ts=1
     use_app=1
     use_alias=1
+    use_turbo=1
   fi
 
-  # Prompt for additional packages BEFORE install
   echo ""
   echo "🧠 LazyCLI Smart Stack Setup: Answer once and make yourself gloriously lazy"
 
@@ -517,7 +518,7 @@ next_js_create() {
   ans_shadcn=$(prompt_or_exit "🎨 Setup shadcn-ui?")
   [[ "$ans_shadcn" == "-1" ]] && echo "🚫 Setup skipped." && return
 
-  # Create the Next.js app with selected options
+  # Construct Next.js CLI command
   echo "🚀 Creating Next.js project..."
 
   cmd="npx create-next-app@latest \"$project_name\""
@@ -527,7 +528,8 @@ next_js_create() {
   [[ "$use_app" == "1" ]] && cmd+=" --app"
   [[ "$use_src" == "1" ]] && cmd+=" --src-dir"
   [[ "$use_alias" == "1" ]] && cmd+=' --import-alias "@/*"'
-  cmd+=" --no-use-turbo --no-interactive"
+  [[ "$use_turbo" == "1" ]] && cmd+=" --turbo" || cmd+=" --no-turbo"
+  cmd+=" --no-interactive"
 
   eval "$cmd"
 
@@ -535,41 +537,38 @@ next_js_create() {
 
   detect_package_manager
 
-  # Prepare package list
-  packages=""
-  [[ "$ans_zod" == "1" ]] && packages+=" zod"
-  [[ "$ans_bcrypt" == "1" ]] && packages+=" bcrypt"
-  [[ "$ans_cookie" == "1" ]] && packages+=" js-cookie"
-  [[ "$ans_swr" == "1" ]] && packages+=" swr"
-  [[ "$ans_lucide" == "1" ]] && packages+=" lucide-react"
-  [[ "$ans_toast" == "1" ]] && packages+=" react-hot-toast"
+  # Prepare packages list
+  packages=()
+  [[ "$ans_zod" == "1" ]] && packages+=("zod")
+  [[ "$ans_bcrypt" == "1" ]] && packages+=("bcrypt")
+  [[ "$ans_cookie" == "1" ]] && packages+=("js-cookie")
+  [[ "$ans_swr" == "1" ]] && packages+=("swr")
+  [[ "$ans_lucide" == "1" ]] && packages+=("lucide-react")
+  [[ "$ans_toast" == "1" ]] && packages+=("react-hot-toast")
 
-  if [[ -n "$packages" ]]; then
-    echo "📦 Installing: $packages"
+  if [[ ${#packages[@]} -gt 0 ]]; then
+    echo "📦 Installing: ${packages[*]}"
     if [[ "$PKG_MANAGER" == "npm" ]]; then
-      npm install $packages
+      npm install "${packages[@]}"
     else
-      $PKG_MANAGER add $packages
+      $PKG_MANAGER add "${packages[@]}"
     fi
   fi
 
-  # Setup shadcn-ui if selected
+  # Setup shadcn-ui
   if [[ "$ans_shadcn" == "1" ]]; then
     echo "🎨 Initializing shadcn-ui..."
     if [[ "$PKG_MANAGER" == "npm" ]]; then
       npx shadcn-ui@latest init
+    elif command -v bun &>/dev/null; then
+      bun x shadcn-ui@latest init
     else
-      if command -v bun &>/dev/null; then
-        bun x shadcn-ui@latest init
-      else
-        $PKG_MANAGER dlx shadcn-ui@latest init || echo "❌ shadcn-ui failed to init."
-      fi
+      $PKG_MANAGER dlx shadcn-ui@latest init || echo "❌ shadcn-ui failed to init."
     fi
   fi
 
   echo "✅ Your Next.js app is ready!"
 }
-
 
 
 # Create a new Vite application with framework selection and optional packages
