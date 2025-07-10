@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/common/navbar";
 import Footer from "@/components/common/footer";
 import { Analytics } from "@vercel/analytics/next";
+import Script from "next/script";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -197,15 +198,6 @@ export const metadata: Metadata = {
   // App-specific metadata
   applicationName: siteConfig.name,
   category: "Developer Tools",
-
-  // Viewport is handled by Next.js automatically
-  // But you can override if needed
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
 };
 
 // JSON-LD structured data
@@ -261,9 +253,9 @@ export default function RootLayout({
         />
 
         {/* Google Analytics - Optimized Loading */}
-        <script
-          async
+        <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-9BDSR091HN"
+          strategy="afterInteractive"
         />
         <script
           dangerouslySetInnerHTML={{

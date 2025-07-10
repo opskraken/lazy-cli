@@ -40,40 +40,58 @@ export default function Hero({
           <div className='absolute inset-0 bg-[url(&apos;data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23334155" fill-opacity="0.1"%3E%3Ccircle cx="3" cy="3" r="1"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E&apos;)] opacity-40' />
 
           {/* Floating Elements */}
-          {[...Array(20)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-1 h-1 bg-cyan-400 rounded-full"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              variants={floatingVariants}
-              initial="initial"
-              animate="animate"
-              transition={{
-                delay: Math.random() * 5,
-                duration: 3 + Math.random() * 4,
-                repeat: Infinity,
-                ease: [0.42, 0, 0.58, 1],
-              }}
-            />
-          ))}
+          {typeof window !== "undefined" && [...Array(20)].map((_, i) => {
+            // Generate deterministic positions using index instead of random
+            const left = 5 + (i * 4.5) % 90; // Distribute evenly across 5-95%
+            const top = 10 + (i * 4.2) % 80; // Distribute evenly across 10-90%
+            
+            return (
+              <motion.div
+                key={i}
+                className="absolute w-1 h-1 bg-cyan-400 rounded-full"
+                style={{
+                  left: `${left}%`,
+                  top: `${top}%`,
+                }}
+                variants={floatingVariants}
+                initial="initial"
+                animate="animate"
+                transition={{
+                  delay: i * 0.2, // Deterministic delay based on index
+                  duration: 3 + (i % 4), // Deterministic duration based on index
+                  repeat: Infinity,
+                  ease: [0.42, 0, 0.58, 1],
+                }}
+              />
+            );
+          })}
 
           {/* Large Glowing Orbs */}
-          <motion.div
-            className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl"
-            variants={glowVariants}
-            initial="initial"
-            animate="animate"
-          />
-          <motion.div
-            className="absolute bottom-20 right-10 w-40 h-40 bg-gradient-to-r from-purple-400/10 to-pink-400/10 rounded-full blur-3xl"
-            variants={glowVariants}
-            initial="initial"
-            animate="animate"
-            transition={{ delay: 2 }}
-          />
+          {typeof window !== "undefined" && (
+            <>
+              <motion.div
+                className="absolute w-32 h-32 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl"
+                style={{
+                  top: "20%",
+                  left: "10%"
+                }}
+                variants={glowVariants}
+                initial="initial"
+                animate="animate"
+              />
+              <motion.div
+                className="absolute w-40 h-40 bg-gradient-to-r from-purple-400/10 to-pink-400/10 rounded-full blur-3xl"
+                style={{
+                  bottom: "20%",
+                  right: "10%"
+                }}
+                variants={glowVariants}
+                initial="initial"
+                animate="animate"
+                transition={{ delay: 2 }}
+              />
+            </>
+          )}
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
