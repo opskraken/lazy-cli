@@ -678,8 +678,48 @@ vite_js_create() {
 
     npx tailwindcss init -p
 
-    sed -i.bak 's/content: \[\]/content: ["\.\/index\.html", "\.\/src\/\*\*\/\*\.{js,ts,jsx,tsx}"]/' tailwind.config.js
-    rm tailwind.config.js.bak
+    # Update tailwind.config.js with proper content paths
+    cat > tailwind.config.js << 'EOF'
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+EOF
+
+    # Add Tailwind directives to CSS file
+    if [[ -f "src/index.css" ]]; then
+      cat > src/index.css << 'EOF'
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+EOF
+    elif [[ -f "src/style.css" ]]; then
+      cat > src/style.css << 'EOF'
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+EOF
+    else
+      # Create index.css if neither exists
+      cat > src/index.css << 'EOF'
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+EOF
+      # Import it in main file if it's React
+      if [[ "$framework" == "react" && -f "src/main.jsx" ]]; then
+        sed -i.bak "1i import './index.css'" src/main.jsx && rm src/main.jsx.bak
+      elif [[ "$framework" == "react" && -f "src/main.tsx" ]]; then
+        sed -i.bak "1i import './index.css'" src/main.tsx && rm src/main.tsx.bak
+      fi
+    fi
 
     if [[ "$INSTALL_DAISY" == "1" ]]; then
       echo "🎀 Installing DaisyUI..."
@@ -689,10 +729,20 @@ vite_js_create() {
         $PKG_MANAGER add -D daisyui
       fi
 
-      if ! grep -q "daisyui" tailwind.config.js; then
-        sed -i.bak '/plugins: \[/ s/\[/\[require("daisyui"), /' tailwind.config.js
-        rm tailwind.config.js.bak
-      fi
+      # Update tailwind.config.js to include DaisyUI plugin
+      cat > tailwind.config.js << 'EOF'
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [require("daisyui")],
+}
+EOF
       echo "✅ DaisyUI configured in tailwind.config.js"
     fi
 
