@@ -230,8 +230,7 @@ github_create_pr() {
     return 1
   fi
 
-  # Detect project type by checking for specific configuration files
-  # Supports: Node.js, Python, Go, Java (Maven/Gradle)
+  # Detect project type
   local PROJECT_TYPE="unknown"
   if [[ -f "package.json" ]]; then
     PROJECT_TYPE="node"
@@ -245,9 +244,9 @@ github_create_pr() {
 
   echo "🔍 Detected project type: $PROJECT_TYPE"
 
-  # Execute project-specific dependency installation and build commands
+  # Project-specific install/build
   case "$PROJECT_TYPE" in
-    node) # Node.js projects - install deps and run build
+    node)
       echo "📦 Installing Node.js dependencies..."
       detect_package_manager
       if [[ -z "$PKG_MANAGER" ]]; then
@@ -260,7 +259,7 @@ github_create_pr() {
         fi
       fi
       ;;
-    python) # Python projects - handle pip, poetry, or pipenv
+    python)
       echo "📦 Installing Python dependencies..."
       if command -v pip &> /dev/null; then
         if [[ -f "requirements.txt" ]]; then
@@ -280,7 +279,7 @@ github_create_pr() {
         echo "⚠️ pip not installed."
       fi
       ;;
-    go) # Go projects - tidy modules
+    go)
       echo "📦 Tidying Go modules..."
       if command -v go &> /dev/null; then
         go mod tidy || echo "⚠️ go mod tidy failed."
@@ -288,7 +287,7 @@ github_create_pr() {
         echo "⚠️ Go not installed."
       fi
       ;;
-    java) # Java projects - Maven or Gradle builds
+    java)
       echo "📦 Building Java project..."
       if [[ -f "pom.xml" ]]; then
         if command -v mvn &> /dev/null; then
@@ -306,7 +305,7 @@ github_create_pr() {
         echo "⚠️ No recognized Java build files found."
       fi
       ;;
-    *) # Handle unknown commands
+    *)
       echo "⚠️ Dependency install & build not implemented for project type: $PROJECT_TYPE"
       ;;
   esac
@@ -325,12 +324,26 @@ github_create_pr() {
     return 1
   fi
 
+  # Create pull request if GitHub CLI is available
+  if command -v gh &> /dev/null; then
+    echo "🔁 Creating pull request: $CURRENT_BRANCH → $BASE_BRANCH"
+    if ! gh pr create --base "$BASE_BRANCH" --head "$CURRENT_BRANCH" --title "$COMMIT_MSG" --body "$COMMIT_MSG"; then
+      echo "❌ Pull request creation failed."
+      return 1
+    fi
+  else
+    echo "⚠️ GitHub CLI (gh) not installed. Skipping PR creation."
+    echo "👉 Install it from https://cli.github.com/"
+  fi
+
   echo "✅ Pull request workflow completed successfully."
 }
+
 
 # Initialize a Node.js project with interactive package selection
 # Detects available package manager and prompts for common dependencies
 # Supports: express, dotenv, nodemon, cors, zod
+
 node_js_init() {
   detect_package_manager
   local pkg_manager="$PKG_MANAGER"
@@ -466,77 +479,68 @@ EOF
   echo "🛠️ Configuring package.json scripts..."
   
   # Create scripts object if it doesn't exist and add appropriate scripts
-  if command -v jq &>/dev/null; then
-    # Use jq for reliable JSON manipulation
-    if [[ "$pkg_manager" == "bun" ]]; then
-      if [[ "$ans_nodemon" == "1" ]]; then
-        jq '.scripts = {
-          "start": "bun run index.ts",
-          "dev": "nodemon --watch index.ts --exec bun run index.ts",
-          "test": "bun test"
-        }' package.json > tmp.json && mv tmp.json package.json
-      else
-        jq '.scripts = {
-          "start": "bun run index.ts",
-          "build": "bun build index.ts",
-          "test": "bun test"
-        }' package.json > tmp.json && mv tmp.json package.json
-      fi
-    elif [[ "$pkg_manager" == "npm" ]]; then
-      if [[ "$ans_nodemon" == "1" ]]; then
-        jq '.scripts = {
-          "start": "ts-node index.ts",
-          "dev": "nodemon index.ts",
-          "build": "tsc",
-          "test": "echo \"Error: no test specified\" && exit 1"
-        }' package.json > tmp.json && mv tmp.json package.json
-      else
-        jq '.scripts = {
-          "start": "ts-node index.ts",
-          "build": "tsc",
-          "test": "echo \"Error: no test specified\" && exit 1"
-        }' package.json > tmp.json && mv tmp.json package.json
-      fi
+if command -v jq &>/dev/null; then
+  # ✅ Use jq for safe, structured JSON editing
+  if [[ "$pkg_manager" == "bun" ]]; then
+    if [[ "$ans_nodemon" == "1" ]]; then
+      jq '.scripts = {
+        "start": "bun run index.ts",
+        "dev": "nodemon --watch index.ts --exec bun run index.ts",
+        "test": "bun test"
+      }' package.json > tmp.json && mv tmp.json package.json
     else
-      # pnpm, yarn
-      if [[ "$ans_nodemon" == "1" ]]; then
-        jq '.scripts = {
-          "start": "ts-node index.ts",
-          "dev": "nodemon index.ts",
-          "build": "tsc",
-          "test": "echo \"Error: no test specified\" && exit 1"
-        }' package.json > tmp.json && mv tmp.json package.json
-      else
-        jq '.scripts = {
-          "start": "ts-node index.ts",
-          "build": "tsc",
-          "test": "echo \"Error: no test specified\" && exit 1"
-        }' package.json > tmp.json && mv tmp.json package.json
-      fi
+      jq '.scripts = {
+        "start": "bun run index.ts",
+        "build": "bun build index.ts",
+        "test": "bun test"
+      }' package.json > tmp.json && mv tmp.json package.json
     fi
   else
-    # Fallback: manual JSON editing (less reliable but works without jq)
-    echo "⚠️ jq not found, using manual JSON editing..."
-    
-    # Remove existing scripts section if present
-    sed -i.bak '/"scripts":/,/},/d' package.json
-    
-    # Add new scripts section before the closing brace
-    if [[ "$pkg_manager" == "bun" ]]; then
-      if [[ "$ans_nodemon" == "1" ]]; then
-        sed -i.bak '$i\  "scripts": {\n    "start": "bun run index.ts",\n    "dev": "nodemon --watch index.ts --exec bun run index.ts",\n    "test": "bun test"\n  },' package.json
-      else
-        sed -i.bak '$i\  "scripts": {\n    "start": "bun run index.ts",\n    "build": "bun build index.ts",\n    "test": "bun test"\n  },' package.json
-      fi
+    if [[ "$ans_nodemon" == "1" ]]; then
+      jq '.scripts = {
+        "start": "ts-node index.ts",
+        "dev": "nodemon index.ts",
+        "build": "tsc",
+        "test": "echo \"Error: no test specified\" && exit 1"
+      }' package.json > tmp.json && mv tmp.json package.json
     else
-      if [[ "$ans_nodemon" == "1" ]]; then
-        sed -i.bak '$i\  "scripts": {\n    "start": "ts-node index.ts",\n    "dev": "nodemon index.ts",\n    "build": "tsc",\n    "test": "echo \"Error: no test specified\" && exit 1"\n  },' package.json
-      else
-        sed -i.bak '$i\  "scripts": {\n    "start": "ts-node index.ts",\n    "build": "tsc",\n    "test": "echo \"Error: no test specified\" && exit 1"\n  },' package.json
-      fi
+      jq '.scripts = {
+        "start": "ts-node index.ts",
+        "build": "tsc",
+        "test": "echo \"Error: no test specified\" && exit 1"
+      }' package.json > tmp.json && mv tmp.json package.json
     fi
-    rm -f package.json.bak
   fi
+
+else
+  # ⚠️ Fallback: Manual sed-based editing (less robust)
+  echo "⚠️ jq not found, using manual JSON editing..."
+
+  # Remove existing scripts section if present
+  sed -i.bak '/"scripts":/,/},/d' package.json
+
+  # Ensure dependencies section ends with a comma
+  sed -i.bak '/"dependencies": {[^}]*}/ s/}/},/' package.json
+
+  # Inject scripts block before final closing brace
+  if [[ "$pkg_manager" == "bun" ]]; then
+    if [[ "$ans_nodemon" == "1" ]]; then
+      sed -i.bak '$i\  "scripts": {\n    "start": "bun run index.ts",\n    "dev": "nodemon --watch index.ts --exec bun run index.ts",\n    "test": "bun test"\n  },' package.json
+    else
+      sed -i.bak '$i\  "scripts": {\n    "start": "bun run index.ts",\n    "build": "bun build index.ts",\n    "test": "bun test"\n  },' package.json
+    fi
+  else
+    if [[ "$ans_nodemon" == "1" ]]; then
+      sed -i.bak '$i\  "scripts": {\n    "start": "ts-node index.ts",\n    "dev": "nodemon index.ts",\n    "build": "tsc",\n    "test": "echo \\"Error: no test specified\\" && exit 1"\n  },' package.json
+    else
+      sed -i.bak '$i\  "scripts": {\n    "start": "ts-node index.ts",\n    "build": "tsc",\n    "test": "echo \\"Error: no test specified\\" && exit 1"\n  },' package.json
+    fi
+  fi
+
+  # Clean up backup file
+  rm -f package.json.bak
+fi
+
   
   if [[ "$ans_nodemon" == "1" ]]; then
     echo "✅ Run with: $pkg_manager run dev (development with auto-reload)"
