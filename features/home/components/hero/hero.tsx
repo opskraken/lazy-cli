@@ -9,6 +9,9 @@ import {
   BookOpen,
 } from "lucide-react";
 import { useState } from "react";
+import useSWR from "swr";
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
 export default function Hero({
   glowVariants,
 }: {
@@ -28,6 +31,9 @@ export default function Hero({
       y: [-10, 10, -10],
     },
   };
+
+  const { data } = useSWR("/api/stars", fetcher, { refreshInterval: 60000 });
+
   return (
     <>
       <section className="pt-24 pb-16 relative overflow-hidden">
@@ -40,31 +46,32 @@ export default function Hero({
           <div className='absolute inset-0 bg-[url(&apos;data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23334155" fill-opacity="0.1"%3E%3Ccircle cx="3" cy="3" r="1"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E&apos;)] opacity-40' />
 
           {/* Floating Elements */}
-          {typeof window !== "undefined" && [...Array(20)].map((_, i) => {
-            // Generate deterministic positions using index instead of random
-            const left = 5 + (i * 4.5) % 90; // Distribute evenly across 5-95%
-            const top = 10 + (i * 4.2) % 80; // Distribute evenly across 10-90%
-            
-            return (
-              <motion.div
-                key={i}
-                className="absolute w-1 h-1 bg-cyan-400 rounded-full"
-                style={{
-                  left: `${left}%`,
-                  top: `${top}%`,
-                }}
-                variants={floatingVariants}
-                initial="initial"
-                animate="animate"
-                transition={{
-                  delay: i * 0.2, // Deterministic delay based on index
-                  duration: 3 + (i % 4), // Deterministic duration based on index
-                  repeat: Infinity,
-                  ease: [0.42, 0, 0.58, 1],
-                }}
-              />
-            );
-          })}
+          {typeof window !== "undefined" &&
+            [...Array(20)].map((_, i) => {
+              // Generate deterministic positions using index instead of random
+              const left = 5 + ((i * 4.5) % 90); // Distribute evenly across 5-95%
+              const top = 10 + ((i * 4.2) % 80); // Distribute evenly across 10-90%
+
+              return (
+                <motion.div
+                  key={i}
+                  className="absolute w-1 h-1 bg-cyan-400 rounded-full"
+                  style={{
+                    left: `${left}%`,
+                    top: `${top}%`,
+                  }}
+                  variants={floatingVariants}
+                  initial="initial"
+                  animate="animate"
+                  transition={{
+                    delay: i * 0.2, // Deterministic delay based on index
+                    duration: 3 + (i % 4), // Deterministic duration based on index
+                    repeat: Infinity,
+                    ease: [0.42, 0, 0.58, 1],
+                  }}
+                />
+              );
+            })}
 
           {/* Large Glowing Orbs */}
           {typeof window !== "undefined" && (
@@ -73,7 +80,7 @@ export default function Hero({
                 className="absolute w-32 h-32 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl"
                 style={{
                   top: "20%",
-                  left: "10%"
+                  left: "10%",
                 }}
                 variants={glowVariants}
                 initial="initial"
@@ -83,7 +90,7 @@ export default function Hero({
                 className="absolute w-40 h-40 bg-gradient-to-r from-purple-400/10 to-pink-400/10 rounded-full blur-3xl"
                 style={{
                   bottom: "20%",
-                  right: "10%"
+                  right: "10%",
                 }}
                 variants={glowVariants}
                 initial="initial"
@@ -212,7 +219,10 @@ export default function Hero({
             {[
               { label: "Commands Available", value: "10+" },
               { label: "Projects Scaffolded", value: "10K+" },
-              { label: "GitHub Stars", value: "0" },
+              {
+                label: "GitHub Stars",
+                value: (data?.stars || 0).toLocaleString(),
+              },
             ].map((stat) => (
               <motion.div
                 key={stat.label}

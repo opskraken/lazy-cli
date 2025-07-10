@@ -16,6 +16,9 @@ import {
   Scale,
 } from "lucide-react";
 
+import useSWR from "swr";
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
 export default function Footer() {
   const glowVariants = {
     initial: { scale: 1, opacity: 0.3 },
@@ -29,6 +32,8 @@ export default function Footer() {
       },
     },
   };
+
+  const { data } = useSWR("/api/stars", fetcher, { refreshInterval: 60000 });
 
   return (
     <footer className="bg-slate-900 border-t border-slate-800 py-8 sm:py-12 lg:py-16">
@@ -63,7 +68,7 @@ export default function Footer() {
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-2 sm:space-y-0 sm:space-x-4">
               <div className="flex items-center text-slate-400 text-sm">
                 <Star className="w-4 h-4 text-yellow-400 mr-1" />
-                <span>0 GitHub Stars</span>
+                <span>{data?.stars} GitHub Stars</span>
               </div>
               <div className="hidden sm:block text-slate-400 text-sm">•</div>
               <motion.a
