@@ -325,18 +325,6 @@ github_create_pr() {
     return 1
   fi
 
-  # Attempt to create pull request using GitHub CLI if installed
-  if command -v gh &> /dev/null; then
-    echo "🔁 Creating pull request: $CURRENT_BRANCH → $BASE_BRANCH"
-    if ! gh pr create --base "$BASE_BRANCH" --head "$CURRENT_BRANCH" --title "$COMMIT_MSG" --body "$COMMIT_MSG"; then
-      echo "❌ Pull request creation failed."
-      return 1
-    fi
-  else
-    echo "⚠️ GitHub CLI (gh) not installed. Skipping PR creation."
-    echo "👉 Install it from https://cli.github.com/"
-  fi
-
   echo "✅ Pull request workflow completed successfully."
 }
 
@@ -386,7 +374,7 @@ node_js_init() {
   [[ "$ans_zod" == "-1" ]] && echo "⏹️ Setup exited." && return
 
   deps=""
-  dev_deps=""
+  dev_deps="typescript ts-node @types/node"
 
   [[ "$ans_express" == "1" ]] && deps="$deps express"
   [[ "$ans_dotenv" == "1" ]] && deps="$deps dotenv"
@@ -396,68 +384,59 @@ node_js_init() {
 
   if [[ -n "$deps" ]]; then
     echo "📦 Installing dependencies: $deps"
-    if [[ "$pkg_manager" == "npm" ]]; then
-      npm install $deps
-    else
-      $pkg_manager add $deps
-    fi
+    $pkg_manager install $deps
   fi
 
-  if [[ -n "$dev_deps" ]]; then
-    echo "📦 Installing devDependencies: $dev_deps"
-    if [[ "$pkg_manager" == "npm" ]]; then
-      npm install -D $dev_deps
-    else
-      $pkg_manager add -D $dev_deps
-    fi
-  fi
+  echo "📦 Installing devDependencies: $dev_deps"
+  $pkg_manager install -D $dev_deps
 
-  # Create a basic index.js if not exists
-  if [[ ! -f index.js ]]; then
-    echo "📝 Creating basic index.js file..."
-    cat > index.js <<EOF
-const express = require('express');
+  # Generate tsconfig.json
+  echo "⚙️ Generating tsconfig.json..."
+  npx tsc --init
+
+  # Create index.ts or add LazyCLI message if it exists
+  if [[ ! -f index.ts ]]; then
+    echo "📝 Creating index.ts with LazyCLI starter..."
+    cat > index.ts <<EOF
+import express from 'express';
 const app = express();
 const port = process.env.PORT || 3000;
 
-console.log("🚀 Welcome to your LazyCLI-powered Node.js server! 💤");
+console.log("🚀 Booted with LazyCLI – stay lazy, code smart 😴");
 
 app.get('/', (req, res) => {
-  res.send('Hello from LazyCLI Node.js server!');
+  res.send('Hello from LazyCLI!');
 });
 
 app.listen(port, () => {
-  console.log(\`Server is running on http://localhost:\${port}\`);
+  console.log(\`Server running on http://localhost:\${port}\`);
 });
 EOF
   else
-    echo "⚠️ index.js already exists, skipping creation."
+    echo "ℹ️ index.ts already exists. Appending LazyCLI branding..."
+    echo 'console.log("🚀 Booted with LazyCLI – stay lazy, code smart 😴");' >> index.ts
   fi
 
-  # Add nodemon dev script if nodemon installed
+  # Modify package.json scripts
   if [[ "$ans_nodemon" == "1" ]]; then
-    echo "🛠️ Adding 'dev' script to package.json for nodemon..."
-
-    # Use jq if available to safely modify package.json, fallback to sed
+    echo "🛠️ Adding 'dev' script for nodemon..."
     if command -v jq &>/dev/null; then
-      jq '.scripts.dev="nodemon index.js"' package.json > package.tmp.json && mv package.tmp.json package.json
+      jq '.scripts.dev="nodemon index.ts"' package.json > tmp.json && mv tmp.json package.json
     else
-      # crude sed based script add/update for 'dev'
-      if grep -q "\"dev\"" package.json; then
-        # Replace existing dev script
-        sed -i.bak 's/"dev": *"[^"]*"/"dev": "nodemon index.js"/' package.json
-        rm package.json.bak
-      else
-        # Add dev script inside scripts object
-        sed -i.bak '/"scripts": *{/a\    "dev": "nodemon index.js",' package.json
-        rm package.json.bak
-      fi
+      sed -i.bak '/"scripts": *{/a\    "dev": "nodemon index.ts",' package.json && rm package.json.bak
     fi
-
-    echo "✅ 'dev' script added. You can now run 'npm run dev' to start the server."
+    echo "✅ Run with: npm run dev"
+  else
+    echo "🛠️ Adding 'start' script with ts-node..."
+    if command -v jq &>/dev/null; then
+      jq '.scripts.start="ts-node index.ts"' package.json > tmp.json && mv tmp.json package.json
+    else
+      sed -i.bak '/"scripts": *{/a\    "start": "ts-node index.ts",' package.json && rm package.json.bak
+    fi
+    echo "✅ Run with: npm start"
   fi
 
-  echo "✅ Node.js project initialized successfully!"
+  echo "✅ Node.js + TypeScript project is ready!"
 }
 
 
@@ -480,37 +459,29 @@ next_js_create() {
   echo "- App Router: Yes"
   echo "- src/: No"
   echo "- Import alias: @/*"
-  read -p "✅ Continue with these settings? (y/n): " confirm_next
-  [[ "$confirm_next" != "y" ]] && echo "❌ Cancelled." && return
+  read -p "✅ Continue with these settings? (1/0): " confirm_next
 
-  # Ask about using src directory (1 = yes, 0 = no)
-  while true; do
-    read -p "📂 Use 'src/' directory? (1/0): " use_src
-    if [[ "$use_src" == "1" || "$use_src" == "0" ]]; then
-      break
-    else
-      echo "Please enter 1 or 0."
-    fi
-  done
+  # Collect custom values if declined
+  if [[ "$confirm_next" != "1" ]]; then
+    echo "❌ Cancelled default setup. Let's go one-by-one instead."
 
-  # Prepare src dir flag for create-next-app
-  if [[ "$use_src" == "1" ]]; then
-    src_flag="--src-dir"
+    read -p "📂 Use src/ directory? (1/0): " use_src
+    read -p "✨ Use Tailwind CSS? (1/0): " use_tailwind
+    read -p "🧹 Use ESLint? (1/0): " use_eslint
+    read -p "⚙️ Use TypeScript? (1/0): " use_ts
+    read -p "🧪 Use App Router? (1/0): " use_app
+    read -p "📌 Use import alias '@/*'? (1/0): " use_alias
   else
-    src_flag="--no-src-dir"
+    use_src=0
+    use_tailwind=1
+    use_eslint=1
+    use_ts=1
+    use_app=1
+    use_alias=1
   fi
 
-  npx create-next-app@latest "$project_name" \
-    --typescript \
-    --eslint \
-    --tailwind \
-    --app \
-    $src_flag \
-    --import-alias "@/*" \
-    --no-interactive
-
-  cd "$project_name" || return
-
+  # Prompt for additional packages BEFORE install
+  echo ""
   echo "🧠 LazyCLI Smart Stack Setup: Answer once and make yourself gloriously lazy"
 
   prompt_or_exit() {
@@ -546,15 +517,32 @@ next_js_create() {
   ans_shadcn=$(prompt_or_exit "🎨 Setup shadcn-ui?")
   [[ "$ans_shadcn" == "-1" ]] && echo "🚫 Setup skipped." && return
 
+  # Create the Next.js app with selected options
+  echo "🚀 Creating Next.js project..."
+
+  cmd="npx create-next-app@latest \"$project_name\""
+  [[ "$use_ts" == "1" ]] && cmd+=" --typescript"
+  [[ "$use_eslint" == "1" ]] && cmd+=" --eslint"
+  [[ "$use_tailwind" == "1" ]] && cmd+=" --tailwind"
+  [[ "$use_app" == "1" ]] && cmd+=" --app"
+  [[ "$use_src" == "1" ]] && cmd+=" --src-dir"
+  [[ "$use_alias" == "1" ]] && cmd+=' --import-alias "@/*"'
+  cmd+=" --no-use-turbo --no-interactive"
+
+  eval "$cmd"
+
+  cd "$project_name" || return
+
   detect_package_manager
 
+  # Prepare package list
   packages=""
-  [[ "$ans_zod" == "1" ]] && packages="$packages zod"
-  [[ "$ans_bcrypt" == "1" ]] && packages="$packages bcrypt"
-  [[ "$ans_cookie" == "1" ]] && packages="$packages js-cookie"
-  [[ "$ans_swr" == "1" ]] && packages="$packages swr"
-  [[ "$ans_lucide" == "1" ]] && packages="$packages lucide-react"
-  [[ "$ans_toast" == "1" ]] && packages="$packages react-hot-toast"
+  [[ "$ans_zod" == "1" ]] && packages+=" zod"
+  [[ "$ans_bcrypt" == "1" ]] && packages+=" bcrypt"
+  [[ "$ans_cookie" == "1" ]] && packages+=" js-cookie"
+  [[ "$ans_swr" == "1" ]] && packages+=" swr"
+  [[ "$ans_lucide" == "1" ]] && packages+=" lucide-react"
+  [[ "$ans_toast" == "1" ]] && packages+=" react-hot-toast"
 
   if [[ -n "$packages" ]]; then
     echo "📦 Installing: $packages"
@@ -565,17 +553,23 @@ next_js_create() {
     fi
   fi
 
+  # Setup shadcn-ui if selected
   if [[ "$ans_shadcn" == "1" ]]; then
     echo "🎨 Initializing shadcn-ui..."
     if [[ "$PKG_MANAGER" == "npm" ]]; then
       npx shadcn-ui@latest init
     else
-      $PKG_MANAGER dlx shadcn-ui@latest init
+      if command -v bun &>/dev/null; then
+        bun x shadcn-ui@latest init
+      else
+        $PKG_MANAGER dlx shadcn-ui@latest init || echo "❌ shadcn-ui failed to init."
+      fi
     fi
   fi
 
-  echo "🚀 Your Next.js app is ready!"
+  echo "✅ Your Next.js app is ready!"
 }
+
 
 
 # Create a new Vite application with framework selection and optional packages
@@ -590,7 +584,6 @@ vite_js_create() {
     return
   fi
 
-  # Framework selection for Vite project
   echo "✨ Choose a framework:"
   echo "1) Vanilla"
   echo "2) React"
@@ -609,10 +602,8 @@ vite_js_create() {
   detect_package_manager
 
   echo "🧠 LazyCLI Smart Stack Setup: Answer once and make yourself gloriously lazy"
-  # Interactive package selection with exit option
   echo "   1 = Yes, 0 = No, -1 = Skip all remaining prompts"
 
-  # Helper function to prompt for package installation with exit option
   ask_package() {
     local label="$1"
     local var_name="$2"
@@ -634,7 +625,6 @@ vite_js_create() {
     done
   }
 
-  # Collect user preferences for common packages
   SKIP_ALL=false
   [[ "$SKIP_ALL" == false ]] && ask_package "axios" INSTALL_AXIOS
   [[ "$SKIP_ALL" == false ]] && ask_package "clsx" INSTALL_CLSX
@@ -649,13 +639,9 @@ vite_js_create() {
     ask_package "DaisyUI (Tailwind plugin)" INSTALL_DAISY
   fi
 
-  # Create the Vite project with selected framework
+  # Create the Vite project using npx (more stable in Git Bash / Windows)
   echo "🚀 Scaffolding Vite + $framework..."
-  if [[ "$PKG_MANAGER" == "npm" ]]; then
-    npm create vite@latest "$project_name" -- --template "$framework" --no-interactive
-  else
-    $PKG_MANAGER create vite@latest "$project_name" -- --template "$framework" --no-interactive
-  fi
+  npx create-vite "$project_name" --template "$framework"
 
   cd "$project_name" || return
 
@@ -666,9 +652,7 @@ vite_js_create() {
     $PKG_MANAGER install
   fi
 
-  # Install selected packages based on user choices
   packages=()
-
   [[ "$INSTALL_AXIOS" == "1" ]] && packages+=("axios")
   [[ "$INSTALL_CLSX" == "1" ]] && packages+=("clsx")
   [[ "$INSTALL_ZOD" == "1" ]] && packages+=("zod")
@@ -685,7 +669,6 @@ vite_js_create() {
     fi
   fi
 
-  # Setup Tailwind CSS and optionally DaisyUI
   if [[ "$INSTALL_TAILWIND" == "1" ]]; then
     echo "🌬️ Setting up Tailwind CSS..."
     if [[ "$PKG_MANAGER" == "npm" ]]; then
@@ -693,6 +676,7 @@ vite_js_create() {
     else
       $PKG_MANAGER add -D tailwindcss postcss autoprefixer
     fi
+
     npx tailwindcss init -p
 
     sed -i.bak 's/content: \[\]/content: ["\.\/index\.html", "\.\/src\/\*\*\/\*\.{js,ts,jsx,tsx}"]/' tailwind.config.js
@@ -706,7 +690,6 @@ vite_js_create() {
         $PKG_MANAGER add -D daisyui
       fi
 
-      # Inject DaisyUI plugin
       if ! grep -q "daisyui" tailwind.config.js; then
         sed -i.bak '/plugins: \[/ s/\[/\[require("daisyui"), /' tailwind.config.js
         rm tailwind.config.js.bak
@@ -719,6 +702,7 @@ vite_js_create() {
 
   echo "✅ Vite project setup complete!"
 }
+
 
 # Main command-line interface router
 # Handles all primary commands and subcommands
