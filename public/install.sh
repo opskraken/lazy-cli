@@ -1,41 +1,39 @@
-#!/bin/bash
+ #!/bin/bash
 
 echo "🛠️ Installing LazyCLI..."
 
-# Check if curl is installed
-if ! command -v curl &> /dev/null
-then
-  echo "❌ curl is not installed. Please install curl first."
-  echo "Visit https://curl.se/download.html for installation instructions."
+INSTALL_DIR="$HOME/.lazycli"
+LAZY_BINARY="$INSTALL_DIR/lazy"
+
+# Ensure install dir is writable
+if ! mkdir -p "$INSTALL_DIR" 2>/dev/null; then
+  echo "❌ Failed to create install directory: $INSTALL_DIR"
+  echo "👉 Try running this command instead:"
+  echo "   curl -s https://lazycli.xyz/install.sh | sudo HOME=$HOME bash"
   exit 1
 fi
 
-# Check if bash or WSL is available (simple heuristic)
-if [ -z "$BASH_VERSION" ]; then
-  if grep -qi microsoft /proc/version 2>/dev/null; then
-    echo "✔️ Running under WSL (Windows Subsystem for Linux)."
-  else
-    echo "❌ Bash shell not detected."
-    echo "Please run this script inside a bash shell or WSL environment."
-    exit 1
-  fi
-fi
-
-# Create install directory
-mkdir -p ~/.lazycli
-
-# Download lazy.sh from your actual domain
-curl -s https://lazycli.vercel.app/scripts/lazy.sh -o ~/.lazycli/lazy
+# Download the latest CLI script
+curl -fsSL https://lazycli.xyz/scripts/lazy.sh -o "$LAZY_BINARY" || {
+  echo "❌ Failed to download LazyCLI."
+  exit 1
+}
 
 # Make it executable
-chmod +x ~/.lazycli/lazy
+chmod +x "$LAZY_BINARY"
 
-# Add to PATH in shell config only if not already added
-if ! grep -q 'export PATH="$HOME/.lazycli:$PATH"' ~/.bashrc; then
-  echo 'export PATH="$HOME/.lazycli:$PATH"' >> ~/.bashrc
+# Add to PATH if not already added
+PROFILE_FILE="$HOME/.bashrc"
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  PROFILE_FILE="$HOME/.zshrc"
 fi
 
-# Source the bashrc to update current shell (works only in interactive shells)
-source ~/.bashrc 2>/dev/null || echo "⚠️ Please restart your terminal or run 'source ~/.bashrc' to update PATH"
+if ! grep -q 'export PATH="$HOME/.lazycli:$PATH"' "$PROFILE_FILE"; then
+  echo 'export PATH="$HOME/.lazycli:$PATH"' >> "$PROFILE_FILE"
+  echo "📎 Updated $PROFILE_FILE with LazyCLI path."
+fi
 
-echo "✅ LazyCLI installed! Now you can be productively lazy. Run 'lazy --help' to get started. 😎"
+# Apply to current session
+export PATH="$HOME/.lazycli:$PATH"
+
+echo "✅ LazyCLI installed! Run 'lazy --help' to begin. 😎"
