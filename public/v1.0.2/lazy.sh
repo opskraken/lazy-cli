@@ -278,11 +278,26 @@ github_create_pr() {
 
 node_js_init() {
   echo "🛠️ Initializing Node.js project..."
-  npm init -y
+  
+  # Detect package manager
+  detect_package_manager
+  
+  # Ask for nodemon preference
+  read -p "🔄 Install nodemon for auto-reload? (1/0): " ans_nodemon
+  
+  # Create index.ts if it doesn't exist
+  if [[ ! -f "index.ts" ]]; then
+    echo "📝 Creating index.ts..."
+    cat > index.ts << 'EOF'
+console.log("🚀 Booted with LazyCLI – stay lazy, code smart 😴");
+
+// Your TypeScript code goes here
+function main() {
+  console.log("Hello from LazyCLI Node.js project!");
 }
 
+main();
 EOF
-    fi
   else
     echo "ℹ️ index.ts already exists. Appending LazyCLI branding..."
     echo 'console.log("🚀 Booted with LazyCLI – stay lazy, code smart 😴");' >> index.ts
@@ -295,7 +310,7 @@ EOF
   rm -f package.json
   
   # Create new package.json with proper structure
-  if [[ "$pkg_manager" == "bun" ]]; then
+  if [[ "$PKG_MANAGER" == "bun" ]]; then
     if [[ "$ans_nodemon" == "1" ]]; then
       cat > package.json <<'EOF'
 {
@@ -362,11 +377,59 @@ EOF
     fi
   fi
 
+  # Install dependencies based on package manager and nodemon preference
+  echo "📦 Installing dependencies..."
+  if [[ "$PKG_MANAGER" == "bun" ]]; then
+    if [[ "$ans_nodemon" == "1" ]]; then
+      bun add -d nodemon typescript @types/node
+    else
+      bun add -d typescript @types/node
+    fi
+  elif [[ "$PKG_MANAGER" == "pnpm" ]]; then
+    if [[ "$ans_nodemon" == "1" ]]; then
+      pnpm add -D nodemon typescript @types/node ts-node
+    else
+      pnpm add -D typescript @types/node ts-node
+    fi
+  elif [[ "$PKG_MANAGER" == "yarn" ]]; then
+    if [[ "$ans_nodemon" == "1" ]]; then
+      yarn add -D nodemon typescript @types/node ts-node
+    else
+      yarn add -D typescript @types/node ts-node
+    fi
+  else
+    if [[ "$ans_nodemon" == "1" ]]; then
+      npm install -D nodemon typescript @types/node ts-node
+    else
+      npm install -D typescript @types/node ts-node
+    fi
+  fi
+
+  # Create tsconfig.json
+  echo "⚙️ Creating tsconfig.json..."
+  cat > tsconfig.json << 'EOF'
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist",
+    "rootDir": "./",
+    "resolveJsonModule": true
+  },
+  "include": ["*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
+EOF
   
   if [[ "$ans_nodemon" == "1" ]]; then
-    echo "✅ Run with: $pkg_manager run dev (development with auto-reload)"
+    echo "✅ Run with: $PKG_MANAGER run dev (development with auto-reload)"
   fi
-  echo "✅ Run with: $pkg_manager run start (production)"
+  echo "✅ Run with: $PKG_MANAGER run start (production)"
 
   echo "✅ Node.js + TypeScript project is ready!"
 }
