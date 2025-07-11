@@ -1,4 +1,4 @@
-# ⚡ Lazycli– The Universal CLI Vault
+# ⚡ Lazycli– Automate your dev flow like a lazy pro
 
 Lazycliis a powerful, Bash-based command-line interface that simplifies your development and deployment workflow — from initializing projects to pushing code to GitHub — all in a single CLI tool.
 
