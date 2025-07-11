@@ -281,7 +281,6 @@ node_js_init() {
   npm init -y
 }
 
-console.log(greet("Developer"));
 EOF
     fi
   else
