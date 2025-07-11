@@ -367,6 +367,7 @@ github_create_pr() {
   echo "🔁 Creating pull request: $CURRENT_BRANCH → $BASE_BRANCH"
   if ! gh pr create --base "$BASE_BRANCH" --head "$CURRENT_BRANCH" --title "$COMMIT_MSG" --body "$COMMIT_MSG"; then
     echo "❌ Pull request creation failed."
+    echo "⚠️ GitHub CLI (gh) is not installed. To enable automatic pull request creation, download it from: https://cli.github.com/"
     return 1
   fi
 
