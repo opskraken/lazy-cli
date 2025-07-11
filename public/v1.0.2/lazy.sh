@@ -1,16 +1,13 @@
 #!/bin/bash
 
-# LazyCLI - A command-line tool to automate development workflows
-# Version information
-VERSION="1.0.2"
+VERSION="1.0.1"
 
-# Display help information with usage examples and available commands
 show_help() {
   cat << EOF
 LazyCLI – Automate your dev flow like a lazy pro 💤
 
 Usage:
-  lazy [command] [subcommand] [options]
+  lazy [command] [subcommand]
 
 Examples:
   lazy github init
@@ -68,93 +65,68 @@ For more details on each command, run:
 EOF
 }
 
-
-# Detect which package manager is available on the system
-# Priority order: bun > pnpm > yarn > npm
-# Sets the global PKG_MANAGER variable for use throughout the script
-detect_package_manager() {
-  if command -v bun >/dev/null 2>&1; then
-    PKG_MANAGER="bun"
-  elif command -v pnpm >/dev/null 2>&1; then
-    PKG_MANAGER="pnpm"
-  elif command -v yarn >/dev/null 2>&1; then
-    PKG_MANAGER="yarn"
-  elif command -v npm >/dev/null 2>&1; then
-    PKG_MANAGER="npm"
-  else
-    echo "❌ No supported package manager found (bun, pnpm, yarn, npm). Please install one."
-    exit 1
-  fi
-
-  echo "📦 Using package manager: $PKG_MANAGER"
-}
-
-# Initialize a new Git repository in the current directory
-# Checks if .git directory already exists to avoid conflicts
 github_init() {
   echo "🛠️ Initializing new Git repository..."
 
   if [ -d ".git" ]; then
     echo "⚠️ Git repository already initialized in this directory."
-    return 1
+    exit 1
   fi
 
-  git init && echo "✅ Git repository initialized successfully!" || {
-    echo "❌ Git initialization failed."
-    return 1
-  }
+  git init
+
+  echo "✅ Git repository initialized successfully!"
 }
 
-# Clone a GitHub repository and automatically set up the project
-# Detects project type, installs dependencies, and optionally opens in VS Code
-# Args: $1 = repository URL, $2 = tech stack (optional)
 github_clone() {
-  local repo="$1"
-  local tech="$2"
+  repo="$1"
+  tech="$2"
 
   if [[ -z "$repo" ]]; then
     echo "❌ Repo URL is required."
     echo "👉 Usage: lazy github clone <repo-url> [tech]"
-    return 1
+    exit 1
   fi
 
   echo "🔗 Cloning $repo ..."
-  git clone "$repo" || {
-    echo "❌ Clone failed."
-    return 1
-  }
+  git clone "$repo" || { echo "❌ Clone failed."; exit 1; }
 
-  local dir_name
   dir_name=$(basename "$repo" .git)
-  cd "$dir_name" || {
-    echo "❌ Failed to enter directory $dir_name"
-    return 1
-  }
+  cd "$dir_name" || exit 1
 
   echo "📁 Entered directory: $dir_name"
 
   if [[ -f package.json ]]; then
     echo "📦 Installing dependencies..."
 
-    detect_package_manager
-
-    if [[ -z "$PKG_MANAGER" ]]; then
-      echo "⚠️ No supported package manager found. Please install dependencies manually."
+    if command -v npm &> /dev/null; then
+      echo "🔧 Using npm..."
+      npm install
+    elif command -v yarn &> /dev/null; then
+      echo "🔧 Using yarn..."
+      yarn
+    elif command -v pnpm &> /dev/null; then
+      echo "🔧 Using pnpm..."
+      pnpm install
+    elif command -v bun &> /dev/null; then
+      echo "🔧 Using bun..."
+      bun install
     else
-      echo "🔧 Using $PKG_MANAGER..."
-      $PKG_MANAGER install || {
-        echo "❌ Dependency installation failed."
-        return 1
-      }
+      echo "⚠️ No supported package manager found. Please install manually."
     fi
 
-    # Check for build script
+    # Check if build script exists
     if grep -q '"build"' package.json; then
       echo "🏗️ Build script found. Building the project..."
-      $PKG_MANAGER run build || {
-        echo "❌ Build failed."
-        return 1
-      }
+      if command -v npm &> /dev/null; then
+        npm run build
+      elif command -v yarn &> /dev/null; then
+        yarn build
+      elif command -v pnpm &> /dev/null; then
+        pnpm run build
+      elif command -v bun &> /dev/null; then
+        bun run build
+      fi
     else
       echo "ℹ️ No build script found; skipping build."
     fi
@@ -172,37 +144,33 @@ github_clone() {
   echo "✅ Clone setup complete! Don't forget to commit and push your changes."
 }
 
-
-# Stage all changes, commit with provided message, and push to current branch
-# Args: $1 = commit message
 github_push() {
   echo "📦 Staging changes..."
   git add .
 
-  local msg="$1"
+  msg="$1"
   if [[ -z "$msg" ]]; then
     echo "⚠️ Commit message is required. Example:"
     echo "   lazy github push \"Your message here\""
-    return 1
+    exit 1
   fi
 
   echo "📝 Committing changes..."
   if ! git commit -m "$msg"; then
-    echo "❌ Commit failed. Nothing to commit or an error occurred."
-    return 1
+    echo "❌ Commit failed. Nothing to commit or error occurred."
+    exit 1
   fi
 
-  local BRANCH
   BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
   if [[ -z "$BRANCH" ]]; then
-    echo "❌ Could not detect current branch. Are you inside a git repository?"
-    return 1
+    echo "❌ Could not detect branch. Are you in a git repo?"
+    exit 1
   fi
 
   echo "🚀 Pushing to origin/$BRANCH..."
   if ! git push origin "$BRANCH"; then
-    echo "❌ Push failed. Please check your network or branch settings."
-    return 1
+    echo "❌ Push failed. Please check your network or branch."
+    exit 1
   fi
 
   echo "✅ Changes pushed to origin/$BRANCH 🎉"
@@ -251,254 +219,66 @@ github_create_pr() {
   local COMMIT_MSG="$2"
 
   if [[ -z "$BASE_BRANCH" || -z "$COMMIT_MSG" ]]; then
-    echo "❌ Usage: lazy github pr <base-branch> \"<commit-message>\""
-    return 1
+    echo "❌ Usage: lazy github pull <base-branch> \"<commit-message>\" [tech]"
+    exit 1
   fi
 
   # Detect current branch
-  local CURRENT_BRANCH
   CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
   if [[ -z "$CURRENT_BRANCH" ]]; then
-    echo "❌ Not inside a git repository."
-    return 1
+    echo "❌ Not in a git repo."
+    exit 1
   fi
 
-  echo "📥 Pulling latest changes from $BASE_BRANCH..."
-  if ! git pull origin "$BASE_BRANCH"; then
-    echo "❌ Pull failed."
-    return 1
+  echo "📥 Pulling latest from $BASE_BRANCH..."
+  git pull origin "$BASE_BRANCH" || { echo "❌ Pull failed"; exit 1; }
+
+  # Install dependencies based on package manager
+  if [[ -f package.json ]]; then
+    echo "📦 Installing dependencies..."
+    if command -v npm &> /dev/null; then
+      echo "🔧 Using npm..."
+      npm run build
+    elif command -v yarn &> /dev/null; then
+      echo "🔧 Using yarn..."
+      yarn
+    elif command -v pnpm &> /dev/null; then
+      echo "🔧 Using pnpm..."
+      pnpm install
+    elif command -v bun &> /dev/null; then
+      echo "🔧 Using bun..."
+      bun install
+    else
+      echo "⚠️ No supported package manager found."
+    fi
+  else
+    echo "⚠️ No package.json found. Skipping install step."
   fi
 
-  # Detect project type
-  local PROJECT_TYPE="unknown"
-  if [[ -f "package.json" ]]; then
-    PROJECT_TYPE="node"
-  elif [[ -f "pyproject.toml" || -f "requirements.txt" ]]; then
-    PROJECT_TYPE="python"
-  elif [[ -f "go.mod" ]]; then
-    PROJECT_TYPE="go"
-  elif [[ -f "pom.xml" || -f "build.gradle" || -f "build.gradle.kts" ]]; then
-    PROJECT_TYPE="java"
-  fi
-
-  echo "🔍 Detected project type: $PROJECT_TYPE"
-
-  # Project-specific install/build
-  case "$PROJECT_TYPE" in
-    node)
-      echo "📦 Installing Node.js dependencies..."
-      detect_package_manager
-      if [[ -z "$PKG_MANAGER" ]]; then
-        echo "⚠️ No supported package manager found."
-      else
-        echo "🔧 Using $PKG_MANAGER..."
-        $PKG_MANAGER install
-        if ! $PKG_MANAGER run build; then
-          echo "⚠️ Build script failed or not found."
-        fi
-      fi
-      ;;
-    python)
-      echo "📦 Installing Python dependencies..."
-      if command -v pip &> /dev/null; then
-        if [[ -f "requirements.txt" ]]; then
-          pip install -r requirements.txt || echo "⚠️ pip install failed."
-        elif [[ -f "pyproject.toml" ]]; then
-          if command -v poetry &> /dev/null; then
-            poetry install || echo "⚠️ poetry install failed."
-          elif command -v pipenv &> /dev/null; then
-            pipenv install || echo "⚠️ pipenv install failed."
-          else
-            echo "⚠️ No recognized Python package manager (poetry/pipenv) found."
-          fi
-        else
-          echo "⚠️ No known Python dependency files found."
-        fi
-      else
-        echo "⚠️ pip not installed."
-      fi
-      ;;
-    go)
-      echo "📦 Tidying Go modules..."
-      if command -v go &> /dev/null; then
-        go mod tidy || echo "⚠️ go mod tidy failed."
-      else
-        echo "⚠️ Go not installed."
-      fi
-      ;;
-    java)
-      echo "📦 Building Java project..."
-      if [[ -f "pom.xml" ]]; then
-        if command -v mvn &> /dev/null; then
-          mvn clean install || echo "⚠️ Maven build failed."
-        else
-          echo "⚠️ Maven not installed."
-        fi
-      elif [[ -f "build.gradle" || -f "build.gradle.kts" ]]; then
-        if command -v gradle &> /dev/null; then
-          gradle build || echo "⚠️ Gradle build failed."
-        else
-          echo "⚠️ Gradle not installed."
-        fi
-      else
-        echo "⚠️ No recognized Java build files found."
-      fi
-      ;;
-    *)
-      echo "⚠️ Dependency install & build not implemented for project type: $PROJECT_TYPE"
-      ;;
-  esac
-
+  # Stage and commit
   echo "📦 Staging changes..."
   git add .
 
   echo "📝 Committing with message: $COMMIT_MSG"
-  if ! git commit -m "$COMMIT_MSG"; then
-    echo "⚠️ Nothing to commit."
-  fi
+  git commit -m "$COMMIT_MSG" || echo "⚠️ Nothing to commit"
 
-  echo "🚀 Pushing changes to origin/$CURRENT_BRANCH..."
-  if ! git push origin "$CURRENT_BRANCH"; then
-    echo "❌ Push failed."
-    return 1
-  fi
+  echo "🚀 Pushing to origin/$CURRENT_BRANCH"
+  git push origin "$CURRENT_BRANCH" || { echo "❌ Push failed"; exit 1; }
 
   # Create pull request
   echo "🔁 Creating pull request: $CURRENT_BRANCH → $BASE_BRANCH"
   if ! gh pr create --base "$BASE_BRANCH" --head "$CURRENT_BRANCH" --title "$COMMIT_MSG" --body "$COMMIT_MSG"; then
     echo "❌ Pull request creation failed."
+    echo "⚠️ GitHub CLI (gh) is not installed. To enable automatic pull request creation, download it from: https://cli.github.com/"
     return 1
   fi
 
   echo "✅ PR created successfully! 🎉"
 }
 
-
-# Initialize a Node.js project with interactive package selection
-# Detects available package manager and prompts for common dependencies
-# Supports: express, dotenv, nodemon, cors, zod
-
 node_js_init() {
-  detect_package_manager
-  local pkg_manager="$PKG_MANAGER"
-
-  if [ -z "$pkg_manager" ]; then
-    echo "❌ No supported package manager found. Please install bun, pnpm, yarn, or npm."
-    return 1
-  fi
-
-  echo "🛠️ Initializing Node.js project using $pkg_manager..."
-  $pkg_manager init -y 2>/dev/null || echo "🔧 Skipping init, not supported by $pkg_manager"
-
-  echo ""
-  echo "🧠 LazyCLI Smart Stack Setup: Answer once and make yourself gloriously lazy"
-
-  prompt_or_exit() {
-    local prompt_text=$1
-    local answer
-    while true; do
-      read -p "$prompt_text (1/0/-1): " answer
-      case "$answer" in
-        1|0|-1) echo "$answer"; return ;;
-        *) echo "Please enter 1, 0, or -1." ;;
-      esac
-    done
-  }
-
-  ans_express=$(prompt_or_exit "➕ Install express?")
-  [[ "$ans_express" == "-1" ]] && echo "⏹️ Setup exited." && return
-
-  ans_dotenv=$(prompt_or_exit "🔐 Install dotenv?")
-  [[ "$ans_dotenv" == "-1" ]] && echo "⏹️ Setup exited." && return
-
-  ans_nodemon=$(prompt_or_exit "🌀 Install nodemon (dev)?")
-  [[ "$ans_nodemon" == "-1" ]] && echo "⏹️ Setup exited." && return
-
-  ans_cors=$(prompt_or_exit "🌐 Install cors?")
-  [[ "$ans_cors" == "-1" ]] && echo "⏹️ Setup exited." && return
-
-  ans_zod=$(prompt_or_exit "🧪 Install zod?")
-  [[ "$ans_zod" == "-1" ]] && echo "⏹️ Setup exited." && return
-
-  deps=""
-  dev_deps="typescript ts-node @types/node"
-
-  [[ "$ans_express" == "1" ]] && deps="$deps express"
-  [[ "$ans_dotenv" == "1" ]] && deps="$deps dotenv"
-  [[ "$ans_cors" == "1" ]] && deps="$deps cors"
-  [[ "$ans_zod" == "1" ]] && deps="$deps zod"
-  [[ "$ans_nodemon" == "1" ]] && dev_deps="$dev_deps nodemon"
-
-  if [[ -n "$deps" ]]; then
-    echo "📦 Installing dependencies: $deps"
-    $pkg_manager install $deps
-  fi
-
-  echo "📦 Installing devDependencies: $dev_deps"
-  $pkg_manager install -D $dev_deps
-
-  # Generate tsconfig.json
-  echo "⚙️ Generating tsconfig.json..."
-  npx tsc --init
-
-  # Create index.ts with comprehensive starter template
-  if [[ ! -f index.ts ]]; then
-    echo "📝 Creating index.ts with LazyCLI starter..."
-    if [[ "$ans_express" == "1" ]]; then
-      cat > index.ts <<'EOF'
-import express from 'express';
-const app = express();
-const port = process.env.PORT || 3000;
-
-console.log("🚀 Booted with LazyCLI – stay lazy, code smart 😴");
-
-// Middleware
-app.use(express.json());
-
-// Routes
-app.get('/', (req, res) => {
-  res.json({ message: 'Hello from LazyCLI!', status: 'success' });
-});
-
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
-});
-
-app.get('/api/test', (req, res) => {
-  res.json({ 
-    message: 'Test endpoint working!', 
-    method: req.method,
-    url: req.url,
-    timestamp: new Date().toISOString()
-  });
-});
-
-app.post('/api/echo', (req, res) => {
-  res.json({ 
-    message: 'Echo endpoint', 
-    received: req.body,
-    timestamp: new Date().toISOString()
-  });
-});
-
-app.listen(port, () => {
-  console.log(`🌐 Server running on http://localhost:${port}`);
-  console.log(`📋 Test endpoints:`);
-  console.log(`   GET  http://localhost:${port}/`);
-  console.log(`   GET  http://localhost:${port}/api/health`);
-  console.log(`   GET  http://localhost:${port}/api/test`);
-  console.log(`   POST http://localhost:${port}/api/echo`);
-});
-EOF
-    else
-      cat > index.ts <<'EOF'
-console.log("🚀 Booted with LazyCLI – stay lazy, code smart 😴");
-console.log("📝 Basic Node.js + TypeScript setup ready!");
-console.log("💡 Add Express for web server functionality.");
-
-// Example function
-function greet(name: string): string {
-  return `Hello, ${name}! Welcome to your LazyCLI project.`;
+  echo "🛠️ Initializing Node.js project..."
+  npm init -y
 }
 
 console.log(greet("Developer"));
@@ -720,13 +500,128 @@ next_js_create() {
     fi
   fi
 
+  # Create custom page.tsx for Next.js App Router
+  if [[ "$use_app" == "1" ]]; then
+    echo "🎨 Creating custom LazyCLI page.tsx..."
+    
+    # Remove default page.tsx if it exists
+    [[ -f "app/page.tsx" ]] && rm app/page.tsx
+    [[ -f "src/app/page.tsx" ]] && rm src/app/page.tsx
+    
+    # Determine the correct path based on src directory usage
+    if [[ "$use_src" == "1" ]]; then
+      page_path="src/app/page.tsx"
+    else
+      page_path="app/page.tsx"
+    fi
+    
+    # Create custom page.tsx with LazyCLI branding
+    cat > "$page_path" << 'EOF'
+"use client";
+import { useState } from 'react'
+
+function HomePage() {
+  const [count, setCount] = useState(0)
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="max-w-2xl mx-auto text-center">
+        {/* LazyCLI Logo */}
+        <div className="mb-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4">
+            <span className="text-3xl font-bold text-white">💤</span>
+          </div>
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">LazyCLI</h1>
+          <p className="text-lg text-gray-600">Automate your dev flow like a lazy pro</p>
+        </div>
+
+        {/* Welcome Card */}
+        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4">🎉 Welcome to Your Next.js App!</h2>
+          <p className="text-gray-600 mb-6">
+            Your project has been successfully created with LazyCLI. 
+            This template includes modern tooling and best practices to get you started quickly.
+          </p>
+          
+          {/* Counter Demo */}
+          <div className="bg-gray-50 rounded-lg p-6 mb-6">
+            <h3 className="text-lg font-medium text-gray-800 mb-4">Interactive Counter Demo</h3>
+            <div className="flex items-center justify-center space-x-4">
+              <button 
+                onClick={() => setCount(count - 1)}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              >
+                -
+              </button>
+              <span className="text-2xl font-bold text-gray-800 min-w-[3rem]">{count}</span>
+              <button 
+                onClick={() => setCount(count + 1)}
+                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          {/* Tech Stack */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-blue-50 p-3 rounded-lg">
+              <div className="text-2xl mb-1">⚛️</div>
+              <div className="text-sm font-medium text-gray-700">React</div>
+            </div>
+            <div className="bg-black p-3 rounded-lg">
+              <div className="text-2xl mb-1">▲</div>
+              <div className="text-sm font-medium text-white">Next.js</div>
+            </div>
+            <div className="bg-cyan-50 p-3 rounded-lg">
+              <div className="text-2xl mb-1">🌊</div>
+              <div className="text-sm font-medium text-gray-700">Tailwind</div>
+            </div>
+            <div className="bg-yellow-50 p-3 rounded-lg">
+              <div className="text-2xl mb-1">💤</div>
+              <div className="text-sm font-medium text-gray-700">LazyCLI</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Links */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <a 
+            href="https://lazycli.xyz" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            🌐 Visit LazyCLI Website
+          </a>
+          <a 
+            href="https://github.com/iammhador/LazyCLI" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-flex items-center px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors"
+          >
+            ⭐ Star on GitHub
+          </a>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-8 text-sm text-gray-500">
+          <p>Built with ❤️ using LazyCLI • Start editing <code className="bg-gray-100 px-2 py-1 rounded">{use_src ? 'src/app/page.tsx' : 'app/page.tsx'}</code></p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default HomePage
+EOF
+    
+    echo "✅ Custom LazyCLI page.tsx created successfully!"
+  fi
+
   echo "✅ Your Next.js app is ready!"
 }
 
-
-# Create a new Vite application with framework selection and optional packages
-# Supports multiple frameworks: Vanilla, React, Vue, Svelte
-# Includes optional packages: axios, clsx, zod, react-hot-toast, react-router-dom, lucide-react, Tailwind CSS, DaisyUI
 vite_js_create() {
   echo "🛠️ Creating Vite app for you..."
 
@@ -938,36 +833,1474 @@ EOF
     else
       echo "✅ Tailwind CSS configured using modern Vite plugin"
     fi
+  else
+    # When Tailwind is not installed, create custom index.css
+    echo "🎨 Creating custom index.css..."
+    
+    # Remove existing index.css if it exists
+    [[ -f "src/index.css" ]] && rm src/index.css
+    [[ -f "src/style.css" ]] && rm src/style.css
+    
+    # Create new index.css with custom styles
+    cat > src/index.css << 'EOF'
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  display: block;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+EOF
+    
+    # Import it in main file if it's React
+    if [[ "$framework" == "react" && -f "src/main.jsx" ]]; then
+      sed -i.bak "1i import './index.css'" src/main.jsx && rm src/main.jsx.bak
+    elif [[ "$framework" == "react" && -f "src/main.tsx" ]]; then
+      sed -i.bak "1i import './index.css'" src/main.tsx && rm src/main.tsx.bak
+    fi
+    
+    echo "✅ Custom index.css created and configured"
+  fi
+
+  # Create custom App.jsx for React projects
+  if [[ "$framework" == "react" ]]; then
+    echo "🎨 Creating custom LazyCLI App.jsx..."
+    
+    # Remove default App.jsx if it exists
+    [[ -f "src/App.jsx" ]] && rm src/App.jsx
+    [[ -f "src/App.tsx" ]] && rm src/App.tsx
+    
+    if [[ "$INSTALL_TAILWIND" == "1" ]]; then
+      # Create Tailwind-based App.jsx
+      cat > src/App.jsx << 'EOF'
+import { useState, useEffect } from "react";
+
+function App() {
+  const [count, setCount] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+  const [activeTab, setActiveTab] = useState("demo");
+  const [terminalText, setTerminalText] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+
+  const commands = [
+    "$ lazy github init",
+    "$ lazy node-js init",
+    "$ lazy next-js create",
+    "$ lazy vite-js create",
+  ];
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "terminal") {
+      typeCommand();
+    }
+  }, [activeTab]);
+
+  const typeCommand = () => {
+    setIsTyping(true);
+    const command = commands[Math.floor(Math.random() * commands.length)];
+    let i = 0;
+    setTerminalText("");
+
+    const interval = setInterval(() => {
+      if (i < command.length) {
+        setTerminalText(command.slice(0, i + 1));
+        i++;
+      } else {
+        clearInterval(interval);
+        setIsTyping(false);
+      }
+    }, 100);
+  };
+
+  const handleCounterChange = (operation) => {
+    if (operation === "increment") {
+      setCount(count + 1);
+    } else if (operation === "decrement") {
+      setCount(count - 1);
+    } else {
+      setCount(0);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: "2s" }}
+        ></div>
+      </div>
+
+      <div
+        className={`relative z-10 min-h-screen transition-all duration-1000 ${
+          isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+        }`}
+      >
+        {/* Header */}
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-transparent rounded-full mb-6 shadow-xl border-2 border-blue-400 transform hover:scale-110 transition-transform duration-300 hover:shadow-blue-400/50 p-2 animate-fadeIn">
+              <img
+                src="https://i.ibb.co/1tTxMkrp/terminal.png"
+                alt="LazyCLI Logo"
+                className="w-full h-full object-contain animate-pulse duration-200 hover:animate-none"
+              />
+            </div>
+
+            <h1 className="text-5xl font-bold tracking-wide bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent mb-4">
+              LazyCLI
+            </h1>
+
+            <p className="text-xl text-slate-200 max-w-2xl mx-auto">
+              Automate your development workflow like a lazy pro
+            </p>
+          </div>
+
+          {/* Main Content Card */}
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-2xl border border-slate-700/50 overflow-hidden">
+              {/* Tab Navigation */}
+              <div className="flex border-b border-slate-700/50">
+                <button
+                  onClick={() => setActiveTab("demo")}
+                  className={`flex-1 py-4 px-6 text-sm font-medium transition-all duration-200 ${
+                    activeTab === "demo"
+                      ? "bg-blue-600/20 text-blue-400 border-b-2 border-blue-400"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/30"
+                  }`}
+                >
+                  🎮 Interactive Demo
+                </button>
+                <button
+                  onClick={() => setActiveTab("terminal")}
+                  className={`flex-1 py-4 px-6 text-sm font-medium transition-all duration-200 ${
+                    activeTab === "terminal"
+                      ? "bg-blue-600/20 text-blue-400 border-b-2 border-blue-400"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/30"
+                  }`}
+                >
+                  🖥️ Terminal Preview
+                </button>
+                <button
+                  onClick={() => setActiveTab("features")}
+                  className={`flex-1 py-4 px-6 text-sm font-medium transition-all duration-200 ${
+                    activeTab === "features"
+                      ? "bg-blue-600/20 text-blue-400 border-b-2 border-blue-400"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/30"
+                  }`}
+                >
+                  ⚡ Features
+                </button>
+              </div>
+
+              {/* Tab Content */}
+              <div className="p-8">
+                {activeTab === "demo" && (
+                  <div className="space-y-8">
+                    <div className="text-center">
+                      <h2 className="text-2xl font-bold text-slate-200 mb-4">
+                        🎉 Interactive Counter Demo
+                      </h2>
+                      <p className="text-slate-400 mb-8">
+                        Experience the power of modern React with this
+                        interactive demo
+                      </p>
+                    </div>
+
+                    {/* Counter Demo */}
+                    <div className="bg-slate-900/50 rounded-xl p-8 border border-slate-700/30">
+                      <div className="flex items-center justify-center space-x-6 mb-6">
+                        <button
+                          onClick={() => handleCounterChange("decrement")}
+                          className="w-12 h-12 bg-red-500 hover:bg-red-600 text-white rounded-full font-bold text-xl transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg hover:shadow-red-500/25"
+                        >
+                          -
+                        </button>
+                        <div className="text-6xl font-bold text-slate-200 min-w-[8rem] text-center bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                          {count}
+                        </div>
+                        <button
+                          onClick={() => handleCounterChange("increment")}
+                          className="w-12 h-12 bg-green-500 hover:bg-green-600 text-white rounded-full font-bold text-xl transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg hover:shadow-green-500/25"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <div className="text-center">
+                        <button
+                          onClick={() => handleCounterChange("reset")}
+                          className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg transition-all duration-200 hover:scale-105"
+                        >
+                          Reset
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === "terminal" && (
+                  <div className="space-y-6">
+                    <div className="text-center">
+                      <h2 className="text-2xl font-bold text-slate-200 mb-4">
+                        🖥️ Terminal Preview
+                      </h2>
+                      <p className="text-slate-400 mb-8">
+                        See LazyCLI commands in action
+                      </p>
+                    </div>
+
+                    {/* Terminal Window */}
+                    <div className="bg-slate-900 rounded-xl overflow-hidden border border-slate-700/50 shadow-2xl">
+                      <div className="bg-slate-800 px-4 py-2 flex items-center space-x-2">
+                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <div className="ml-4 text-slate-400 text-sm">
+                          Terminal
+                        </div>
+                      </div>
+                      <div className="p-6 font-mono">
+                        <div className="flex items-center space-x-2 mb-4">
+                          <span className="text-blue-400">➜</span>
+                          <span className="text-green-400">~</span>
+                          <span className="text-slate-300">{terminalText}</span>
+                          {isTyping && <span className="animate-pulse">|</span>}
+                        </div>
+                        <div className="text-slate-400 text-sm mb-4">
+                          ✨ Initializing project with modern tooling...
+                        </div>
+                        <button
+                          onClick={typeCommand}
+                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition-colors duration-200"
+                        >
+                          Run New Command
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === "features" && (
+                  <div className="space-y-6">
+                    <div className="text-center">
+                      <h2 className="text-2xl font-bold text-slate-200 mb-4">
+                        ⚡ Tech Stack & Features
+                      </h2>
+                      <p className="text-slate-400 mb-8">
+                        Built with modern technologies for optimal performance
+                      </p>
+                    </div>
+
+                    {/* Tech Stack Grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="bg-blue-900/20 border border-blue-500/20 p-6 rounded-xl hover:bg-blue-900/30 transition-all duration-200 hover:scale-105">
+                        <div className="text-3xl mb-3">⚛️</div>
+                        <div className="text-sm font-medium text-blue-400">
+                          React
+                        </div>
+                        <div className="text-xs text-slate-400">UI Library</div>
+                      </div>
+                      <div className="bg-purple-900/20 border border-purple-500/20 p-6 rounded-xl hover:bg-purple-900/30 transition-all duration-200 hover:scale-105">
+                        <div className="text-3xl mb-3">⚡</div>
+                        <div className="text-sm font-medium text-purple-400">
+                          Vite
+                        </div>
+                        <div className="text-xs text-slate-400">Build Tool</div>
+                      </div>
+                      <div className="bg-cyan-900/20 border border-cyan-500/20 p-6 rounded-xl hover:bg-cyan-900/30 transition-all duration-200 hover:scale-105">
+                        <div className="text-3xl mb-3">🌊</div>
+                        <div className="text-sm font-medium text-cyan-400">
+                          Tailwind
+                        </div>
+                        <div className="text-xs text-slate-400">
+                          CSS Framework
+                        </div>
+                      </div>
+                      <div className="bg-yellow-900/20 border border-yellow-500/20 p-6 rounded-xl hover:bg-yellow-900/30 transition-all duration-200 hover:scale-105">
+                        <div className="text-3xl mb-3">💤</div>
+                        <div className="text-sm font-medium text-yellow-400">
+                          LazyCLI
+                        </div>
+                        <div className="text-xs text-slate-400">Automation</div>
+                      </div>
+                    </div>
+
+                    {/* Features List */}
+                    <div className="grid md:grid-cols-2 gap-6 mt-8">
+                      <div className="bg-slate-900/50 rounded-xl p-6 border border-slate-700/30">
+                        <h3 className="text-lg font-semibold text-slate-200 mb-3">
+                          🚀 GitHub Automation
+                        </h3>
+                        <p className="text-slate-400 text-sm">
+                          Streamline your GitHub workflow with automated
+                          repository management
+                        </p>
+                      </div>
+                      <div className="bg-slate-900/50 rounded-xl p-6 border border-slate-700/30">
+                        <h3 className="text-lg font-semibold text-slate-200 mb-3">
+                          📦 Project Scaffolding
+                        </h3>
+                        <p className="text-slate-400 text-sm">
+                          Bootstrap projects with modern tooling and best
+                          practices
+                        </p>
+                      </div>
+                      <div className="bg-slate-900/50 rounded-xl p-6 border border-slate-700/30">
+                        <h3 className="text-lg font-semibold text-slate-200 mb-3">
+                          ⚡ Lightning Fast
+                        </h3>
+                        <p className="text-slate-400 text-sm">
+                          Optimized performance with modern build tools
+                        </p>
+                      </div>
+                      <div className="bg-slate-900/50 rounded-xl p-6 border border-slate-700/30">
+                        <h3 className="text-lg font-semibold text-slate-200 mb-3">
+                          🎨 Beautiful UI
+                        </h3>
+                        <p className="text-slate-400 text-sm">
+                          Modern design with smooth animations and interactions
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+              <a
+                href="https://lazycli.xyz"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-blue-500/25"
+              >
+                🌐 Visit LazyCLI Website
+              </a>
+              <a
+                href="https://github.com/iammhador/LazyCLI"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center px-8 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-all duration-200 hover:scale-105 shadow-lg"
+              >
+                ⭐ Star on GitHub
+              </a>
+            </div>
+
+            {/* Footer */}
+            <div className="text-center mt-12 text-slate-400 text-sm">
+              <p>
+                Built with ❤️ using LazyCLI • Start editing{" "}
+                <code className="bg-slate-800 px-2 py-1 rounded text-slate-300">
+                  src/App.jsx
+                </code>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default App;
+EOF
+    else
+      # Create CSS-based App.jsx (no Tailwind)
+      cat > src/App.jsx << 'EOF'
+
+import { useState, useEffect } from "react";
+
+function App() {
+  const [count, setCount] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+  const [activeTab, setActiveTab] = useState("demo");
+  const [terminalText, setTerminalText] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+
+  const commands = [
+    "$ lazy github init",
+    "$ lazy node-js init",
+    "$ lazy next-js create",
+    "$ lazy vite-js create",
+  ];
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "terminal") {
+      setTimeout(typeCommand, 500);
+    }
+  }, [activeTab]);
+
+  const typeCommand = () => {
+    if (isTyping) return;
+
+    setIsTyping(true);
+    const command = commands[Math.floor(Math.random() * commands.length)];
+    let i = 0;
+    setTerminalText("");
+
+    const interval = setInterval(() => {
+      if (i < command.length) {
+        setTerminalText(command.slice(0, i + 1));
+        i++;
+      } else {
+        clearInterval(interval);
+        setIsTyping(false);
+      }
+    }, 100);
+  };
+
+  const handleCounterChange = (operation) => {
+    if (operation === "increment") {
+      setCount(count + 1);
+    } else if (operation === "decrement") {
+      setCount(count - 1);
+    } else {
+      setCount(0);
+    }
+  };
+
+  const styles = {
+    container: {
+      fontFamily:
+        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      background:
+        "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)",
+      color: "white",
+      minHeight: "100vh",
+      overflowX: "hidden",
+      position: "relative",
+    },
+    bgElements: {
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: "100%",
+      overflow: "hidden",
+      pointerEvents: "none",
+      zIndex: 1,
+    },
+    bgOrb1: {
+      position: "absolute",
+      top: "-10rem",
+      right: "-10rem",
+      width: "20rem",
+      height: "20rem",
+      background:
+        "radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%)",
+      borderRadius: "50%",
+      animation: "pulse 4s ease-in-out infinite",
+    },
+    bgOrb2: {
+      position: "absolute",
+      bottom: "-10rem",
+      left: "-10rem",
+      width: "20rem",
+      height: "20rem",
+      background:
+        "radial-gradient(circle, rgba(147, 51, 234, 0.1) 0%, transparent 70%)",
+      borderRadius: "50%",
+      animation: "pulse 4s ease-in-out infinite",
+      animationDelay: "2s",
+    },
+    mainContainer: {
+      position: "relative",
+      zIndex: 10,
+      maxWidth: "1200px",
+      margin: "0 auto",
+      padding: "2rem 1rem",
+      opacity: isVisible ? 1 : 0,
+      transform: isVisible ? "translateY(0)" : "translateY(2rem)",
+      transition: "all 1s ease-out",
+    },
+    header: {
+      textAlign: "center",
+      marginBottom: "3rem",
+    },
+    logoContainer: {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      width: "5rem",
+      height: "5rem",
+      background: "transparent",
+      borderRadius: "50%",
+      border: "2px solid #60a5fa", // border-blue-400
+      marginBottom: "1.5rem",
+      boxShadow: "0 25px 50px -12px rgba(59, 130, 246, 0.25)",
+      transition: "transform 0.3s ease, box-shadow 0.3s ease",
+      padding: "0.5rem",
+      cursor: "pointer",
+    },
+    logo: {
+      width: "100%",
+      height: "100%",
+      objectFit: "contain",
+      transition: "transform 0.3s ease",
+    },
+    mainTitle: {
+      fontSize: "3rem",
+      fontWeight: "700",
+      background: "linear-gradient(to right, #22d3ee, #3b82f6)", // cyan-400 to blue-400
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+      backgroundClip: "text",
+      marginBottom: "1rem",
+      letterSpacing: "0.03em",
+    },
+    subtitle: {
+      fontSize: "1.25rem",
+      color: "#cbd5e1", // slate-300
+      maxWidth: "32rem",
+      margin: "0 auto",
+    },
+    mainCard: {
+      background: "rgba(30, 41, 59, 0.5)",
+      backdropFilter: "blur(16px)",
+      borderRadius: "1rem",
+      boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+      border: "1px solid rgba(71, 85, 105, 0.5)",
+      overflow: "hidden",
+    },
+    tabNav: {
+      display: "flex",
+      borderBottom: "1px solid rgba(71, 85, 105, 0.5)",
+    },
+    tabBtn: {
+      flex: 1,
+      padding: "1rem 1.5rem",
+      fontSize: "0.875rem",
+      fontWeight: "500",
+      background: "none",
+      border: "none",
+      color: "#94a3b8",
+      cursor: "pointer",
+      transition: "all 0.2s ease",
+      borderBottom: "2px solid transparent",
+    },
+    tabBtnActive: {
+      background: "rgba(59, 130, 246, 0.2)",
+      color: "#60a5fa",
+      borderBottomColor: "#60a5fa",
+    },
+    tabBtnHover: {
+      color: "#e2e8f0",
+      background: "rgba(71, 85, 105, 0.3)",
+    },
+    tabContent: {
+      padding: "2rem",
+    },
+    sectionTitle: {
+      fontSize: "1.5rem",
+      fontWeight: "700",
+      color: "#e2e8f0",
+      marginBottom: "1rem",
+      textAlign: "center",
+    },
+    sectionSubtitle: {
+      color: "#94a3b8",
+      marginBottom: "2rem",
+      textAlign: "center",
+    },
+    counterDemo: {
+      background: "rgba(15, 23, 42, 0.5)",
+      borderRadius: "0.75rem",
+      padding: "2rem",
+      border: "1px solid rgba(71, 85, 105, 0.3)",
+      marginBottom: "2rem",
+    },
+    counterControls: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: "1.5rem",
+      marginBottom: "1.5rem",
+    },
+    counterBtn: {
+      width: "3rem",
+      height: "3rem",
+      borderRadius: "50%",
+      border: "none",
+      fontSize: "1.25rem",
+      fontWeight: "700",
+      color: "white",
+      cursor: "pointer",
+      transition: "all 0.2s ease",
+      boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3)",
+    },
+    counterBtnDecrement: {
+      background: "#ef4444",
+    },
+    counterBtnIncrement: {
+      background: "#22c55e",
+    },
+    counterDisplay: {
+      fontSize: "3.75rem",
+      fontWeight: "700",
+      minWidth: "8rem",
+      textAlign: "center",
+      background: "linear-gradient(45deg, #60a5fa, #a78bfa)",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+      backgroundClip: "text",
+    },
+    resetBtn: {
+      padding: "0.5rem 1.5rem",
+      background: "#475569",
+      color: "#e2e8f0",
+      border: "none",
+      borderRadius: "0.5rem",
+      cursor: "pointer",
+      transition: "all 0.2s ease",
+      display: "block",
+      margin: "0 auto",
+    },
+    terminalWindow: {
+      background: "#0f172a",
+      borderRadius: "0.75rem",
+      overflow: "hidden",
+      border: "1px solid rgba(71, 85, 105, 0.5)",
+      boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+      marginBottom: "1.5rem",
+    },
+    terminalHeader: {
+      background: "#1e293b",
+      padding: "0.5rem 1rem",
+      display: "flex",
+      alignItems: "center",
+      gap: "0.5rem",
+    },
+    terminalDot: {
+      width: "0.75rem",
+      height: "0.75rem",
+      borderRadius: "50%",
+    },
+    terminalTitle: {
+      marginLeft: "1rem",
+      color: "#94a3b8",
+      fontSize: "0.875rem",
+    },
+    terminalContent: {
+      padding: "1.5rem",
+      fontFamily: '"Courier New", monospace',
+    },
+    terminalLine: {
+      display: "flex",
+      alignItems: "center",
+      gap: "0.5rem",
+      marginBottom: "1rem",
+    },
+    terminalOutput: {
+      color: "#94a3b8",
+      fontSize: "0.875rem",
+      marginBottom: "1rem",
+    },
+    terminalImgContainer: {
+      background: "rgba(15, 23, 42, 0.5)",
+      borderRadius: "0.75rem",
+      padding: "1rem",
+      border: "1px solid rgba(71, 85, 105, 0.3)",
+    },
+    terminalImg: {
+      width: "100%",
+      height: "auto",
+      borderRadius: "0.5rem",
+      boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3)",
+    },
+    techGrid: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+      gap: "1rem",
+      marginBottom: "2rem",
+    },
+    techCard: {
+      padding: "1.5rem",
+      borderRadius: "0.75rem",
+      transition: "all 0.2s ease",
+      border: "1px solid",
+      cursor: "pointer",
+    },
+    featuresGrid: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+      gap: "1.5rem",
+      marginTop: "2rem",
+    },
+    featureCard: {
+      background: "rgba(15, 23, 42, 0.5)",
+      borderRadius: "0.75rem",
+      padding: "1.5rem",
+      border: "1px solid rgba(71, 85, 105, 0.3)",
+    },
+    featureTitle: {
+      fontSize: "1.125rem",
+      fontWeight: "600",
+      color: "#e2e8f0",
+      marginBottom: "0.75rem",
+    },
+    featureDesc: {
+      color: "#94a3b8",
+      fontSize: "0.875rem",
+    },
+    actionButtons: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "1rem",
+      justifyContent: "center",
+      marginTop: "2rem",
+    },
+    btn: {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "0.75rem 2rem",
+      borderRadius: "0.5rem",
+      fontWeight: "500",
+      textDecoration: "none",
+      transition: "all 0.2s ease",
+      border: "none",
+      cursor: "pointer",
+    },
+    btnPrimary: {
+      background: "linear-gradient(45deg, #3b82f6, #9333ea)",
+      color: "white",
+      boxShadow: "0 10px 25px -5px rgba(59, 130, 246, 0.25)",
+    },
+    btnSecondary: {
+      background: "#475569",
+      color: "white",
+      boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3)",
+    },
+    footer: {
+      textAlign: "center",
+      marginTop: "3rem",
+      color: "#94a3b8",
+      fontSize: "0.875rem",
+    },
+    footerCode: {
+      background: "#1e293b",
+      padding: "0.25rem 0.5rem",
+      borderRadius: "0.25rem",
+      color: "#cbd5e1",
+    },
+    runCommandBtn: {
+      padding: "0.5rem 1rem",
+      background: "#3b82f6",
+      color: "white",
+      border: "none",
+      borderRadius: "0.25rem",
+      fontSize: "0.875rem",
+      cursor: "pointer",
+      transition: "all 0.2s ease",
+    },
+  };
+
+  const keyframes = `
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+  `;
+
+  return (
+    <>
+      <style>{keyframes}</style>
+      <div style={styles.container}>
+        <div style={styles.bgElements}>
+          <div style={styles.bgOrb1}></div>
+          <div style={styles.bgOrb2}></div>
+        </div>
+
+        <div style={styles.mainContainer}>
+          <div style={styles.header}>
+            <div
+              style={styles.logoContainer}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "scale(1.1)";
+                e.currentTarget.style.boxShadow =
+                  "0 25px 50px -12px rgba(59, 130, 246, 0.5)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "scale(1)";
+                e.currentTarget.style.boxShadow =
+                  "0 25px 50px -12px rgba(59, 130, 246, 0.25)";
+              }}
+            >
+              <img
+                src="https://i.ibb.co/1tTxMkrp/terminal.png"
+                alt="LazyCLI Logo"
+                style={styles.logo}
+              />
+            </div>
+
+            <h1 style={styles.mainTitle}>LazyCLI</h1>
+
+            <p style={styles.subtitle}>
+              Automate your development workflow like a lazy pro
+            </p>
+          </div>
+
+          <div style={styles.mainCard}>
+            <div style={styles.tabNav}>
+              {["demo", "terminal", "features"].map((tab) => (
+                <button
+                  key={tab}
+                  style={{
+                    ...styles.tabBtn,
+                    ...(activeTab === tab ? styles.tabBtnActive : {}),
+                  }}
+                  onClick={() => setActiveTab(tab)}
+                  onMouseEnter={(e) => {
+                    if (activeTab !== tab) {
+                      Object.assign(e.target.style, styles.tabBtnHover);
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (activeTab !== tab) {
+                      e.target.style.color = "#94a3b8";
+                      e.target.style.background = "none";
+                    }
+                  }}
+                >
+                  {tab === "demo" && "🎮 Interactive Demo"}
+                  {tab === "terminal" && "🖥️ Terminal Preview"}
+                  {tab === "features" && "⚡ Features"}
+                </button>
+              ))}
+            </div>
+
+            <div style={styles.tabContent}>
+              {activeTab === "demo" && (
+                <div>
+                  <h2 style={styles.sectionTitle}>
+                    🎉 Interactive Counter Demo
+                  </h2>
+                  <p style={styles.sectionSubtitle}>
+                    Experience the power of modern React with this interactive
+                    demo
+                  </p>
+
+                  <div style={styles.counterDemo}>
+                    <div style={styles.counterControls}>
+                      <button
+                        style={{
+                          ...styles.counterBtn,
+                          ...styles.counterBtnDecrement,
+                        }}
+                        onClick={() => handleCounterChange("decrement")}
+                        onMouseEnter={(e) => {
+                          e.target.style.transform = "scale(1.1)";
+                          e.target.style.background = "#dc2626";
+                          e.target.style.boxShadow =
+                            "0 10px 25px -5px rgba(239, 68, 68, 0.25)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = "scale(1)";
+                          e.target.style.background = "#ef4444";
+                          e.target.style.boxShadow =
+                            "0 10px 25px -5px rgba(0, 0, 0, 0.3)";
+                        }}
+                      >
+                        -
+                      </button>
+                      <div style={styles.counterDisplay}>{count}</div>
+                      <button
+                        style={{
+                          ...styles.counterBtn,
+                          ...styles.counterBtnIncrement,
+                        }}
+                        onClick={() => handleCounterChange("increment")}
+                        onMouseEnter={(e) => {
+                          e.target.style.transform = "scale(1.1)";
+                          e.target.style.background = "#16a34a";
+                          e.target.style.boxShadow =
+                            "0 10px 25px -5px rgba(34, 197, 94, 0.25)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = "scale(1)";
+                          e.target.style.background = "#22c55e";
+                          e.target.style.boxShadow =
+                            "0 10px 25px -5px rgba(0, 0, 0, 0.3)";
+                        }}
+                      >
+                        +
+                      </button>
+                    </div>
+                    <button
+                      style={styles.resetBtn}
+                      onClick={() => handleCounterChange("reset")}
+                      onMouseEnter={(e) => {
+                        e.target.style.background = "#64748b";
+                        e.target.style.transform = "scale(1.05)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.background = "#475569";
+                        e.target.style.transform = "scale(1)";
+                      }}
+                    >
+                      Reset
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "terminal" && (
+                <div>
+                  <h2 style={styles.sectionTitle}>🖥️ Terminal Preview</h2>
+                  <p style={styles.sectionSubtitle}>
+                    See LazyCLI commands in action
+                  </p>
+
+                  <div style={styles.terminalWindow}>
+                    <div style={styles.terminalHeader}>
+                      <div
+                        style={{ ...styles.terminalDot, background: "#ef4444" }}
+                      ></div>
+                      <div
+                        style={{ ...styles.terminalDot, background: "#eab308" }}
+                      ></div>
+                      <div
+                        style={{ ...styles.terminalDot, background: "#22c55e" }}
+                      ></div>
+                      <div style={styles.terminalTitle}>Terminal</div>
+                    </div>
+                    <div style={styles.terminalContent}>
+                      <div style={styles.terminalLine}>
+                        <span style={{ color: "#60a5fa" }}>➜</span>
+                        <span style={{ color: "#22c55e" }}>~</span>
+                        <span style={{ color: "#e2e8f0" }}>{terminalText}</span>
+                        {isTyping && (
+                          <span style={{ animation: "blink 1s infinite" }}>
+                            |
+                          </span>
+                        )}
+                      </div>
+                      <div style={styles.terminalOutput}>
+                        ✨ Initializing project with modern tooling...
+                      </div>
+                      <button
+                        style={styles.runCommandBtn}
+                        onClick={typeCommand}
+                        onMouseEnter={(e) =>
+                          (e.target.style.background = "#2563eb")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.target.style.background = "#3b82f6")
+                        }
+                      >
+                        Run New Command
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === "features" && (
+                <div>
+                  <h2 style={styles.sectionTitle}>⚡ Tech Stack & Features</h2>
+                  <p style={styles.sectionSubtitle}>
+                    Built with modern technologies for optimal performance
+                  </p>
+
+                  <div style={styles.techGrid}>
+                    {[
+                      {
+                        name: "React",
+                        icon: "⚛️",
+                        desc: "UI Library",
+                        color: "#60a5fa",
+                        bg: "rgba(59, 130, 246, 0.1)",
+                        border: "rgba(59, 130, 246, 0.2)",
+                      },
+                      {
+                        name: "Vite",
+                        icon: "⚡",
+                        desc: "Build Tool",
+                        color: "#a78bfa",
+                        bg: "rgba(147, 51, 234, 0.1)",
+                        border: "rgba(147, 51, 234, 0.2)",
+                      },
+                      {
+                        name: "CSS",
+                        icon: "🌊",
+                        desc: "Styling",
+                        color: "#22d3ee",
+                        bg: "rgba(6, 182, 212, 0.1)",
+                        border: "rgba(6, 182, 212, 0.2)",
+                      },
+                      {
+                        name: "LazyCLI",
+                        icon: "💤",
+                        desc: "Automation",
+                        color: "#facc15",
+                        bg: "rgba(234, 179, 8, 0.1)",
+                        border: "rgba(234, 179, 8, 0.2)",
+                      },
+                    ].map((tech) => (
+                      <div
+                        key={tech.name}
+                        style={{
+                          ...styles.techCard,
+                          background: tech.bg,
+                          borderColor: tech.border,
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.transform = "scale(1.05)";
+                          e.target.style.background = tech.bg.replace(
+                            "0.1",
+                            "0.2"
+                          );
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = "scale(1)";
+                          e.target.style.background = tech.bg;
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: "1.875rem",
+                            marginBottom: "0.75rem",
+                          }}
+                        >
+                          {tech.icon}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "0.875rem",
+                            fontWeight: "500",
+                            marginBottom: "0.25rem",
+                            color: tech.color,
+                          }}
+                        >
+                          {tech.name}
+                        </div>
+                        <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>
+                          {tech.desc}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div style={styles.featuresGrid}>
+                    {[
+                      {
+                        title: "🚀 GitHub Automation",
+                        desc: "Streamline your GitHub workflow with automated repository management",
+                      },
+                      {
+                        title: "📦 Project Scaffolding",
+                        desc: "Bootstrap projects with modern tooling and best practices",
+                      },
+                      {
+                        title: "⚡ Lightning Fast",
+                        desc: "Optimized performance with modern build tools",
+                      },
+                      {
+                        title: "🎨 Beautiful UI",
+                        desc: "Modern design with smooth animations and interactions",
+                      },
+                    ].map((feature) => (
+                      <div key={feature.title} style={styles.featureCard}>
+                        <h3 style={styles.featureTitle}>{feature.title}</h3>
+                        <p style={styles.featureDesc}>{feature.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div
+            style={{
+              ...styles.actionButtons,
+              "@media (min-width: 640px)": { flexDirection: "row" },
+            }}
+          >
+            <a
+              href="https://lazycli.xyz"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ ...styles.btn, ...styles.btnPrimary }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = "scale(1.05)";
+                e.target.style.background =
+                  "linear-gradient(45deg, #2563eb, #7c3aed)";
+                e.target.style.boxShadow =
+                  "0 10px 25px -5px rgba(59, 130, 246, 0.4)";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = "scale(1)";
+                e.target.style.background =
+                  "linear-gradient(45deg, #3b82f6, #9333ea)";
+                e.target.style.boxShadow =
+                  "0 10px 25px -5px rgba(59, 130, 246, 0.25)";
+              }}
+            >
+              🌐 Visit LazyCLI Website
+            </a>
+            <a
+              href="https://github.com/iammhador/LazyCLI"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ ...styles.btn, ...styles.btnSecondary }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = "scale(1.05)";
+                e.target.style.background = "#64748b";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = "scale(1)";
+                e.target.style.background = "#475569";
+              }}
+            >
+              ⭐ Star on GitHub
+            </a>
+          </div>
+
+          <div style={styles.footer}>
+            <p>
+              Built with ❤️ using LazyCLI • Start editing{" "}
+              <code style={styles.footerCode}>src/App.jsx</code>
+            </p>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default App;
+EOF
+
+      # Create custom CSS for non-Tailwind version
+      cat > src/App.css << 'EOF'
+.app {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+.container {
+  max-width: 800px;
+  width: 100%;
+  text-align: center;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  border-radius: 50%;
+  margin-bottom: 1rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.logo-icon {
+  font-size: 2rem;
+}
+
+.title {
+  font-size: 3rem;
+  font-weight: bold;
+  color: white;
+  margin: 0 0 0.5rem 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.subtitle {
+  font-size: 1.25rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+.main-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.welcome-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 1rem 0;
+}
+
+.welcome-text {
+  color: #6b7280;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.counter-demo {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.counter-title {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #1f2937;
+  margin: 0 0 1rem 0;
+}
+
+.counter-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.counter-btn {
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.counter-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.counter-btn-minus {
+  background: #ef4444;
+}
+
+.counter-btn-minus:hover {
+  background: #dc2626;
+}
+
+.counter-btn-plus {
+  background: #10b981;
+}
+
+.counter-btn-plus:hover {
+  background: #059669;
+}
+
+.counter-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #1f2937;
+  min-width: 3rem;
+}
+
+.tech-stack {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.tech-item {
+  background: #f3f4f6;
+  padding: 1rem;
+  border-radius: 8px;
+  transition: transform 0.2s ease;
+}
+
+.tech-item:hover {
+  transform: translateY(-2px);
+}
+
+.tech-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.tech-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 640px) {
+  .links {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.link-primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.link-primary:hover {
+  background: #2563eb;
+}
+
+.link-secondary {
+  background: #1f2937;
+  color: white;
+}
+
+.link-secondary:hover {
+  background: #111827;
+}
+
+.footer {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.875rem;
+}
+
+.footer code {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+}
+EOF
+    fi
+    
+    echo "✅ Custom LazyCLI App.jsx created successfully!"
   fi
 
   echo "✅ Vite project setup complete!"
 }
 
-
-# Main command-line interface router
-# Handles all primary commands and subcommands
-# Routes to appropriate functions based on user input
+# Main CLI router
 case "$1" in
-  --help | help ) # Display help information
+  --help | help )
     show_help
     ;;
-  --version | -v ) # Show version number
+  --version | -v )
     echo "LazyCLI v$VERSION"
     ;;
-  upgrade ) # Upgrade LazyCLI to latest version
+  upgrade )
     echo "🔄 Upgrading LazyCLI..."
 
     # Remove old version
     rm -f "$HOME/.lazycli/lazy"
 
     # Download new version
-    curl -s https://lazycli.xyz/scripts/lazy.sh -o "$HOME/.lazycli/lazy"
+    curl -s https://lazycli.vercel.app/scripts/lazy.sh -o "$HOME/.lazycli/lazy"
     chmod +x "$HOME/.lazycli/lazy"
 
     echo "✅ LazyCLI upgraded to latest version!"
     exit 0
     ;;
-  github ) # GitHub-related commands
+  github )
     case "$2" in
       init)
         github_init
@@ -991,7 +2324,7 @@ case "$1" in
         ;;
     esac
     ;;
-  node-js ) # Node.js project commands
+  node-js )
     case "$2" in
       init)
         node_js_init
@@ -1003,7 +2336,7 @@ case "$1" in
         ;;
     esac
     ;;
-  next-js ) # Next.js project commands
+  next-js )
     case "$2" in
       create)
         next_js_create
@@ -1015,7 +2348,7 @@ case "$1" in
         ;;
     esac
     ;;
-  vite-js ) # Vite.js project commands
+  vite-js )
     case "$2" in
       create)
         vite_js_create
@@ -1027,7 +2360,7 @@ case "$1" in
         ;;
     esac
     ;;
-  *) # Handle unknown commands - show error and help
+  *)
     echo "❌ Unknown command: $1"
     show_help
     exit 1
