@@ -721,6 +721,125 @@ next_js_create() {
     fi
   fi
 
+  # Create custom page.tsx for Next.js App Router
+  if [[ "$use_app" == "1" ]]; then
+    echo "🎨 Creating custom LazyCLI page.tsx..."
+    
+    # Remove default page.tsx if it exists
+    [[ -f "app/page.tsx" ]] && rm app/page.tsx
+    [[ -f "src/app/page.tsx" ]] && rm src/app/page.tsx
+    
+    # Determine the correct path based on src directory usage
+    if [[ "$use_src" == "1" ]]; then
+      page_path="src/app/page.tsx"
+    else
+      page_path="app/page.tsx"
+    fi
+    
+    # Create custom page.tsx with LazyCLI branding
+    cat > "$page_path" << 'EOF'
+"use client";
+import { useState } from 'react'
+
+function HomePage() {
+  const [count, setCount] = useState(0)
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="max-w-2xl mx-auto text-center">
+        {/* LazyCLI Logo */}
+        <div className="mb-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4">
+            <span className="text-3xl font-bold text-white">💤</span>
+          </div>
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">LazyCLI</h1>
+          <p className="text-lg text-gray-600">Automate your dev flow like a lazy pro</p>
+        </div>
+
+        {/* Welcome Card */}
+        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4">🎉 Welcome to Your Next.js App!</h2>
+          <p className="text-gray-600 mb-6">
+            Your project has been successfully created with LazyCLI. 
+            This template includes modern tooling and best practices to get you started quickly.
+          </p>
+          
+          {/* Counter Demo */}
+          <div className="bg-gray-50 rounded-lg p-6 mb-6">
+            <h3 className="text-lg font-medium text-gray-800 mb-4">Interactive Counter Demo</h3>
+            <div className="flex items-center justify-center space-x-4">
+              <button 
+                onClick={() => setCount(count - 1)}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+              >
+                -
+              </button>
+              <span className="text-2xl font-bold text-gray-800 min-w-[3rem]">{count}</span>
+              <button 
+                onClick={() => setCount(count + 1)}
+                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+              >
+                +
+              </button>
+            </div>
+          </div>
+
+          {/* Tech Stack */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-blue-50 p-3 rounded-lg">
+              <div className="text-2xl mb-1">⚛️</div>
+              <div className="text-sm font-medium text-gray-700">React</div>
+            </div>
+            <div className="bg-black p-3 rounded-lg">
+              <div className="text-2xl mb-1">▲</div>
+              <div className="text-sm font-medium text-white">Next.js</div>
+            </div>
+            <div className="bg-cyan-50 p-3 rounded-lg">
+              <div className="text-2xl mb-1">🌊</div>
+              <div className="text-sm font-medium text-gray-700">Tailwind</div>
+            </div>
+            <div className="bg-yellow-50 p-3 rounded-lg">
+              <div className="text-2xl mb-1">💤</div>
+              <div className="text-sm font-medium text-gray-700">LazyCLI</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Links */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <a 
+            href="https://lazycli.xyz" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            🌐 Visit LazyCLI Website
+          </a>
+          <a 
+            href="https://github.com/iammhador/LazyCLI" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-flex items-center px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors"
+          >
+            ⭐ Star on GitHub
+          </a>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-8 text-sm text-gray-500">
+          <p>Built with ❤️ using LazyCLI • Start editing <code className="bg-gray-100 px-2 py-1 rounded">{use_src ? 'src/app/page.tsx' : 'app/page.tsx'}</code></p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default HomePage
+EOF
+    
+    echo "✅ Custom LazyCLI page.tsx created successfully!"
+  fi
+
   echo "✅ Your Next.js app is ready!"
 }
 
@@ -939,6 +1058,94 @@ EOF
     else
       echo "✅ Tailwind CSS configured using modern Vite plugin"
     fi
+  else
+    # When Tailwind is not installed, create custom index.css
+    echo "🎨 Creating custom index.css..."
+    
+    # Remove existing index.css if it exists
+    [[ -f "src/index.css" ]] && rm src/index.css
+    [[ -f "src/style.css" ]] && rm src/style.css
+    
+    # Create new index.css with custom styles
+    cat > src/index.css << 'EOF'
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  display: block;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+EOF
+    
+    # Import it in main file if it's React
+    if [[ "$framework" == "react" && -f "src/main.jsx" ]]; then
+      sed -i.bak "1i import './index.css'" src/main.jsx && rm src/main.jsx.bak
+    elif [[ "$framework" == "react" && -f "src/main.tsx" ]]; then
+      sed -i.bak "1i import './index.css'" src/main.tsx && rm src/main.tsx.bak
+    fi
+    
+    echo "✅ Custom index.css created and configured"
   fi
 
   # Create custom App.jsx for React projects
