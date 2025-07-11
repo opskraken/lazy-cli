@@ -45,21 +45,25 @@ export default function InteractiveCommands({
       color: "from-purple-500 via-pink-500 to-red-500",
       commands: [
         {
-          command: "lazycli github init",
+          command: "lazy github init",
           description:
-            "Initialize a new GitHub repository with standard configuration",
+            "Initialize a new Git repository in the current directory",
         },
         {
-          command: "lazycli github clone",
-          description: "Clone a GitHub repository and setup the project",
+          command: "lazy github clone <repo-url>",
+          description: "Clone a GitHub repository and auto-detect tech stack for setup",
         },
         {
-          command: "lazycli github push",
-          description: "Push changes to GitHub with automated commit messages",
+          command: "lazy github push \"<commit-message>\"",
+          description: "Stage all changes, commit with message, and push to current branch",
         },
         {
-          command: "lazycli github pull",
-          description: "Create pull requests with predefined templates",
+          command: "lazy github pull <base-branch> \"<pr-title>\"",
+          description: "Create a simple pull request from current branch to specified base branch",
+        },
+        {
+          command: "lazy github pr <base-branch> \"<commit-message>\"",
+          description: "Pull latest changes, install dependencies, commit, push, and create PR",
         },
       ],
     },
@@ -67,23 +71,14 @@ export default function InteractiveCommands({
       id: "nodejs",
       title: "Node.js Project Setup",
       description:
-        "Bootstrap Node.js projects with best practices, TypeScript, and modern configurations",
+        "Bootstrap Node.js projects with TypeScript, Express, and interactive package selection",
       icon: Settings,
       color: "from-green-400 via-emerald-500 to-teal-500",
       commands: [
         {
-          command: "lazycli node-js init",
+          command: "lazy node-js init",
           description:
-            "Create a new Node.js project with package.json and basic structure",
-        },
-        {
-          command: "lazycli node-js deps",
-          description: "Install common dependencies and dev tools",
-        },
-        {
-          command: "lazycli node-js scripts",
-          description:
-            "Add standard npm scripts for development and production",
+            "Initialize Node.js project with TypeScript and interactive package selection (Express, dotenv, nodemon, cors, zod)",
         },
       ],
     },
@@ -91,22 +86,14 @@ export default function InteractiveCommands({
       id: "nextjs",
       title: "Next.js Scaffolding",
       description:
-        "Generate optimized Next.js applications with TypeScript, Tailwind, and modern tooling",
+        "Generate optimized Next.js applications with TypeScript, Tailwind, and interactive package selection",
       icon: Zap,
       color: "from-blue-400 via-cyan-500 to-teal-500",
       commands: [
         {
-          command: "lazycli next-js i",
+          command: "lazy next-js create",
           description:
-            "Initialize a new Next.js project with TypeScript and Tailwind CSS",
-        },
-        {
-          command: "lazycli next-js api",
-          description: "Generate API routes with authentication boilerplate",
-        },
-        {
-          command: "lazycli next-js deploy",
-          description: "Configure deployment settings for Vercel",
+            "Create Next.js app with TypeScript, Tailwind, ESLint defaults and optional packages (zod, bcrypt, js-cookie, swr, lucide-react, react-hot-toast, shadcn-ui)",
         },
       ],
     },
@@ -114,21 +101,13 @@ export default function InteractiveCommands({
       id: "vitejs",
       title: "Vite.js Project Setup",
       description:
-        "Create lightning-fast Vite.js projects with modern tooling and optimized builds",
+        "Create lightning-fast Vite.js projects with framework selection and modern Tailwind/DaisyUI integration",
       icon: Terminal,
       color: "from-orange-400 via-red-500 to-pink-500",
       commands: [
         {
-          command: "lazycli vite init",
-          description: "Bootstrap a new Vite project with React or Vue",
-        },
-        {
-          command: "lazycli vite config",
-          description: "Configure build optimization and environment variables",
-        },
-        {
-          command: "lazycli vite preview",
-          description: "Set up local preview server with hot reload",
+          command: "lazy vite-js create",
+          description: "Create Vite project with framework selection (React/Vue/Svelte/Vanilla) and optional Tailwind CSS + DaisyUI setup",
         },
       ],
     },

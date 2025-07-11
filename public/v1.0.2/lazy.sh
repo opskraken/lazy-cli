@@ -26,6 +26,9 @@ Examples:
       Pull latest changes from the base branch, install dependencies, commit local changes,
       push to current branch, and create a GitHub pull request.
 
+  lazy github pull <base-branch> "<pr-title>"
+      Create a simple pull request from current branch to the specified base branch.
+
   lazy node-js init
       Initialize a Node.js project with init -y and optional boilerplate package installation.
 
@@ -47,6 +50,7 @@ Available Commands:
                 - init       Initialize a new Git repo
                 - clone      Clone a repo and optionally setup project
                 - push       Commit and push changes with message
+                - pull       Create a simple pull request from current branch
                 - pr         Pull latest, build, commit, push, and create pull request
 
   node-js       Setup Node.js projects:
@@ -204,6 +208,41 @@ github_push() {
   echo "✅ Changes pushed to origin/$BRANCH 🎉"
 }
 
+# Create a simple pull request from current branch to target branch
+# Args: $1 = base branch, $2 = pull request title
+github_create_pull() {
+  local BASE_BRANCH="$1"
+  local PR_TITLE="$2"
+
+  if [[ -z "$BASE_BRANCH" || -z "$PR_TITLE" ]]; then
+    echo "❌ Usage: lazy github pull <base-branch> \"<pr-title>\""
+    return 1
+  fi
+
+  # Detect current branch
+  local CURRENT_BRANCH
+  CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+  if [[ -z "$CURRENT_BRANCH" ]]; then
+    echo "❌ Not inside a git repository."
+    return 1
+  fi
+
+  if [[ "$CURRENT_BRANCH" == "$BASE_BRANCH" ]]; then
+    echo "❌ Cannot create PR from $BASE_BRANCH to itself. Please switch to a feature branch."
+    return 1
+  fi
+
+  echo "🔁 Creating pull request: $CURRENT_BRANCH → $BASE_BRANCH"
+  echo "📝 Title: $PR_TITLE"
+
+  if ! gh pr create --base "$BASE_BRANCH" --head "$CURRENT_BRANCH" --title "$PR_TITLE" --body "$PR_TITLE"; then
+    echo "❌ Pull request creation failed."
+    return 1
+  fi
+
+  echo "✅ Pull request created successfully! 🎉"
+}
+
 # Create a pull request workflow: pull latest changes, install dependencies, commit, push, and create PR
 # Automatically detects project type and runs appropriate build/install commands
 # Args: $1 = base branch, $2 = commit message
@@ -324,19 +363,14 @@ github_create_pr() {
     return 1
   fi
 
-  # Create pull request if GitHub CLI is available
-  if command -v gh &> /dev/null; then
-    echo "🔁 Creating pull request: $CURRENT_BRANCH → $BASE_BRANCH"
-    if ! gh pr create --base "$BASE_BRANCH" --head "$CURRENT_BRANCH" --title "$COMMIT_MSG" --body "$COMMIT_MSG"; then
-      echo "❌ Pull request creation failed."
-      return 1
-    fi
-  else
-    echo "⚠️ GitHub CLI (gh) not installed. Skipping PR creation."
-    echo "👉 Install it from https://cli.github.com/"
+  # Create pull request
+  echo "🔁 Creating pull request: $CURRENT_BRANCH → $BASE_BRANCH"
+  if ! gh pr create --base "$BASE_BRANCH" --head "$CURRENT_BRANCH" --title "$COMMIT_MSG" --body "$COMMIT_MSG"; then
+    echo "❌ Pull request creation failed."
+    return 1
   fi
 
-  echo "✅ Pull request workflow completed successfully."
+  echo "✅ PR created successfully! 🎉"
 }
 
 
@@ -475,72 +509,79 @@ EOF
     echo 'console.log("🚀 Booted with LazyCLI – stay lazy, code smart 😴");' >> index.ts
   fi
 
-  # Update package.json scripts with proper package manager commands
-  echo "🛠️ Configuring package.json scripts..."
+  # Create a clean package.json with proper structure
+  echo "🛠️ Creating package.json with LazyCLI template..."
   
-  # Create scripts object if it doesn't exist and add appropriate scripts
-if command -v jq &>/dev/null; then
-  # ✅ Use jq for safe, structured JSON editing
+  # Remove existing package.json to avoid conflicts
+  rm -f package.json
+  
+  # Create new package.json with proper structure
   if [[ "$pkg_manager" == "bun" ]]; then
     if [[ "$ans_nodemon" == "1" ]]; then
-      jq '.scripts = {
-        "start": "bun run index.ts",
-        "dev": "nodemon --watch index.ts --exec bun run index.ts",
-        "test": "bun test"
-      }' package.json > tmp.json && mv tmp.json package.json
+      cat > package.json <<'EOF'
+{
+  "name": "node",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "start": "bun run index.ts",
+    "dev": "nodemon --watch index.ts --exec bun run index.ts",
+    "test": "bun test"
+  },
+  "devDependencies": {},
+  "dependencies": {}
+}
+EOF
     else
-      jq '.scripts = {
-        "start": "bun run index.ts",
-        "build": "bun build index.ts",
-        "test": "bun test"
-      }' package.json > tmp.json && mv tmp.json package.json
+      cat > package.json <<'EOF'
+{
+  "name": "node",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "start": "bun run index.ts",
+    "build": "bun build index.ts",
+    "test": "bun test"
+  },
+  "devDependencies": {},
+  "dependencies": {}
+}
+EOF
     fi
   else
     if [[ "$ans_nodemon" == "1" ]]; then
-      jq '.scripts = {
-        "start": "ts-node index.ts",
-        "dev": "nodemon index.ts",
-        "build": "tsc",
-        "test": "echo \"Error: no test specified\" && exit 1"
-      }' package.json > tmp.json && mv tmp.json package.json
+      cat > package.json <<'EOF'
+{
+  "name": "node",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "ts-node index.ts",
+    "dev": "nodemon index.ts",
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {},
+  "dependencies": {}
+}
+EOF
     else
-      jq '.scripts = {
-        "start": "ts-node index.ts",
-        "build": "tsc",
-        "test": "echo \"Error: no test specified\" && exit 1"
-      }' package.json > tmp.json && mv tmp.json package.json
+      cat > package.json <<'EOF'
+{
+  "name": "node",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "ts-node index.ts",
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {},
+  "dependencies": {}
+}
+EOF
     fi
   fi
-
-else
-  # ⚠️ Fallback: Manual sed-based editing (less robust)
-  echo "⚠️ jq not found, using manual JSON editing..."
-
-  # Remove existing scripts section if present
-  sed -i.bak '/"scripts":/,/},/d' package.json
-
-  # Ensure dependencies section ends with a comma
-  sed -i.bak '/"dependencies": {[^}]*}[^,]$/ s/}/},/' package.json
-  sed -i.bak '/"devDependencies": {[^}]*}[^,]$/ s/}/},/' package.json
-
-  # Inject scripts block before final closing brace
-  if [[ "$pkg_manager" == "bun" ]]; then
-    if [[ "$ans_nodemon" == "1" ]]; then
-      sed -i.bak '$i\  "scripts": {\n    "start": "bun run index.ts",\n    "dev": "nodemon --watch index.ts --exec bun run index.ts",\n    "test": "bun test"\n  },' package.json
-    else
-      sed -i.bak '$i\  "scripts": {\n    "start": "bun run index.ts",\n    "build": "bun build index.ts",\n    "test": "bun test"\n  },' package.json
-    fi
-  else
-    if [[ "$ans_nodemon" == "1" ]]; then
-      sed -i.bak '$i\  "scripts": {\n    "start": "ts-node index.ts",\n    "dev": "nodemon index.ts",\n    "build": "tsc",\n    "test": "echo \\"Error: no test specified\\" && exit 1"\n  },' package.json
-    else
-      sed -i.bak '$i\  "scripts": {\n    "start": "ts-node index.ts",\n    "build": "tsc",\n    "test": "echo \\"Error: no test specified\\" && exit 1"\n  },' package.json
-    fi
-  fi
-
-  # Clean up backup file
-  rm -f package.json.bak
-fi
 
   
   if [[ "$ans_nodemon" == "1" ]]; then
@@ -936,6 +977,9 @@ case "$1" in
         ;;
       push)
         github_push "$3"
+        ;;
+      pull)
+        github_create_pull "$3" "$4"
         ;;
       pr)
         github_create_pr "$3" "$4"

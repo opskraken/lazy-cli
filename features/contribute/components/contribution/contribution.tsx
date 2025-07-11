@@ -7,6 +7,7 @@ import {
   Github,
   Copy,
   ExternalLink,
+  Download,
 } from "lucide-react";
 export default function Contribution({
   copyToClipboard,
@@ -40,8 +41,8 @@ export default function Contribution({
     {
       icon: TerminalSquare,
       title: "Test Your Command",
-      description: "Test your script locally to ensure it works as expected.",
-      code: "curl -s https://lazycli.xyz/scripts/myscript/lazy.sh | bash",
+      description: "Test your script from your own repository before submitting to ensure it works as expected.",
+      code: "# Test from your GitHub fork\ncurl -s https://raw.githubusercontent.com/your-username/lazycli/your-branch/public/scripts/lazy.sh | bash\n\n# Or test locally\nbash /path/to/your/lazy.sh",
     },
     {
       icon: Github,
@@ -49,6 +50,14 @@ export default function Contribution({
       description:
         "Push your changes and create a pull request with a clear description.",
       code: "git add .\ngit commit -m 'Add: new command for [feature]'\ngit push origin feature/your-command",
+    },
+    {
+      icon: Download,
+      title: "Install Your Custom Version",
+      description:
+        "Once your version is available, users can install your custom LazyCLI version directly.",
+      code: "curl -s https://lazycli.xyz/install.sh | bash",
+      customInstall: true,
     },
   ];
   return (
@@ -162,17 +171,16 @@ export default function Contribution({
                         </div>
                       </div>
                       <p className="text-slate-300 mt-4 text-sm">
-                        Write your script once, install it anytime with:
+                        During development, test from your own repository:
                       </p>
                       <div className="bg-gray-900 rounded-lg p-3 mt-2 relative group w-full">
                         <code className="text-green-400 text-sm block whitespace-pre-wrap break-words max-w-full">
-                          curl -s https://lazycli.xyz/scripts/myscript/lazy.sh |
-                          bash
+                          curl -s https://raw.githubusercontent.com/your-username/lazycli/your-branch/public/scripts/lazy.sh | bash
                         </code>
                         <button
                           onClick={() =>
                             copyToClipboard(
-                              "curl -s https://lazycli.xyz/scripts/myscript/lazy.sh | bash",
+                              "curl -s https://raw.githubusercontent.com/your-username/lazycli/your-branch/public/scripts/lazy.sh | bash",
                               "install-command"
                             )
                           }
@@ -186,6 +194,90 @@ export default function Contribution({
                           </span>
                         )}
                       </div>
+                      <p className="text-slate-300 mt-3 text-sm">
+                        After merging, it will be available at:
+                      </p>
+                      <div className="bg-gray-900 rounded-lg p-3 mt-2 relative group w-full">
+                        <code className="text-green-400 text-sm block whitespace-pre-wrap break-words max-w-full">
+                          curl -s https://lazycli.xyz/scripts/myscript/lazy.sh | bash
+                        </code>
+                        <button
+                          onClick={() =>
+                            copyToClipboard(
+                              "curl -s https://lazycli.xyz/scripts/myscript/lazy.sh | bash",
+                              "final-install-command"
+                            )
+                          }
+                          className="absolute top-2 right-2 p-1 bg-gray-800 hover:bg-gray-700 rounded transition-colors opacity-0 group-hover:opacity-100 sm:opacity-100"
+                        >
+                          <Copy className="w-3 h-3 text-gray-300" />
+                        </button>
+                        {copiedText === "final-install-command" && (
+                          <span className="absolute top-2 right-12 text-green-400 text-xs">
+                            Copied!
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {step.customInstall && (
+                    <div className="bg-slate-900/50 rounded-lg p-4 sm:p-6 border border-slate-600">
+                      <h4 className="font-semibold text-white mb-3">
+                        Custom Version Installation:
+                      </h4>
+                      <p className="text-slate-300 mb-4 text-sm">
+                        Users can install your custom LazyCLI version using:
+                      </p>
+                      <div className="space-y-3">
+                        <div className="bg-gray-900 rounded-lg p-3 relative group w-full">
+                          <div className="text-slate-400 text-xs mb-1">Standard Installation:</div>
+                          <code className="text-green-400 text-sm block whitespace-pre-wrap break-words max-w-full">
+                            curl -s https://lazycli.xyz/install.sh | bash
+                          </code>
+                          <button
+                            onClick={() =>
+                              copyToClipboard(
+                                "curl -s https://lazycli.xyz/install.sh | bash",
+                                "standard-install"
+                              )
+                            }
+                            className="absolute top-2 right-2 p-1 bg-gray-800 hover:bg-gray-700 rounded transition-colors opacity-0 group-hover:opacity-100 sm:opacity-100"
+                          >
+                            <Copy className="w-3 h-3 text-gray-300" />
+                          </button>
+                          {copiedText === "standard-install" && (
+                            <span className="absolute top-2 right-12 text-green-400 text-xs">
+                              Copied!
+                            </span>
+                          )}
+                        </div>
+                        <div className="bg-gray-900 rounded-lg p-3 relative group w-full">
+                          <div className="text-slate-400 text-xs mb-1">Custom Version Installation:</div>
+                          <code className="text-green-400 text-sm block whitespace-pre-wrap break-words max-w-full">
+                            curl -s https://lazycli.xyz/install.sh | bash -s version_name
+                          </code>
+                          <button
+                            onClick={() =>
+                              copyToClipboard(
+                                "curl -s https://lazycli.xyz/install.sh | bash -s version_name",
+                                "custom-install"
+                              )
+                            }
+                            className="absolute top-2 right-2 p-1 bg-gray-800 hover:bg-gray-700 rounded transition-colors opacity-0 group-hover:opacity-100 sm:opacity-100"
+                          >
+                            <Copy className="w-3 h-3 text-gray-300" />
+                          </button>
+                          {copiedText === "custom-install" && (
+                            <span className="absolute top-2 right-12 text-green-400 text-xs">
+                              Copied!
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-slate-300 mt-4 text-sm">
+                        Replace <span className="text-cyan-400 font-mono">version_name</span> with your custom version identifier (e.g., v1.0.2, custom-branch, etc.)
+                      </p>
                     </div>
                   )}
                 </div>
