@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://lazycli.xyz/
+
+# Sitemaps
+Sitemap: https://lazycli.xyz/sitemap.xml

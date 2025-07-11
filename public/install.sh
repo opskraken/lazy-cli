@@ -1,4 +1,4 @@
-#!/bin/bash
+ #!/bin/bash
 
 echo "🛠️ Installing LazyCLI..."
 
@@ -9,12 +9,12 @@ LAZY_BINARY="$INSTALL_DIR/lazy"
 if ! mkdir -p "$INSTALL_DIR" 2>/dev/null; then
   echo "❌ Failed to create install directory: $INSTALL_DIR"
   echo "👉 Try running this command instead:"
-  echo "   curl -s https://lazycli.vercel.app/install.sh | sudo HOME=$HOME bash"
+  echo "   curl -s https://lazycli.xyz/install.sh | sudo HOME=$HOME bash"
   exit 1
 fi
 
 # Download the latest CLI script
-curl -fsSL https://lazycli.vercel.app/scripts/lazy.sh -o "$LAZY_BINARY" || {
+curl -fsSL https://lazycli.xyz/scripts/lazy.sh -o "$LAZY_BINARY" || {
   echo "❌ Failed to download LazyCLI."
   exit 1
 }

@@ -1,6 +1,9 @@
-# LazyCLI
+# ⚡ LazyCLI– The Universal CLI Vault
 
-Automate your dev flow like a lazy pro 💤
+LazyCLI a powerful, Bash-based command-line interface that simplifies your development and deployment workflow — from initializing projects to pushing code to GitHub — all in a single CLI tool.
+
+> ✅ Currently supports Node.js, Next.js, Vite.js, and GitHub automation.  
+> 🔜 Python, Docker, Flutter, Rust, and more are coming soon.
 
 ---
 
@@ -17,22 +20,39 @@ More info and scripts are available at the [LazyCLI website](https://lazycli.ver
 Run this command in your bash shell (Linux, WSL, or Git Bash on Windows):
 
 ```bash
-curl -s https://lazycli.vercel.app/scripts/install.sh | bash
+curl -s https://lazycli.xyz/install.sh | bash
+
 ```
 
 ````
 
-This will install the `lazy` command-line tool to `~/.lazycli` and add it to your PATH.
+> ℹ️ On Windows? [See installation guide →](https://lazycli.xyz/windows)
 
 After installation, restart your terminal or run:
 
 ```bash
-source ~/.bashrc
+lazycli github push
+lazycli node-js init
+lazycli next-js init
+lazycli vite-js init
 ```
+
+More commands and options can be found on [lazycli.xyz](https://lazycli.xyz/).
 
 ---
 
-## Usage
+## 🖥️ Works On
+
+- ✅ macOS
+- ✅ Linux (Ubuntu, Arch, etc.)
+- ⚠️ Windows (requires WSL or Git Bash — [see guide](https://lazycli.xyz/windows))
+
+---
+
+## 🤝 Contributing
+
+Pull requests are welcome!
+If you’d like to contribute commands, improvements, or docs:
 
 ```bash
 lazy [command] [subcommand] [arguments]
