@@ -216,6 +216,11 @@ github_create_pull() {
 
   if ! gh pr create --base "$BASE_BRANCH" --head "$CURRENT_BRANCH" --title "$PR_TITLE" --body "$PR_TITLE"; then
     echo "❌ Pull request creation failed."
+    echo "⚠️ GitHub CLI (gh) is not installed or not found in PATH."
+    echo "👉 To enable automatic pull request creation:"
+    echo "   1. Download and install GitHub CLI: https://cli.github.com/"
+    echo "   2. If already installed, add it to your PATH to your gitbash:"
+    echo "      export PATH=\"/c/Program Files/GitHub CLI:\$PATH\""
     return 1
   fi
 
@@ -280,7 +285,11 @@ github_create_pr() {
   echo "🔁 Creating pull request: $CURRENT_BRANCH → $BASE_BRANCH"
   if ! gh pr create --base "$BASE_BRANCH" --head "$CURRENT_BRANCH" --title "$COMMIT_MSG" --body "$COMMIT_MSG"; then
     echo "❌ Pull request creation failed."
-    echo "⚠️ GitHub CLI (gh) is not installed. To enable automatic pull request creation, download it from: https://cli.github.com/"
+    echo "⚠️ GitHub CLI (gh) is not installed or not found in PATH."
+    echo "👉 To enable automatic pull request creation:"
+    echo "   1. Download and install GitHub CLI: https://cli.github.com/"
+    echo "   2. If already installed, add it to your PATH to your gitbash:"
+    echo "      export PATH=\"/c/Program Files/GitHub CLI:\$PATH\""
     return 1
   fi
 

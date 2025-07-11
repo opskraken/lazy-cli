@@ -236,6 +236,45 @@ export default function Hero({
               </motion.div>
             ))}
           </motion.div>
+
+          {/* Product Hunt Badge */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.5, duration: 0.8 }}
+            className="mt-12 flex justify-center"
+          >
+            <motion.a
+              href="https://www.producthunt.com/products/lazycli?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-lazycli"
+              target="_blank"
+              rel="noopener noreferrer"
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              className="group bg-slate-800/50 backdrop-blur-xl border border-slate-700 hover:border-cyan-400/50 rounded-xl px-6 py-4 flex items-center space-x-4 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10"
+            >
+              <div className="flex items-center space-x-4">
+                {/* Product Hunt Logo */}
+                <div className="w-8 h-8 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center group-hover:from-cyan-300 group-hover:to-blue-400 transition-all duration-300">
+                  <p className="text-white text-lg font-bold">P</p>
+                </div>
+
+                {/* Badge Content */}
+                <div className="flex flex-col">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                      FIND US ON
+                    </span>
+                    {/* <span className="text-xs bg-gradient-to-r from-cyan-400 to-blue-500 text-white px-2 py-0.5 rounded-full font-medium group-hover:from-cyan-300 group-hover:to-blue-400 transition-all duration-300">
+                      #1
+                    </span> */}
+                  </div>
+                  <span className="text-lg font-bold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent group-hover:from-cyan-300 group-hover:to-blue-300 transition-all duration-300">
+                    Product Hunt
+                  </span>
+                </div>
+              </div>
+            </motion.a>
+          </motion.div>
         </div>
       </section>
     </>
