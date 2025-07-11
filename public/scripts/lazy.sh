@@ -65,6 +65,19 @@ For more details on each command, run:
 EOF
 }
 
+# Helper function to detect package manager
+detect_package_manager() {
+  if command -v bun &> /dev/null; then
+    PKG_MANAGER="bun"
+  elif command -v pnpm &> /dev/null; then
+    PKG_MANAGER="pnpm"
+  elif command -v yarn &> /dev/null; then
+    PKG_MANAGER="yarn"
+  else
+    PKG_MANAGER="npm"
+  fi
+}
+
 github_init() {
   echo "🛠️ Initializing new Git repository..."
 
@@ -98,34 +111,32 @@ github_clone() {
 
   if [[ -f package.json ]]; then
     echo "📦 Installing dependencies..."
-
-    if command -v npm &> /dev/null; then
-      echo "🔧 Using npm..."
-      npm install
-    elif command -v yarn &> /dev/null; then
-      echo "🔧 Using yarn..."
-      yarn
-    elif command -v pnpm &> /dev/null; then
-      echo "🔧 Using pnpm..."
-      pnpm install
-    elif command -v bun &> /dev/null; then
-      echo "🔧 Using bun..."
+    
+    # Use the detect_package_manager function
+    detect_package_manager
+    
+    echo "🔧 Using $PKG_MANAGER..."
+    if [[ "$PKG_MANAGER" == "bun" ]]; then
       bun install
+    elif [[ "$PKG_MANAGER" == "pnpm" ]]; then
+      pnpm install
+    elif [[ "$PKG_MANAGER" == "yarn" ]]; then
+      yarn
     else
-      echo "⚠️ No supported package manager found. Please install manually."
+      npm install
     fi
 
     # Check if build script exists
     if grep -q '"build"' package.json; then
       echo "🏗️ Build script found. Building the project..."
-      if command -v npm &> /dev/null; then
-        npm run build
-      elif command -v yarn &> /dev/null; then
-        yarn build
-      elif command -v pnpm &> /dev/null; then
-        pnpm run build
-      elif command -v bun &> /dev/null; then
+      if [[ "$PKG_MANAGER" == "bun" ]]; then
         bun run build
+      elif [[ "$PKG_MANAGER" == "pnpm" ]]; then
+        pnpm run build
+      elif [[ "$PKG_MANAGER" == "yarn" ]]; then
+        yarn build
+      else
+        npm run build
       fi
     else
       echo "ℹ️ No build script found; skipping build."
@@ -205,6 +216,7 @@ github_create_pull() {
 
   if ! gh pr create --base "$BASE_BRANCH" --head "$CURRENT_BRANCH" --title "$PR_TITLE" --body "$PR_TITLE"; then
     echo "❌ Pull request creation failed."
+    echo "⚠️ GitHub CLI (gh) is not installed. To enable automatic pull request creation, download it from: https://cli.github.com/"
     return 1
   fi
 
@@ -401,7 +413,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
@@ -458,7 +470,7 @@ EOF
       cat > .env <<'EOF'
 # Environment variables
 NODE_ENV=development
-PORT=3000
+PORT=5000
 
 # Add your environment variables here
 # DATABASE_URL=
@@ -591,19 +603,6 @@ EOF
     echo "✅ Run production: $pkg_manager run start"
     
     echo "✅ Node.js + TypeScript project is ready!"
-  fi
-}
-
-# Helper function to detect package manager
-detect_package_manager() {
-  if command -v bun &> /dev/null; then
-    PKG_MANAGER="bun"
-  elif command -v pnpm &> /dev/null; then
-    PKG_MANAGER="pnpm"
-  elif command -v yarn &> /dev/null; then
-    PKG_MANAGER="yarn"
-  else
-    PKG_MANAGER="npm"
   fi
 }
 
@@ -753,102 +752,344 @@ next_js_create() {
     # Create custom page.tsx with LazyCLI branding
     cat > "$page_path" << 'EOF'
 "use client";
-import { useState } from 'react'
+import { useState, useEffect } from "react";
 
-function HomePage() {
-  const [count, setCount] = useState(0)
+function App() {
+  const [count, setCount] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+  const [activeTab, setActiveTab] = useState("demo");
+  const [terminalText, setTerminalText] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+
+  const commands = [
+    "$ lazy github init",
+    "$ lazy node-js init",
+    "$ lazy next-js create",
+    "$ lazy vite-js create",
+  ];
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "terminal") {
+      typeCommand();
+    }
+  }, [activeTab]);
+
+  const typeCommand = () => {
+    setIsTyping(true);
+    const command = commands[Math.floor(Math.random() * commands.length)];
+    let i = 0;
+    setTerminalText("");
+
+    const interval = setInterval(() => {
+      if (i < command.length) {
+        setTerminalText(command.slice(0, i + 1));
+        i++;
+      } else {
+        clearInterval(interval);
+        setIsTyping(false);
+      }
+    }, 100);
+  };
+
+  const handleCounterChange = (operation) => {
+    if (operation === "increment") {
+      setCount(count + 1);
+    } else if (operation === "decrement") {
+      setCount(count - 1);
+    } else {
+      setCount(0);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="max-w-2xl mx-auto text-center">
-        {/* LazyCLI Logo */}
-        <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4">
-            <span className="text-3xl font-bold text-white">💤</span>
-          </div>
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">LazyCLI</h1>
-          <p className="text-lg text-gray-600">Automate your dev flow like a lazy pro</p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse"
+          style={{ animationDelay: "2s" }}
+        ></div>
+      </div>
 
-        {/* Welcome Card */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">🎉 Welcome to Your Next.js App!</h2>
-          <p className="text-gray-600 mb-6">
-            Your project has been successfully created with LazyCLI. 
-            This template includes modern tooling and best practices to get you started quickly.
-          </p>
-          
-          {/* Counter Demo */}
-          <div className="bg-gray-50 rounded-lg p-6 mb-6">
-            <h3 className="text-lg font-medium text-gray-800 mb-4">Interactive Counter Demo</h3>
-            <div className="flex items-center justify-center space-x-4">
-              <button 
-                onClick={() => setCount(count - 1)}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+      <div
+        className={`relative z-10 min-h-screen transition-all duration-1000 ${
+          isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+        }`}
+      >
+        {/* Header */}
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-transparent rounded-full mb-6 shadow-xl border-2 border-blue-400 transform hover:scale-110 transition-transform duration-300 hover:shadow-blue-400/50 p-2 animate-fadeIn">
+              <img
+                src="https://i.ibb.co/1tTxMkrp/terminal.png"
+                alt="LazyCLI Logo"
+                className="w-full h-full object-contain animate-pulse duration-200 hover:animate-none"
+              />
+            </div>
+
+            <h1 className="text-5xl font-bold tracking-wide bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent mb-4">
+              LazyCLI
+            </h1>
+
+            <p className="text-xl text-slate-200 max-w-2xl mx-auto">
+              Automate your development workflow like a lazy pro
+            </p>
+          </div>
+
+          {/* Main Content Card */}
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-2xl border border-slate-700/50 overflow-hidden">
+              {/* Tab Navigation */}
+              <div className="flex border-b border-slate-700/50">
+                <button
+                  onClick={() => setActiveTab("demo")}
+                  className={`flex-1 py-4 px-6 text-sm font-medium transition-all duration-200 ${
+                    activeTab === "demo"
+                      ? "bg-blue-600/20 text-blue-400 border-b-2 border-blue-400"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/30"
+                  }`}
+                >
+                  🎮 Interactive Demo
+                </button>
+                <button
+                  onClick={() => setActiveTab("terminal")}
+                  className={`flex-1 py-4 px-6 text-sm font-medium transition-all duration-200 ${
+                    activeTab === "terminal"
+                      ? "bg-blue-600/20 text-blue-400 border-b-2 border-blue-400"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/30"
+                  }`}
+                >
+                  🖥️ Terminal Preview
+                </button>
+                <button
+                  onClick={() => setActiveTab("features")}
+                  className={`flex-1 py-4 px-6 text-sm font-medium transition-all duration-200 ${
+                    activeTab === "features"
+                      ? "bg-blue-600/20 text-blue-400 border-b-2 border-blue-400"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/30"
+                  }`}
+                >
+                  ⚡ Features
+                </button>
+              </div>
+
+              {/* Tab Content */}
+              <div className="p-8">
+                {activeTab === "demo" && (
+                  <div className="space-y-8">
+                    <div className="text-center">
+                      <h2 className="text-2xl font-bold text-slate-200 mb-4">
+                        🎉 Interactive Counter Demo
+                      </h2>
+                      <p className="text-slate-400 mb-8">
+                        Experience the power of modern React with this
+                        interactive demo
+                      </p>
+                    </div>
+
+                    {/* Counter Demo */}
+                    <div className="bg-slate-900/50 rounded-xl p-8 border border-slate-700/30">
+                      <div className="flex items-center justify-center space-x-6 mb-6">
+                        <button
+                          onClick={() => handleCounterChange("decrement")}
+                          className="w-12 h-12 bg-red-500 hover:bg-red-600 text-white rounded-full font-bold text-xl transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg hover:shadow-red-500/25"
+                        >
+                          -
+                        </button>
+                        <div className="text-6xl font-bold text-slate-200 min-w-[8rem] text-center bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                          {count}
+                        </div>
+                        <button
+                          onClick={() => handleCounterChange("increment")}
+                          className="w-12 h-12 bg-green-500 hover:bg-green-600 text-white rounded-full font-bold text-xl transition-all duration-200 hover:scale-110 active:scale-95 shadow-lg hover:shadow-green-500/25"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <div className="text-center">
+                        <button
+                          onClick={() => handleCounterChange("reset")}
+                          className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg transition-all duration-200 hover:scale-105"
+                        >
+                          Reset
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === "terminal" && (
+                  <div className="space-y-6">
+                    <div className="text-center">
+                      <h2 className="text-2xl font-bold text-slate-200 mb-4">
+                        🖥️ Terminal Preview
+                      </h2>
+                      <p className="text-slate-400 mb-8">
+                        See LazyCLI commands in action
+                      </p>
+                    </div>
+
+                    {/* Terminal Window */}
+                    <div className="bg-slate-900 rounded-xl overflow-hidden border border-slate-700/50 shadow-2xl">
+                      <div className="bg-slate-800 px-4 py-2 flex items-center space-x-2">
+                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <div className="ml-4 text-slate-400 text-sm">
+                          Terminal
+                        </div>
+                      </div>
+                      <div className="p-6 font-mono">
+                        <div className="flex items-center space-x-2 mb-4">
+                          <span className="text-blue-400">➜</span>
+                          <span className="text-green-400">~</span>
+                          <span className="text-slate-300">{terminalText}</span>
+                          {isTyping && <span className="animate-pulse">|</span>}
+                        </div>
+                        <div className="text-slate-400 text-sm mb-4">
+                          ✨ Initializing project with modern tooling...
+                        </div>
+                        <button
+                          onClick={typeCommand}
+                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition-colors duration-200"
+                        >
+                          Run New Command
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === "features" && (
+                  <div className="space-y-6">
+                    <div className="text-center">
+                      <h2 className="text-2xl font-bold text-slate-200 mb-4">
+                        ⚡ Tech Stack & Features
+                      </h2>
+                      <p className="text-slate-400 mb-8">
+                        Built with modern technologies for optimal performance
+                      </p>
+                    </div>
+
+                    {/* Tech Stack Grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="bg-blue-900/20 border border-blue-500/20 p-6 rounded-xl hover:bg-blue-900/30 transition-all duration-200 hover:scale-105">
+                        <div className="text-3xl mb-3">⚛️</div>
+                        <div className="text-sm font-medium text-blue-400">
+                          React
+                        </div>
+                        <div className="text-xs text-slate-400">UI Library</div>
+                      </div>
+                      <div className="bg-purple-900/20 border border-purple-500/20 p-6 rounded-xl hover:bg-purple-900/30 transition-all duration-200 hover:scale-105">
+                        <div className="text-3xl mb-3">⚡</div>
+                        <div className="text-sm font-medium text-purple-400">
+                          Vite
+                        </div>
+                        <div className="text-xs text-slate-400">Build Tool</div>
+                      </div>
+                      <div className="bg-cyan-900/20 border border-cyan-500/20 p-6 rounded-xl hover:bg-cyan-900/30 transition-all duration-200 hover:scale-105">
+                        <div className="text-3xl mb-3">🌊</div>
+                        <div className="text-sm font-medium text-cyan-400">
+                          Tailwind
+                        </div>
+                        <div className="text-xs text-slate-400">
+                          CSS Framework
+                        </div>
+                      </div>
+                      <div className="bg-yellow-900/20 border border-yellow-500/20 p-6 rounded-xl hover:bg-yellow-900/30 transition-all duration-200 hover:scale-105">
+                        <div className="text-3xl mb-3">💤</div>
+                        <div className="text-sm font-medium text-yellow-400">
+                          LazyCLI
+                        </div>
+                        <div className="text-xs text-slate-400">Automation</div>
+                      </div>
+                    </div>
+
+                    {/* Features List */}
+                    <div className="grid md:grid-cols-2 gap-6 mt-8">
+                      <div className="bg-slate-900/50 rounded-xl p-6 border border-slate-700/30">
+                        <h3 className="text-lg font-semibold text-slate-200 mb-3">
+                          🚀 GitHub Automation
+                        </h3>
+                        <p className="text-slate-400 text-sm">
+                          Streamline your GitHub workflow with automated
+                          repository management
+                        </p>
+                      </div>
+                      <div className="bg-slate-900/50 rounded-xl p-6 border border-slate-700/30">
+                        <h3 className="text-lg font-semibold text-slate-200 mb-3">
+                          📦 Project Scaffolding
+                        </h3>
+                        <p className="text-slate-400 text-sm">
+                          Bootstrap projects with modern tooling and best
+                          practices
+                        </p>
+                      </div>
+                      <div className="bg-slate-900/50 rounded-xl p-6 border border-slate-700/30">
+                        <h3 className="text-lg font-semibold text-slate-200 mb-3">
+                          ⚡ Lightning Fast
+                        </h3>
+                        <p className="text-slate-400 text-sm">
+                          Optimized performance with modern build tools
+                        </p>
+                      </div>
+                      <div className="bg-slate-900/50 rounded-xl p-6 border border-slate-700/30">
+                        <h3 className="text-lg font-semibold text-slate-200 mb-3">
+                          🎨 Beautiful UI
+                        </h3>
+                        <p className="text-slate-400 text-sm">
+                          Modern design with smooth animations and interactions
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+              <a
+                href="https://lazycli.xyz"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-blue-500/25"
               >
-                -
-              </button>
-              <span className="text-2xl font-bold text-gray-800 min-w-[3rem]">{count}</span>
-              <button 
-                onClick={() => setCount(count + 1)}
-                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                🌐 Visit LazyCLI Website
+              </a>
+              <a
+                href="https://github.com/iammhador/LazyCLI"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center px-8 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-all duration-200 hover:scale-105 shadow-lg"
               >
-                +
-              </button>
+                ⭐ Star on GitHub
+              </a>
+            </div>
+
+            {/* Footer */}
+            <div className="text-center mt-12 text-slate-400 text-sm">
+              <p>
+                Built with ❤️ using LazyCLI • Start editing{" "}
+                <code className="bg-slate-800 px-2 py-1 rounded text-slate-300">
+                  src/App.jsx
+                </code>
+              </p>
             </div>
           </div>
-
-          {/* Tech Stack */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-blue-50 p-3 rounded-lg">
-              <div className="text-2xl mb-1">⚛️</div>
-              <div className="text-sm font-medium text-gray-700">React</div>
-            </div>
-            <div className="bg-black p-3 rounded-lg">
-              <div className="text-2xl mb-1">▲</div>
-              <div className="text-sm font-medium text-white">Next.js</div>
-            </div>
-            <div className="bg-cyan-50 p-3 rounded-lg">
-              <div className="text-2xl mb-1">🌊</div>
-              <div className="text-sm font-medium text-gray-700">Tailwind</div>
-            </div>
-            <div className="bg-yellow-50 p-3 rounded-lg">
-              <div className="text-2xl mb-1">💤</div>
-              <div className="text-sm font-medium text-gray-700">LazyCLI</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Links */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <a 
-            href="https://lazycli.xyz" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            🌐 Visit LazyCLI Website
-          </a>
-          <a 
-            href="https://github.com/iammhador/LazyCLI" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="inline-flex items-center px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors"
-          >
-            ⭐ Star on GitHub
-          </a>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-8 text-sm text-gray-500">
-          <p>Built with ❤️ using LazyCLI • Start editing <code className="bg-gray-100 px-2 py-1 rounded">{use_src ? 'src/app/page.tsx' : 'app/page.tsx'}</code></p>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default HomePage
+export default App;
+
 EOF
     
     echo "✅ Custom LazyCLI page.tsx created successfully!"
@@ -913,7 +1154,6 @@ vite_js_create() {
   [[ "$SKIP_ALL" == false ]] && ask_package "zod" INSTALL_ZOD
   [[ "$SKIP_ALL" == false ]] && ask_package "react-hot-toast" INSTALL_TOAST
   if [[ "$framework" == "react" && "$SKIP_ALL" == false ]]; then
-    ask_package "react-router-dom" INSTALL_ROUTER
     [[ "$SKIP_ALL" == false ]] && ask_package "lucide-react" INSTALL_LUCIDE
   fi
   [[ "$SKIP_ALL" == false ]] && ask_package "Tailwind CSS" INSTALL_TAILWIND
