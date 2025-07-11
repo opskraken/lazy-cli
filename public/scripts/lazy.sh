@@ -278,97 +278,333 @@ github_create_pr() {
 
 node_js_init() {
   echo "🛠️ Initializing Node.js project..."
-  npm init -y
+  
+  # Ask user preference
+  read -p "🤔 Use simple setup (1) or TypeScript setup (2)? [1/2]: " setup_type
+  
+  if [[ "$setup_type" == "1" ]]; then
+    # Simple setup
+    npm init -y
+    echo "📦 Suggested packages:"
+    echo "   npm install express nodemon"
+    echo "   npm install -D @types/node"
+  else
+    # TypeScript setup (enhanced version)
+    echo "🛠️ Setting up TypeScript Node.js project..."
+    
+    # Detect package manager
+    detect_package_manager
+    pkg_manager="$PKG_MANAGER"
+    
+    echo "🧠 LazyCLI Smart Stack Setup: Answer once and make yourself gloriously lazy"
+    echo "   1 = Yes, 0 = No, -1 = Skip all remaining prompts"
+    
+    prompt_or_exit() {
+      local prompt_text=$1
+      local answer
+      while true; do
+        read -p "$prompt_text (1/0/-1): " answer
+        case "$answer" in
+          1|0|-1) echo "$answer"; return ;;
+          *) echo "Please enter 1, 0, or -1." ;;
+        esac
+      done
+    }
+    
+    ans_nodemon=$(prompt_or_exit "➕ Install nodemon for development?")
+    [[ "$ans_nodemon" == "-1" ]] && echo "🚫 Setup skipped." && return
+    
+    ans_express=$(prompt_or_exit "🌐 Install express?")
+    [[ "$ans_express" == "-1" ]] && echo "🚫 Setup skipped." && return
+    
+    ans_cors=$(prompt_or_exit "🔗 Install cors?")
+    [[ "$ans_cors" == "-1" ]] && echo "🚫 Setup skipped." && return
+    
+    ans_dotenv=$(prompt_or_exit "🔐 Install dotenv?")
+    [[ "$ans_dotenv" == "-1" ]] && echo "🚫 Setup skipped." && return
+    
+    # Initialize npm project
+    npm init -y
+    
+    # Install TypeScript and related packages
+    echo "📦 Installing TypeScript and development dependencies..."
+    if [[ "$pkg_manager" == "npm" ]]; then
+      npm install -D typescript @types/node ts-node
+    else
+      $pkg_manager add -D typescript @types/node ts-node
+    fi
+    
+    # Install optional packages
+    packages=()
+    dev_packages=()
+    
+    [[ "$ans_express" == "1" ]] && packages+=("express") && dev_packages+=("@types/express")
+    [[ "$ans_cors" == "1" ]] && packages+=("cors") && dev_packages+=("@types/cors")
+    [[ "$ans_dotenv" == "1" ]] && packages+=("dotenv")
+    [[ "$ans_nodemon" == "1" ]] && dev_packages+=("nodemon")
+    
+    if [[ ${#packages[@]} -gt 0 ]]; then
+      echo "📦 Installing packages: ${packages[*]}"
+      if [[ "$pkg_manager" == "npm" ]]; then
+        npm install "${packages[@]}"
+      else
+        $pkg_manager add "${packages[@]}"
+      fi
+    fi
+    
+    if [[ ${#dev_packages[@]} -gt 0 ]]; then
+      echo "📦 Installing dev packages: ${dev_packages[*]}"
+      if [[ "$pkg_manager" == "npm" ]]; then
+        npm install -D "${dev_packages[@]}"
+      else
+        $pkg_manager add -D "${dev_packages[@]}"
+      fi
+    fi
+    
+    # Create TypeScript config
+    echo "⚙️ Creating tsconfig.json..."
+    cat > tsconfig.json <<'EOF'
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
+EOF
+    
+    # Create src directory and index.ts
+    mkdir -p src
+    
+    if [[ ! -f "src/index.ts" ]]; then
+      echo "📝 Creating src/index.ts..."
+      if [[ "$ans_express" == "1" ]]; then
+        # Express server template
+        cat > src/index.ts <<'EOF'
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Routes
+app.get('/', (req, res) => {
+  res.json({
+    message: '🚀 LazyCLI Express Server is running!',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK', uptime: process.uptime() });
+});
+
+// Error handling middleware
+app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!' });
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log('💤 Built with LazyCLI – stay lazy, code smart!');
+});
+EOF
+      else
+        # Simple Node.js template
+        cat > src/index.ts <<'EOF'
+console.log('🚀 Hello from TypeScript Node.js!');
+console.log('💤 Built with LazyCLI – stay lazy, code smart!');
+
+// Example function
+function greet(name: string): string {
+  return `Hello, ${name}! Welcome to your TypeScript project.`;
 }
 
+console.log(greet('Developer'));
 EOF
+      fi
+    else
+      echo "ℹ️ src/index.ts already exists. Appending LazyCLI branding..."
+      echo 'console.log("🚀 Booted with LazyCLI – stay lazy, code smart 😴");' >> src/index.ts
     fi
-  else
-    echo "ℹ️ index.ts already exists. Appending LazyCLI branding..."
-    echo 'console.log("🚀 Booted with LazyCLI – stay lazy, code smart 😴");' >> index.ts
-  fi
+    
+    # Create environment file if dotenv is installed
+    if [[ "$ans_dotenv" == "1" && ! -f ".env" ]]; then
+      echo "🔐 Creating .env file..."
+      cat > .env <<'EOF'
+# Environment variables
+NODE_ENV=development
+PORT=3000
 
-  # Create a clean package.json with proper structure
-  echo "🛠️ Creating package.json with LazyCLI template..."
-  
-  # Remove existing package.json to avoid conflicts
-  rm -f package.json
-  
-  # Create new package.json with proper structure
-  if [[ "$pkg_manager" == "bun" ]]; then
-    if [[ "$ans_nodemon" == "1" ]]; then
-      cat > package.json <<'EOF'
+# Add your environment variables here
+# DATABASE_URL=
+# JWT_SECRET=
+EOF
+      
+      # Add .env to .gitignore if it exists
+      if [[ -f ".gitignore" ]]; then
+        echo ".env" >> .gitignore
+      else
+        echo ".env" > .gitignore
+      fi
+    fi
+    
+    # Create a clean package.json with proper structure
+    echo "🛠️ Creating package.json with LazyCLI template..."
+    
+    # Remove existing package.json to avoid conflicts
+    rm -f package.json
+    
+    # Create new package.json with proper structure
+    if [[ "$pkg_manager" == "bun" ]]; then
+      if [[ "$ans_nodemon" == "1" ]]; then
+        cat > package.json <<'EOF'
 {
-  "name": "node",
-  "module": "index.ts",
-  "type": "module",
+  "name": "node-typescript-project",
+  "version": "1.0.0",
+  "description": "TypeScript Node.js project created with LazyCLI",
+  "main": "dist/index.js",
+  "module": "src/index.ts",
+  "type": "commonjs",
   "scripts": {
-    "start": "bun run index.ts",
-    "dev": "nodemon --watch index.ts --exec bun run index.ts",
+    "start": "node dist/index.js",
+    "dev": "nodemon src/index.ts",
+    "build": "tsc",
+    "clean": "rm -rf dist",
     "test": "bun test"
   },
+  "keywords": ["typescript", "node", "lazycli"],
+  "author": "",
+  "license": "MIT",
   "devDependencies": {},
   "dependencies": {}
 }
 EOF
-    else
-      cat > package.json <<'EOF'
+      else
+        cat > package.json <<'EOF'
 {
-  "name": "node",
-  "module": "index.ts",
-  "type": "module",
+  "name": "node-typescript-project",
+  "version": "1.0.0",
+  "description": "TypeScript Node.js project created with LazyCLI",
+  "main": "dist/index.js",
+  "module": "src/index.ts",
+  "type": "commonjs",
   "scripts": {
-    "start": "bun run index.ts",
-    "build": "bun build index.ts",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "build": "tsc",
+    "clean": "rm -rf dist",
     "test": "bun test"
   },
+  "keywords": ["typescript", "node", "lazycli"],
+  "author": "",
+  "license": "MIT",
   "devDependencies": {},
   "dependencies": {}
 }
 EOF
-    fi
-  else
-    if [[ "$ans_nodemon" == "1" ]]; then
-      cat > package.json <<'EOF'
-{
-  "name": "node",
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "start": "ts-node index.ts",
-    "dev": "nodemon index.ts",
-    "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "devDependencies": {},
-  "dependencies": {}
-}
-EOF
+      fi
     else
-      cat > package.json <<'EOF'
+      if [[ "$ans_nodemon" == "1" ]]; then
+        cat > package.json <<'EOF'
 {
-  "name": "node",
+  "name": "node-typescript-project",
   "version": "1.0.0",
-  "type": "module",
+  "description": "TypeScript Node.js project created with LazyCLI",
+  "main": "dist/index.js",
+  "type": "commonjs",
   "scripts": {
-    "start": "ts-node index.ts",
+    "start": "node dist/index.js",
+    "dev": "nodemon src/index.ts",
     "build": "tsc",
+    "clean": "rm -rf dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": ["typescript", "node", "lazycli"],
+  "author": "",
+  "license": "MIT",
   "devDependencies": {},
   "dependencies": {}
 }
 EOF
+      else
+        cat > package.json <<'EOF'
+{
+  "name": "node-typescript-project",
+  "version": "1.0.0",
+  "description": "TypeScript Node.js project created with LazyCLI",
+  "main": "dist/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["typescript", "node", "lazycli"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {}
+}
+EOF
+      fi
     fi
+    
+    echo "📁 Project structure created:"
+    echo "   src/index.ts - Main TypeScript file"
+    echo "   tsconfig.json - TypeScript configuration"
+    [[ "$ans_dotenv" == "1" ]] && echo "   .env - Environment variables"
+    echo ""
+    
+    if [[ "$ans_nodemon" == "1" ]]; then
+      echo "✅ Run with: $pkg_manager run dev (development with auto-reload)"
+    else
+      echo "✅ Run with: $pkg_manager run dev (development)"
+    fi
+    echo "✅ Build with: $pkg_manager run build"
+    echo "✅ Run production: $pkg_manager run start"
+    
+    echo "✅ Node.js + TypeScript project is ready!"
   fi
+}
 
-  
-  if [[ "$ans_nodemon" == "1" ]]; then
-    echo "✅ Run with: $pkg_manager run dev (development with auto-reload)"
+# Helper function to detect package manager
+detect_package_manager() {
+  if command -v bun &> /dev/null; then
+    PKG_MANAGER="bun"
+  elif command -v pnpm &> /dev/null; then
+    PKG_MANAGER="pnpm"
+  elif command -v yarn &> /dev/null; then
+    PKG_MANAGER="yarn"
+  else
+    PKG_MANAGER="npm"
   fi
-  echo "✅ Run with: $pkg_manager run start (production)"
-
-  echo "✅ Node.js + TypeScript project is ready!"
 }
 
 
