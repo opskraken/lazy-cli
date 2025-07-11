@@ -14,9 +14,9 @@
 
 ---
 
-## 🚀 Quick Installation
+## 🚀 Installation
 
-Install globally with one command:
+Install globally with one command (macOS/Linux):
 
 ```bash
 # Standard installation
@@ -30,7 +30,7 @@ curl -s https://lazycli.xyz/install.sh | bash -s version_name
 
 ---
 
-## ✨ Features Overview
+## ✅ Current Features
 
 ### 🐙 GitHub Automation
 
@@ -71,7 +71,22 @@ curl -s https://lazycli.xyz/install.sh | bash -s version_name
 
 ---
 
-## 📖 Usage Examples
+## 🔮 Upcoming Features
+
+These features are planned for future updates:
+
+- Python project bootstrapping
+- Docker containerization support
+- Deployment via PM2 and SSH
+- Flutter, React Native, Go, Rust, .NET support
+- Environment and secret management
+- Auto-updating CLI (`lazycli update`)
+
+---
+
+## 🧪 Usage
+
+Run commands globally from anywhere in your terminal:
 
 ### GitHub Workflow
 
@@ -121,17 +136,8 @@ We welcome contributions! LazyCLI is an open-source project built for the develo
 ### Quick Start
 
 ```bash
-# Fork and clone the repository
-git clone https://github.com/your-username/lazycli.git
+git clone https://github.com/your-username/lazycli
 cd lazycli
-
-# Test your changes
-bash public/scripts/lazy.sh --help
-
-# Submit your contribution
-git add .
-git commit -m "Add: new feature"
-git push origin feature/your-feature
 ```
 
 ### Contribution Guidelines
@@ -168,24 +174,29 @@ For detailed guidelines, visit [lazycli.xyz/contribute](https://lazycli.xyz/cont
 
 ## 📄 License
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-## 🙌 Acknowledgments
+## 🙌 Credits
 
-**Built with ❤️ by [iammhador](https://iammhador.xyz)**
-
-- Inspired by the developer community's need for workflow automation
-- Special thanks to all contributors and users
-- Powered by the simplicity of Bash scripting
+Built and maintained by [iammhador](https://iammhador.xyz).
+Inspired by the simplicity of automation.
 
 ---
 
-<div align="center">
-  
-  **⭐ Star this repo if LazyCLI helps you stay lazy and code smart!**
-  
-  [🌐 Website](https://lazycli.xyz) • [📚 Documentation](https://lazycli.xyz/guideline) • [🤝 Contribute](https://lazycli.xyz/contribute) • [📋 Versions](https://lazycli.xyz/versions)
-  
-</div>
+```
+
+---
+
+Let me know if you want:
+- A `CONTRIBUTING.md`
+- A `LICENSE`
+- A version that dynamically pulls features from a JSON or config
+
+You're almost ready to launch 🚀
+```
+
+```
+
+```

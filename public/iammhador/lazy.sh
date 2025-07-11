@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION="1.0.1"
+VERSION="1.0.1-iammhador"
 
 show_help() {
   cat << EOF
@@ -26,14 +26,8 @@ Examples:
   lazy github pull <base-branch> "<pr-title>"
       Create a simple pull request from current branch to the specified base branch.
 
-  lazy node-js init
-      Initialize a Node.js project with init -y and optional boilerplate package installation.
-
   lazy next-js create
       Scaffold a new Next.js application with recommended defaults and optional packages.
-
-  lazy vite-js create
-      Create a new Vite project, select framework, and optionally install common packages.
 
   lazy --version | -v
       Show current LazyCLI version.
@@ -50,14 +44,8 @@ Available Commands:
                 - pull       Create a simple pull request from current branch
                 - pr         Pull latest, build, commit, push, and create pull request
 
-  node-js       Setup Node.js projects:
-                - init       Initialize Node.js project with optional boilerplate
-
   next-js       Next.js project scaffolding:
                 - create     Create Next.js app with TypeScript, Tailwind, ESLint defaults
-
-  vite-js       Vite project scaffolding:
-                - create     Create a Vite project with framework selection and optional packages
 
 For more details on each command, run:
   lazy [command] --help
@@ -275,101 +263,7 @@ github_create_pr() {
   echo "✅ PR created successfully! 🎉"
 }
 
-node_js_init() {
-  echo "🛠️ Initializing Node.js project..."
-  npm init -y
-}
 
-console.log(greet("Developer"));
-EOF
-    fi
-  else
-    echo "ℹ️ index.ts already exists. Appending LazyCLI branding..."
-    echo 'console.log("🚀 Booted with LazyCLI – stay lazy, code smart 😴");' >> index.ts
-  fi
-
-  # Create a clean package.json with proper structure
-  echo "🛠️ Creating package.json with LazyCLI template..."
-  
-  # Remove existing package.json to avoid conflicts
-  rm -f package.json
-  
-  # Create new package.json with proper structure
-  if [[ "$pkg_manager" == "bun" ]]; then
-    if [[ "$ans_nodemon" == "1" ]]; then
-      cat > package.json <<'EOF'
-{
-  "name": "node",
-  "module": "index.ts",
-  "type": "module",
-  "scripts": {
-    "start": "bun run index.ts",
-    "dev": "nodemon --watch index.ts --exec bun run index.ts",
-    "test": "bun test"
-  },
-  "devDependencies": {},
-  "dependencies": {}
-}
-EOF
-    else
-      cat > package.json <<'EOF'
-{
-  "name": "node",
-  "module": "index.ts",
-  "type": "module",
-  "scripts": {
-    "start": "bun run index.ts",
-    "build": "bun build index.ts",
-    "test": "bun test"
-  },
-  "devDependencies": {},
-  "dependencies": {}
-}
-EOF
-    fi
-  else
-    if [[ "$ans_nodemon" == "1" ]]; then
-      cat > package.json <<'EOF'
-{
-  "name": "node",
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "start": "ts-node index.ts",
-    "dev": "nodemon index.ts",
-    "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "devDependencies": {},
-  "dependencies": {}
-}
-EOF
-    else
-      cat > package.json <<'EOF'
-{
-  "name": "node",
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "start": "ts-node index.ts",
-    "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "devDependencies": {},
-  "dependencies": {}
-}
-EOF
-    fi
-  fi
-
-  
-  if [[ "$ans_nodemon" == "1" ]]; then
-    echo "✅ Run with: $pkg_manager run dev (development with auto-reload)"
-  fi
-  echo "✅ Run with: $pkg_manager run start (production)"
-
-  echo "✅ Node.js + TypeScript project is ready!"
-}
 
 
 # Create a new Next.js application with TypeScript, Tailwind, and optional packages
@@ -380,10 +274,7 @@ next_js_create() {
   npx create-next-app@latest
 }
 
-vite_js_create() {
-  echo "🛠️ Creating Vite app for you..."
-  npm create vite@latest
-}
+
 
 # Main CLI router
 case "$1" in
@@ -430,18 +321,6 @@ case "$1" in
         ;;
     esac
     ;;
-  node-js )
-    case "$2" in
-      init)
-        node_js_init
-        ;;
-      *)
-        echo "❌ Unknown node-js subcommand: $2"
-        show_help
-        exit 1
-        ;;
-    esac
-    ;;
   next-js )
     case "$2" in
       create)
@@ -449,18 +328,6 @@ case "$1" in
         ;;
       *)
         echo "❌ Unknown next-js subcommand: $2"
-        show_help
-        exit 1
-        ;;
-    esac
-    ;;
-  vite-js )
-    case "$2" in
-      create)
-        vite_js_create
-        ;;
-      *)
-        echo "❌ Unknown vite-js subcommand: $2"
         show_help
         exit 1
         ;;

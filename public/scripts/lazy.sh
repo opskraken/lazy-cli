@@ -1,16 +1,13 @@
 #!/bin/bash
 
-# LazyCLI - A command-line tool to automate development workflows
-# Version information
-VERSION="1.0.2"
+VERSION="1.0.1"
 
-# Display help information with usage examples and available commands
 show_help() {
   cat << EOF
 LazyCLI – Automate your dev flow like a lazy pro 💤
 
 Usage:
-  lazy [command] [subcommand] [options]
+  lazy [command] [subcommand]
 
 Examples:
   lazy github init
@@ -68,93 +65,68 @@ For more details on each command, run:
 EOF
 }
 
-
-# Detect which package manager is available on the system
-# Priority order: bun > pnpm > yarn > npm
-# Sets the global PKG_MANAGER variable for use throughout the script
-detect_package_manager() {
-  if command -v bun >/dev/null 2>&1; then
-    PKG_MANAGER="bun"
-  elif command -v pnpm >/dev/null 2>&1; then
-    PKG_MANAGER="pnpm"
-  elif command -v yarn >/dev/null 2>&1; then
-    PKG_MANAGER="yarn"
-  elif command -v npm >/dev/null 2>&1; then
-    PKG_MANAGER="npm"
-  else
-    echo "❌ No supported package manager found (bun, pnpm, yarn, npm). Please install one."
-    exit 1
-  fi
-
-  echo "📦 Using package manager: $PKG_MANAGER"
-}
-
-# Initialize a new Git repository in the current directory
-# Checks if .git directory already exists to avoid conflicts
 github_init() {
   echo "🛠️ Initializing new Git repository..."
 
   if [ -d ".git" ]; then
     echo "⚠️ Git repository already initialized in this directory."
-    return 1
+    exit 1
   fi
 
-  git init && echo "✅ Git repository initialized successfully!" || {
-    echo "❌ Git initialization failed."
-    return 1
-  }
+  git init
+
+  echo "✅ Git repository initialized successfully!"
 }
 
-# Clone a GitHub repository and automatically set up the project
-# Detects project type, installs dependencies, and optionally opens in VS Code
-# Args: $1 = repository URL, $2 = tech stack (optional)
 github_clone() {
-  local repo="$1"
-  local tech="$2"
+  repo="$1"
+  tech="$2"
 
   if [[ -z "$repo" ]]; then
     echo "❌ Repo URL is required."
     echo "👉 Usage: lazy github clone <repo-url> [tech]"
-    return 1
+    exit 1
   fi
 
   echo "🔗 Cloning $repo ..."
-  git clone "$repo" || {
-    echo "❌ Clone failed."
-    return 1
-  }
+  git clone "$repo" || { echo "❌ Clone failed."; exit 1; }
 
-  local dir_name
   dir_name=$(basename "$repo" .git)
-  cd "$dir_name" || {
-    echo "❌ Failed to enter directory $dir_name"
-    return 1
-  }
+  cd "$dir_name" || exit 1
 
   echo "📁 Entered directory: $dir_name"
 
   if [[ -f package.json ]]; then
     echo "📦 Installing dependencies..."
 
-    detect_package_manager
-
-    if [[ -z "$PKG_MANAGER" ]]; then
-      echo "⚠️ No supported package manager found. Please install dependencies manually."
+    if command -v npm &> /dev/null; then
+      echo "🔧 Using npm..."
+      npm install
+    elif command -v yarn &> /dev/null; then
+      echo "🔧 Using yarn..."
+      yarn
+    elif command -v pnpm &> /dev/null; then
+      echo "🔧 Using pnpm..."
+      pnpm install
+    elif command -v bun &> /dev/null; then
+      echo "🔧 Using bun..."
+      bun install
     else
-      echo "🔧 Using $PKG_MANAGER..."
-      $PKG_MANAGER install || {
-        echo "❌ Dependency installation failed."
-        return 1
-      }
+      echo "⚠️ No supported package manager found. Please install manually."
     fi
 
-    # Check for build script
+    # Check if build script exists
     if grep -q '"build"' package.json; then
       echo "🏗️ Build script found. Building the project..."
-      $PKG_MANAGER run build || {
-        echo "❌ Build failed."
-        return 1
-      }
+      if command -v npm &> /dev/null; then
+        npm run build
+      elif command -v yarn &> /dev/null; then
+        yarn build
+      elif command -v pnpm &> /dev/null; then
+        pnpm run build
+      elif command -v bun &> /dev/null; then
+        bun run build
+      fi
     else
       echo "ℹ️ No build script found; skipping build."
     fi
@@ -172,37 +144,33 @@ github_clone() {
   echo "✅ Clone setup complete! Don't forget to commit and push your changes."
 }
 
-
-# Stage all changes, commit with provided message, and push to current branch
-# Args: $1 = commit message
 github_push() {
   echo "📦 Staging changes..."
   git add .
 
-  local msg="$1"
+  msg="$1"
   if [[ -z "$msg" ]]; then
     echo "⚠️ Commit message is required. Example:"
     echo "   lazy github push \"Your message here\""
-    return 1
+    exit 1
   fi
 
   echo "📝 Committing changes..."
   if ! git commit -m "$msg"; then
-    echo "❌ Commit failed. Nothing to commit or an error occurred."
-    return 1
+    echo "❌ Commit failed. Nothing to commit or error occurred."
+    exit 1
   fi
 
-  local BRANCH
   BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
   if [[ -z "$BRANCH" ]]; then
-    echo "❌ Could not detect current branch. Are you inside a git repository?"
-    return 1
+    echo "❌ Could not detect branch. Are you in a git repo?"
+    exit 1
   fi
 
   echo "🚀 Pushing to origin/$BRANCH..."
   if ! git push origin "$BRANCH"; then
-    echo "❌ Push failed. Please check your network or branch settings."
-    return 1
+    echo "❌ Push failed. Please check your network or branch."
+    exit 1
   fi
 
   echo "✅ Changes pushed to origin/$BRANCH 🎉"
@@ -251,117 +219,51 @@ github_create_pr() {
   local COMMIT_MSG="$2"
 
   if [[ -z "$BASE_BRANCH" || -z "$COMMIT_MSG" ]]; then
-    echo "❌ Usage: lazy github pr <base-branch> \"<commit-message>\""
-    return 1
+    echo "❌ Usage: lazy github pull <base-branch> \"<commit-message>\" [tech]"
+    exit 1
   fi
 
   # Detect current branch
-  local CURRENT_BRANCH
   CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
   if [[ -z "$CURRENT_BRANCH" ]]; then
-    echo "❌ Not inside a git repository."
-    return 1
+    echo "❌ Not in a git repo."
+    exit 1
   fi
 
-  echo "📥 Pulling latest changes from $BASE_BRANCH..."
-  if ! git pull origin "$BASE_BRANCH"; then
-    echo "❌ Pull failed."
-    return 1
+  echo "📥 Pulling latest from $BASE_BRANCH..."
+  git pull origin "$BASE_BRANCH" || { echo "❌ Pull failed"; exit 1; }
+
+  # Install dependencies based on package manager
+  if [[ -f package.json ]]; then
+    echo "📦 Installing dependencies..."
+    if command -v npm &> /dev/null; then
+      echo "🔧 Using npm..."
+      npm run build
+    elif command -v yarn &> /dev/null; then
+      echo "🔧 Using yarn..."
+      yarn
+    elif command -v pnpm &> /dev/null; then
+      echo "🔧 Using pnpm..."
+      pnpm install
+    elif command -v bun &> /dev/null; then
+      echo "🔧 Using bun..."
+      bun install
+    else
+      echo "⚠️ No supported package manager found."
+    fi
+  else
+    echo "⚠️ No package.json found. Skipping install step."
   fi
 
-  # Detect project type
-  local PROJECT_TYPE="unknown"
-  if [[ -f "package.json" ]]; then
-    PROJECT_TYPE="node"
-  elif [[ -f "pyproject.toml" || -f "requirements.txt" ]]; then
-    PROJECT_TYPE="python"
-  elif [[ -f "go.mod" ]]; then
-    PROJECT_TYPE="go"
-  elif [[ -f "pom.xml" || -f "build.gradle" || -f "build.gradle.kts" ]]; then
-    PROJECT_TYPE="java"
-  fi
-
-  echo "🔍 Detected project type: $PROJECT_TYPE"
-
-  # Project-specific install/build
-  case "$PROJECT_TYPE" in
-    node)
-      echo "📦 Installing Node.js dependencies..."
-      detect_package_manager
-      if [[ -z "$PKG_MANAGER" ]]; then
-        echo "⚠️ No supported package manager found."
-      else
-        echo "🔧 Using $PKG_MANAGER..."
-        $PKG_MANAGER install
-        if ! $PKG_MANAGER run build; then
-          echo "⚠️ Build script failed or not found."
-        fi
-      fi
-      ;;
-    python)
-      echo "📦 Installing Python dependencies..."
-      if command -v pip &> /dev/null; then
-        if [[ -f "requirements.txt" ]]; then
-          pip install -r requirements.txt || echo "⚠️ pip install failed."
-        elif [[ -f "pyproject.toml" ]]; then
-          if command -v poetry &> /dev/null; then
-            poetry install || echo "⚠️ poetry install failed."
-          elif command -v pipenv &> /dev/null; then
-            pipenv install || echo "⚠️ pipenv install failed."
-          else
-            echo "⚠️ No recognized Python package manager (poetry/pipenv) found."
-          fi
-        else
-          echo "⚠️ No known Python dependency files found."
-        fi
-      else
-        echo "⚠️ pip not installed."
-      fi
-      ;;
-    go)
-      echo "📦 Tidying Go modules..."
-      if command -v go &> /dev/null; then
-        go mod tidy || echo "⚠️ go mod tidy failed."
-      else
-        echo "⚠️ Go not installed."
-      fi
-      ;;
-    java)
-      echo "📦 Building Java project..."
-      if [[ -f "pom.xml" ]]; then
-        if command -v mvn &> /dev/null; then
-          mvn clean install || echo "⚠️ Maven build failed."
-        else
-          echo "⚠️ Maven not installed."
-        fi
-      elif [[ -f "build.gradle" || -f "build.gradle.kts" ]]; then
-        if command -v gradle &> /dev/null; then
-          gradle build || echo "⚠️ Gradle build failed."
-        else
-          echo "⚠️ Gradle not installed."
-        fi
-      else
-        echo "⚠️ No recognized Java build files found."
-      fi
-      ;;
-    *)
-      echo "⚠️ Dependency install & build not implemented for project type: $PROJECT_TYPE"
-      ;;
-  esac
-
+  # Stage and commit
   echo "📦 Staging changes..."
   git add .
 
   echo "📝 Committing with message: $COMMIT_MSG"
-  if ! git commit -m "$COMMIT_MSG"; then
-    echo "⚠️ Nothing to commit."
-  fi
+  git commit -m "$COMMIT_MSG" || echo "⚠️ Nothing to commit"
 
-  echo "🚀 Pushing changes to origin/$CURRENT_BRANCH..."
-  if ! git push origin "$CURRENT_BRANCH"; then
-    echo "❌ Push failed."
-    return 1
-  fi
+  echo "🚀 Pushing to origin/$CURRENT_BRANCH"
+  git push origin "$CURRENT_BRANCH" || { echo "❌ Push failed"; exit 1; }
 
   # Create pull request
   echo "🔁 Creating pull request: $CURRENT_BRANCH → $BASE_BRANCH"
@@ -374,132 +276,9 @@ github_create_pr() {
   echo "✅ PR created successfully! 🎉"
 }
 
-
-# Initialize a Node.js project with interactive package selection
-# Detects available package manager and prompts for common dependencies
-# Supports: express, dotenv, nodemon, cors, zod
-
 node_js_init() {
-  detect_package_manager
-  local pkg_manager="$PKG_MANAGER"
-
-  if [ -z "$pkg_manager" ]; then
-    echo "❌ No supported package manager found. Please install bun, pnpm, yarn, or npm."
-    return 1
-  fi
-
-  echo "🛠️ Initializing Node.js project using $pkg_manager..."
-  $pkg_manager init -y 2>/dev/null || echo "🔧 Skipping init, not supported by $pkg_manager"
-
-  echo ""
-  echo "🧠 LazyCLI Smart Stack Setup: Answer once and make yourself gloriously lazy"
-
-  prompt_or_exit() {
-    local prompt_text=$1
-    local answer
-    while true; do
-      read -p "$prompt_text (1/0/-1): " answer
-      case "$answer" in
-        1|0|-1) echo "$answer"; return ;;
-        *) echo "Please enter 1, 0, or -1." ;;
-      esac
-    done
-  }
-
-  ans_express=$(prompt_or_exit "➕ Install express?")
-  [[ "$ans_express" == "-1" ]] && echo "⏹️ Setup exited." && return
-
-  ans_dotenv=$(prompt_or_exit "🔐 Install dotenv?")
-  [[ "$ans_dotenv" == "-1" ]] && echo "⏹️ Setup exited." && return
-
-  ans_nodemon=$(prompt_or_exit "🌀 Install nodemon (dev)?")
-  [[ "$ans_nodemon" == "-1" ]] && echo "⏹️ Setup exited." && return
-
-  ans_cors=$(prompt_or_exit "🌐 Install cors?")
-  [[ "$ans_cors" == "-1" ]] && echo "⏹️ Setup exited." && return
-
-  ans_zod=$(prompt_or_exit "🧪 Install zod?")
-  [[ "$ans_zod" == "-1" ]] && echo "⏹️ Setup exited." && return
-
-  deps=""
-  dev_deps="typescript ts-node @types/node"
-
-  [[ "$ans_express" == "1" ]] && deps="$deps express"
-  [[ "$ans_dotenv" == "1" ]] && deps="$deps dotenv"
-  [[ "$ans_cors" == "1" ]] && deps="$deps cors"
-  [[ "$ans_zod" == "1" ]] && deps="$deps zod"
-  [[ "$ans_nodemon" == "1" ]] && dev_deps="$dev_deps nodemon"
-
-  if [[ -n "$deps" ]]; then
-    echo "📦 Installing dependencies: $deps"
-    $pkg_manager install $deps
-  fi
-
-  echo "📦 Installing devDependencies: $dev_deps"
-  $pkg_manager install -D $dev_deps
-
-  # Generate tsconfig.json
-  echo "⚙️ Generating tsconfig.json..."
-  npx tsc --init
-
-  # Create index.ts with comprehensive starter template
-  if [[ ! -f index.ts ]]; then
-    echo "📝 Creating index.ts with LazyCLI starter..."
-    if [[ "$ans_express" == "1" ]]; then
-      cat > index.ts <<'EOF'
-import express from 'express';
-const app = express();
-const port = process.env.PORT || 3000;
-
-console.log("🚀 Booted with LazyCLI – stay lazy, code smart 😴");
-
-// Middleware
-app.use(express.json());
-
-// Routes
-app.get('/', (req, res) => {
-  res.json({ message: 'Hello from LazyCLI!', status: 'success' });
-});
-
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
-});
-
-app.get('/api/test', (req, res) => {
-  res.json({ 
-    message: 'Test endpoint working!', 
-    method: req.method,
-    url: req.url,
-    timestamp: new Date().toISOString()
-  });
-});
-
-app.post('/api/echo', (req, res) => {
-  res.json({ 
-    message: 'Echo endpoint', 
-    received: req.body,
-    timestamp: new Date().toISOString()
-  });
-});
-
-app.listen(port, () => {
-  console.log(`🌐 Server running on http://localhost:${port}`);
-  console.log(`📋 Test endpoints:`);
-  console.log(`   GET  http://localhost:${port}/`);
-  console.log(`   GET  http://localhost:${port}/api/health`);
-  console.log(`   GET  http://localhost:${port}/api/test`);
-  console.log(`   POST http://localhost:${port}/api/echo`);
-});
-EOF
-    else
-      cat > index.ts <<'EOF'
-console.log("🚀 Booted with LazyCLI – stay lazy, code smart 😴");
-console.log("📝 Basic Node.js + TypeScript setup ready!");
-console.log("💡 Add Express for web server functionality.");
-
-// Example function
-function greet(name: string): string {
-  return `Hello, ${name}! Welcome to your LazyCLI project.`;
+  echo "🛠️ Initializing Node.js project..."
+  npm init -y
 }
 
 console.log(greet("Developer"));
@@ -843,10 +622,6 @@ EOF
   echo "✅ Your Next.js app is ready!"
 }
 
-
-# Create a new Vite application with framework selection and optional packages
-# Supports multiple frameworks: Vanilla, React, Vue, Svelte
-# Includes optional packages: axios, clsx, zod, react-hot-toast, react-router-dom, lucide-react, Tailwind CSS, DaisyUI
 vite_js_create() {
   echo "🛠️ Creating Vite app for you..."
 
@@ -2504,31 +2279,28 @@ EOF
   echo "✅ Vite project setup complete!"
 }
 
-
-# Main command-line interface router
-# Handles all primary commands and subcommands
-# Routes to appropriate functions based on user input
+# Main CLI router
 case "$1" in
-  --help | help ) # Display help information
+  --help | help )
     show_help
     ;;
-  --version | -v ) # Show version number
+  --version | -v )
     echo "LazyCLI v$VERSION"
     ;;
-  upgrade ) # Upgrade LazyCLI to latest version
+  upgrade )
     echo "🔄 Upgrading LazyCLI..."
 
     # Remove old version
     rm -f "$HOME/.lazycli/lazy"
 
     # Download new version
-    curl -s https://lazycli.xyz/scripts/lazy.sh -o "$HOME/.lazycli/lazy"
+    curl -s https://lazycli.vercel.app/scripts/lazy.sh -o "$HOME/.lazycli/lazy"
     chmod +x "$HOME/.lazycli/lazy"
 
     echo "✅ LazyCLI upgraded to latest version!"
     exit 0
     ;;
-  github ) # GitHub-related commands
+  github )
     case "$2" in
       init)
         github_init
@@ -2552,7 +2324,7 @@ case "$1" in
         ;;
     esac
     ;;
-  node-js ) # Node.js project commands
+  node-js )
     case "$2" in
       init)
         node_js_init
@@ -2564,7 +2336,7 @@ case "$1" in
         ;;
     esac
     ;;
-  next-js ) # Next.js project commands
+  next-js )
     case "$2" in
       create)
         next_js_create
@@ -2576,7 +2348,7 @@ case "$1" in
         ;;
     esac
     ;;
-  vite-js ) # Vite.js project commands
+  vite-js )
     case "$2" in
       create)
         vite_js_create
@@ -2588,7 +2360,7 @@ case "$1" in
         ;;
     esac
     ;;
-  *) # Handle unknown commands - show error and help
+  *)
     echo "❌ Unknown command: $1"
     show_help
     exit 1
