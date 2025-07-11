@@ -5,26 +5,26 @@ export default function Commands() {
     {
       icon: Github,
       command: "github",
-      description: "Automate git add, commit, and push workflows",
-      example: "lazycli github push",
+      description: "Complete GitHub workflow automation with repository management",
+      example: "lazy github pr main \"Add new feature\"",
     },
     {
       icon: Code2,
       command: "node-js",
-      description: "Initialize Node.js projects with npm setup",
-      example: "lazycli node-js init",
+      description: "Initialize Node.js projects with TypeScript and interactive package selection",
+      example: "lazy node-js init",
     },
     {
       icon: Rocket,
       command: "next-js",
-      description: "Bootstrap Next.js applications instantly",
-      example: "lazycli next-js init",
+      description: "Create Next.js applications with TypeScript, Tailwind, and modern tooling",
+      example: "lazy next-js create",
     },
     {
       icon: Zap,
       command: "vite-js",
-      description: "Create Vite.js projects with modern tooling",
-      example: "lazycli vite-js init",
+      description: "Bootstrap Vite projects with framework selection and Tailwind/DaisyUI integration",
+      example: "lazy vite-js create",
     },
   ];
   return (

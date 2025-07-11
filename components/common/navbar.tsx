@@ -219,7 +219,7 @@ export default function Navbar() {
                             Version Updates
                           </h3>
                           <Link
-                            href={`/version?v=${latestVersion.version.replace(
+                            href={`/versions?v=${latestVersion.version.replace(
                               "v",
                               ""
                             )}`}
