@@ -120,15 +120,15 @@ const WindowsInstallPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-x-hidden">
       {/* Animated Background */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 overflow-hidden">
         <motion.div
-          className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl"
+          className="absolute top-0 left-0 w-72 h-72 sm:w-96 sm:h-96 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl"
           animate={{
-            x: [0, 100, 0],
-            y: [0, -50, 0],
-            scale: [1, 1.1, 1],
+            x: [0, 50, 0],
+            y: [0, -25, 0],
+            scale: [1, 1.05, 1],
           }}
           transition={{
             duration: 20,
@@ -137,11 +137,11 @@ const WindowsInstallPage = () => {
           }}
         />
         <motion.div
-          className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-l from-purple-400/10 to-pink-400/10 rounded-full blur-3xl"
+          className="absolute bottom-0 right-0 w-72 h-72 sm:w-96 sm:h-96 bg-gradient-to-l from-purple-400/10 to-pink-400/10 rounded-full blur-3xl"
           animate={{
-            x: [0, -100, 0],
-            y: [0, 50, 0],
-            scale: [1, 1.2, 1],
+            x: [0, -50, 0],
+            y: [0, 25, 0],
+            scale: [1, 1.05, 1],
           }}
           transition={{
             duration: 25,
@@ -189,36 +189,37 @@ const WindowsInstallPage = () => {
 
         {/* Navigation Tabs */}
         <motion.div
-          className="flex justify-center mb-12"
+          className="flex justify-center mb-12 px-4"
           variants={itemVariants}
         >
-          <div className="bg-slate-800/50 backdrop-blur-sm p-2 rounded-2xl border border-slate-700/50">
-            <div className="flex space-x-2">
+          <div className="bg-slate-800/50 backdrop-blur-sm p-2 rounded-2xl border border-slate-700/50 w-full max-w-md">
+            <div className="flex space-x-1 sm:space-x-2">
               {[
                 {
                   id: "git-bash",
                   label: "Git Bash",
-                  icon: <GitBranch className="w-5 h-5" />,
+                  icon: <GitBranch className="w-4 h-4 sm:w-5 sm:h-5" />,
                 },
                 {
                   id: "wsl",
                   label: "WSL Install",
-                  icon: <Terminal className="w-5 h-5" />,
+                  icon: <Terminal className="w-4 h-4 sm:w-5 sm:h-5" />,
                 },
               ].map((tab) => (
                 <motion.button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 px-8 py-4 rounded-xl font-medium transition-all duration-300 ${
+                  className={`flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-6 py-3 sm:py-4 rounded-xl font-medium transition-all duration-300 flex-1 text-sm sm:text-base ${
                     activeTab === tab.id
                       ? "bg-gradient-to-r from-cyan-400 to-blue-400 text-white shadow-lg shadow-cyan-400/25"
                       : "text-slate-400 hover:text-white hover:bg-slate-700/50"
                   }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   {tab.icon}
-                  <span>{tab.label}</span>
+                  <span className="hidden xs:inline sm:inline">{tab.label}</span>
+                  <span className="xs:hidden sm:hidden">{tab.id === "git-bash" ? "Git" : "WSL"}</span>
                 </motion.button>
               ))}
             </div>
@@ -229,7 +230,7 @@ const WindowsInstallPage = () => {
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
-            className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto"
+            className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 max-w-6xl mx-auto px-4"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
@@ -242,31 +243,31 @@ const WindowsInstallPage = () => {
                 whileHover="hover"
                 className="group"
               >
-                <div className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 h-full hover:border-cyan-500/30 transition-all duration-300">
-                  <div className="flex items-start space-x-4">
+                <div className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-4 sm:p-6 lg:p-8 h-full hover:border-cyan-500/30 transition-all duration-300">
+                  <div className="flex items-start space-x-3 sm:space-x-4">
                     <motion.div
-                      className="flex-shrink-0 w-14 h-14 bg-gradient-to-r from-cyan-400/20 to-blue-400/20 rounded-xl flex items-center justify-center text-cyan-500 group-hover:from-cyan-400/30 group-hover:to-blue-400/30 transition-all duration-300"
+                      className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-r from-cyan-400/20 to-blue-400/20 rounded-xl flex items-center justify-center text-cyan-500 group-hover:from-cyan-400/30 group-hover:to-blue-400/30 transition-all duration-300"
                       whileHover={{ scale: 1.1 }}
                     >
                       {step.icon}
                     </motion.div>
 
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-xl font-semibold text-white mb-3 group-hover:text-cyan-300 transition-colors duration-300">
+                      <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 group-hover:text-cyan-300 transition-colors duration-300 break-words">
                         {step.title}
                       </h3>
-                      <p className="text-slate-400 leading-relaxed mb-6">
+                      <p className="text-sm sm:text-base text-slate-400 leading-relaxed mb-4 sm:mb-6 break-words">
                         {step.description}
                       </p>
 
                       <motion.button
-                        className="flex items-center space-x-2 text-cyan-400 hover:text-cyan-300 font-medium group-hover:translate-x-1 transition-all duration-300"
+                        className="flex items-center space-x-2 text-cyan-400 hover:text-cyan-300 font-medium group-hover:translate-x-1 transition-all duration-300 text-sm sm:text-base"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                       >
-                        <Play className="w-4 h-4" />
+                        <Play className="w-3 h-3 sm:w-4 sm:h-4" />
                         <span>{step.action}</span>
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                        <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform duration-300" />
                       </motion.button>
                     </div>
                   </div>
