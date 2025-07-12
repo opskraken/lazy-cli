@@ -36,9 +36,9 @@ export default function Hero({
 
   return (
     <>
-      <section className="pt-24 pb-16 relative overflow-hidden">
+      <section className="pt-24 pb-16 relative overflow-x-hidden">
         {/* Animated Background */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 overflow-hidden">
           {/* Gradient Background */}
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900/20 to-purple-900/20" />
 
@@ -47,10 +47,10 @@ export default function Hero({
 
           {/* Floating Elements */}
           {typeof window !== "undefined" &&
-            [...Array(20)].map((_, i) => {
+            [...Array(15)].map((_, i) => {
               // Generate deterministic positions using index instead of random
-              const left = 5 + ((i * 4.5) % 90); // Distribute evenly across 5-95%
-              const top = 10 + ((i * 4.2) % 80); // Distribute evenly across 10-90%
+              const left = 10 + ((i * 4.5) % 80); // Distribute evenly across 10-90%
+              const top = 15 + ((i * 4.2) % 70); // Distribute evenly across 15-85%
 
               return (
                 <motion.div
@@ -77,20 +77,20 @@ export default function Hero({
           {typeof window !== "undefined" && (
             <>
               <motion.div
-                className="absolute w-32 h-32 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl"
+                className="absolute w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl"
                 style={{
                   top: "20%",
-                  left: "10%",
+                  left: "15%",
                 }}
                 variants={glowVariants}
                 initial="initial"
                 animate="animate"
               />
               <motion.div
-                className="absolute w-40 h-40 bg-gradient-to-r from-purple-400/10 to-pink-400/10 rounded-full blur-3xl"
+                className="absolute w-28 h-28 sm:w-40 sm:h-40 bg-gradient-to-r from-purple-400/10 to-pink-400/10 rounded-full blur-3xl"
                 style={{
                   bottom: "20%",
-                  right: "10%",
+                  right: "15%",
                 }}
                 variants={glowVariants}
                 initial="initial"

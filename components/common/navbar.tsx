@@ -9,7 +9,7 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
-  const [mobileVersionsOpen, setMobileVersionsOpen] = useState<boolean>(false);
+  // const [mobileVersionsOpen, setMobileVersionsOpen] = useState<boolean>(false);
   const [notificationOpen, setNotificationOpen] = useState<boolean>(false);
   const notificationRef = useRef<HTMLDivElement>(null);
 
@@ -125,20 +125,20 @@ export default function Navbar() {
     { name: "Windows", href: "/windows" },
   ];
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "current":
-        return "from-cyan-400 to-blue-400";
-      case "new":
-        return "from-green-400 to-emerald-400";
-      case "enhanced":
-        return "from-purple-400 to-pink-400";
-      case "planned":
-        return "from-yellow-400 to-orange-400";
-      default:
-        return "from-slate-400 to-slate-500";
-    }
-  };
+  // const getStatusColor = (status: string) => {
+  //   switch (status) {
+  //     case "current":
+  //       return "from-cyan-400 to-blue-400";
+  //     case "new":
+  //       return "from-green-400 to-emerald-400";
+  //     case "enhanced":
+  //       return "from-purple-400 to-pink-400";
+  //     case "planned":
+  //       return "from-yellow-400 to-orange-400";
+  //     default:
+  //       return "from-slate-400 to-slate-500";
+  //   }
+  // };
 
   return (
     <>
@@ -431,7 +431,7 @@ export default function Navbar() {
 
                   {/* Version Updates in Mobile Menu */}
                   <div className="w-full">
-                    <motion.div
+                    {/* <motion.div
                       custom={navigationItems.length + 1}
                       variants={{
                         closed: {
@@ -454,7 +454,6 @@ export default function Navbar() {
                       exit="closed"
                       className="w-full"
                     >
-                      {/* Version Updates Header */}
                       <button
                         onClick={() =>
                           setMobileVersionsOpen(!mobileVersionsOpen)
@@ -480,7 +479,6 @@ export default function Navbar() {
                         </div>
                       </button>
 
-                      {/* Version Updates Dropdown */}
                       <AnimatePresence>
                         {mobileVersionsOpen && (
                           <motion.div
@@ -490,13 +488,12 @@ export default function Navbar() {
                             transition={{ duration: 0.3 }}
                             className="overflow-hidden px-4 py-2"
                           >
-                            <div className="bg-slate-800/50 rounded-lg overflow-hidden border border-slate-700/30">
-                              {/* Latest Version */}
+                            <div className="bg-slate-800/50 rounded-lg overflow-hidden border border-slate-700/30 max-h-80 overflow-y-auto">
                               <div
                                 className="p-3 border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors cursor-pointer"
                                 onClick={() => {
                                   handleVersionNavigation(
-                                    latestVersion.version
+                                    latestVersion.version.replace("v", "")
                                   );
                                   setMobileVersionsOpen(false);
                                 }}
@@ -522,43 +519,43 @@ export default function Navbar() {
                                 </div>
                               </div>
 
-                              {/* Recent Versions */}
                               {recentVersions.slice(0, 3).map((version) => (
                                 <div
                                   key={version.version}
                                   className="p-3 border-b border-slate-700/30 hover:bg-slate-700/30 transition-colors cursor-pointer"
                                   onClick={() => {
-                                    handleVersionNavigation(version.version);
+                                    handleVersionNavigation(
+                                      version.version.replace("v", "")
+                                    );
                                     setMobileVersionsOpen(false);
                                   }}
                                 >
-                                  <div className="flex justify-between items-start">
-                                    <div>
-                                      <div className="flex items-center space-x-1.5">
+                                  <div className="flex flex-col space-y-2 sm:flex-row sm:justify-between sm:items-start sm:space-y-0">
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center space-x-1.5 flex-wrap">
                                         <span
-                                          className={`w-2 h-2 rounded-full ${getStatusColor(
+                                          className={`w-2 h-2 rounded-full bg-gradient-to-r ${getStatusColor(
                                             version.status
                                           )}`}
                                         ></span>
                                         <span className="font-medium text-white">
                                           {version.version}
                                         </span>
-                                        <span className="px-1.5 py-0.5 text-xs bg-slate-700/50 text-slate-300 rounded">
+                                        <span className="px-1.5 py-0.5 text-xs bg-slate-700/50 text-slate-300 rounded whitespace-nowrap">
                                           {version.type}
                                         </span>
                                       </div>
-                                      <p className="text-sm text-slate-400 mt-1">
+                                      <p className="text-sm text-slate-400 mt-1 break-words">
                                         {version.title}
                                       </p>
                                     </div>
-                                    <span className="text-xs text-slate-500">
+                                    <span className="text-xs text-slate-500 whitespace-nowrap sm:ml-2">
                                       {version.date}
                                     </span>
                                   </div>
                                 </div>
                               ))}
 
-                              {/* View All Link */}
                               <div
                                 className="p-3 hover:bg-slate-700/30 transition-colors cursor-pointer text-center"
                                 onClick={() => {
@@ -574,7 +571,7 @@ export default function Navbar() {
                           </motion.div>
                         )}
                       </AnimatePresence>
-                    </motion.div>
+                    </motion.div> */}
                   </div>
                 </div>
 
