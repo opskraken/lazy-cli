@@ -5,6 +5,7 @@ import Navbar from "@/components/common/navbar";
 import Footer from "@/components/common/footer";
 import { Analytics } from "@vercel/analytics/next";
 import Script from "next/script";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -242,7 +243,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Vercel Analytics */}
         <Analytics />
+
+        {/* Vercel Speed Insights */}
+        <SpeedInsights />
 
         {/* JSON-LD structured data */}
         <script
