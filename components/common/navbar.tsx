@@ -112,7 +112,7 @@ export default function Navbar() {
   const handleVersionNavigation = (version: string) => {
     setNotificationOpen(false);
     setMobileMenuOpen(false);
-    router.push(`/version?v=${version}`);
+    router.push(`/versions?v=${version}`);
   };
 
   const navigationItems = [
