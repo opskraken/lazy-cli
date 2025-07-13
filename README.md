@@ -183,20 +183,6 @@ This project is licensed under the [MIT License](LICENSE).
 Built and maintained by [iammhador](https://iammhador.xyz).
 Inspired by the simplicity of automation.
 
----
-
-```
-
----
-
-Let me know if you want:
-- A `CONTRIBUTING.md`
-- A `LICENSE`
-- A version that dynamically pulls features from a JSON or config
-
-You're almost ready to launch 🚀
-```
-
 ```
 
 ```
