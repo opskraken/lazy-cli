@@ -32,9 +32,7 @@ export default function Hero({
     },
   };
 
-  const { data } = useSWR("https://lazycli.xyz/api/stars", fetcher, {
-    refreshInterval: 60000,
-  });
+  const { data } = useSWR("/api/stars", fetcher, { refreshInterval: 60000 });
 
   return (
     <>

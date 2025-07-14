@@ -8,6 +8,7 @@ import CurrentFeatures from "@/features/home/components/currentFeatures/currentF
 import UpcomingFeatures from "@/features/home/components/upcomingFeatures/upcomingFeatures";
 import InteractiveCommands from "@/features/home/components/interactiveCommands/interactiveCommands";
 import WindowsInstallPage from "@/features/home/components/windows/windows";
+import Contributors from "@/features/home/components/contributors/contributors";
 
 // Initialize Inter font with Next.js optimization
 const inter = Inter({ subsets: ["latin"] });
@@ -90,6 +91,12 @@ export default function Home() {
           activeCommand={activeCommand}
           copyToClipboard={copyToClipboard}
           copiedCommand={copiedCommand}
+        />
+
+        {/* Contributors Section */}
+        <Contributors
+          containerVariants={containerVariants}
+          itemVariants={itemVariants}
         />
       </div>
     </>

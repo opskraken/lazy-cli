@@ -120,11 +120,14 @@ const WindowsInstallPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-x-hidden">
+    <div
+      id="windows-guide"
+      className="py-16 bg-slate-900/50 overflow-x-hidden relative"
+    >
       {/* Animated Background */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
-          className="absolute top-0 left-0 w-72 h-72 sm:w-96 sm:h-96 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl"
+          className="absolute top-0 left-0 w-72 h-72 sm:w-96 sm:h-96 bg-gradient-to-r from-cyan-400/5 to-blue-400/5 rounded-full blur-3xl"
           animate={{
             x: [0, 50, 0],
             y: [0, -25, 0],
@@ -137,7 +140,7 @@ const WindowsInstallPage = () => {
           }}
         />
         <motion.div
-          className="absolute bottom-0 right-0 w-72 h-72 sm:w-96 sm:h-96 bg-gradient-to-l from-purple-400/10 to-pink-400/10 rounded-full blur-3xl"
+          className="absolute bottom-0 right-0 w-72 h-72 sm:w-96 sm:h-96 bg-gradient-to-l from-purple-400/5 to-pink-400/5 rounded-full blur-3xl"
           animate={{
             x: [0, -50, 0],
             y: [0, 25, 0],
@@ -170,7 +173,7 @@ const WindowsInstallPage = () => {
           </motion.div>
 
           <motion.h1
-            className="text-6xl font-bold text-white mb-6 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent"
+            className="text-3xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
@@ -179,7 +182,7 @@ const WindowsInstallPage = () => {
           </motion.h1>
 
           <motion.p
-            className="text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed"
+            className="text-xl text-slate-400 max-w-3xl mx-auto"
             variants={itemVariants}
           >
             Choose your preferred development environment for Windows. Both
@@ -218,8 +221,12 @@ const WindowsInstallPage = () => {
                   whileTap={{ scale: 0.98 }}
                 >
                   {tab.icon}
-                  <span className="hidden xs:inline sm:inline">{tab.label}</span>
-                  <span className="xs:hidden sm:hidden">{tab.id === "git-bash" ? "Git" : "WSL"}</span>
+                  <span className="hidden xs:inline sm:inline">
+                    {tab.label}
+                  </span>
+                  <span className="xs:hidden sm:hidden">
+                    {tab.id === "git-bash" ? "Git" : "WSL"}
+                  </span>
                 </motion.button>
               ))}
             </div>
@@ -264,6 +271,34 @@ const WindowsInstallPage = () => {
                         className="flex items-center space-x-2 text-cyan-400 hover:text-cyan-300 font-medium group-hover:translate-x-1 transition-all duration-300 text-sm sm:text-base"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
+                        onClick={() => {
+                          if (step.action === "Download Now") {
+                            window.open(
+                              "https://git-scm.com/download/win",
+                              "_blank"
+                            );
+                          } else if (step.action === "Download Kernel") {
+                            window.open(
+                              "https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi",
+                              "_blank"
+                            );
+                          } else if (step.action === "Install Ubuntu") {
+                            window.open(
+                              "https://www.microsoft.com/store/productId/9PDXGNCFSCZV",
+                              "_blank"
+                            );
+                          } else {
+                            // For other actions, show a helpful message or guide
+                            const windowsSection =
+                              document.getElementById("windows-guide");
+                            if (windowsSection) {
+                              windowsSection.scrollIntoView({
+                                behavior: "smooth",
+                                block: "start",
+                              });
+                            }
+                          }
+                        }}
                       >
                         <Play className="w-3 h-3 sm:w-4 sm:h-4" />
                         <span>{step.action}</span>
