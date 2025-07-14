@@ -33,7 +33,11 @@ export default function Footer() {
     },
   };
 
-  const { data } = useSWR("/api/stars", fetcher, { refreshInterval: 60000 });
+  const { data } = useSWR(
+    `${process.env.NEXT_PUBLIC_LIVE_URL}/api/stars`,
+    fetcher,
+    { refreshInterval: 60000 }
+  );
 
   return (
     <footer className="bg-slate-900 border-t border-slate-800 py-8 sm:py-12 lg:py-16">
