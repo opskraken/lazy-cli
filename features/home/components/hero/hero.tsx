@@ -164,7 +164,7 @@ export default function Hero({
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => copyToClipboard(installCommand)}
-                className="text-cyan-400 hover:text-cyan-300 text-sm flex items-center px-3 py-1 bg-cyan-400/10 rounded-lg border border-cyan-400/20 transition-colors"
+                className="text-cyan-400 hover:text-cyan-300 text-sm flex items-center px-3 py-1 bg-cyan-400/10 rounded-lg border border-cyan-400/20 transition-colors cursor-pointer"
               >
                 {copiedCommand === installCommand ? (
                   <>

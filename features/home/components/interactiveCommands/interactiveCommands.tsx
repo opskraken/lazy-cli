@@ -153,8 +153,8 @@ export default function InteractiveCommands({
                     onClick={() => setActiveCommand(feature.id)}
                     className={`flex-1 min-w-0 py-4 px-3 sm:py-6 sm:px-6 text-center font-medium transition-all ${
                       activeCommand === feature.id
-                        ? "text-cyan-400 border-b-2 border-cyan-400 bg-slate-700/50"
-                        : "text-slate-400 hover:text-white hover:bg-slate-700/30"
+                        ? "text-cyan-400 border-b-2 border-cyan-400 bg-slate-700/50 cursor-pointer"
+                        : "text-slate-400 hover:text-white hover:bg-slate-700/30 cursor-pointer"
                     }`}
                   >
                     <div className="flex flex-col items-center">
@@ -230,7 +230,7 @@ export default function InteractiveCommands({
                                 </>
                               ) : (
                                 <>
-                                  <Copy className="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
+                                  <Copy className="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0 cursor-pointer" />
                                   <span className="hidden xs:inline">Copy</span>
                                 </>
                               )}

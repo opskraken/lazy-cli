@@ -211,8 +211,8 @@ const WindowsInstallPage = () => {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center justify-center space-x-1 sm:space-x-2 px-3 sm:px-6 py-3 sm:py-4 rounded-xl font-medium transition-all duration-300 flex-1 text-sm sm:text-base ${
                     activeTab === tab.id
-                      ? "bg-gradient-to-r from-cyan-400 to-blue-400 text-white shadow-lg shadow-cyan-400/25"
-                      : "text-slate-400 hover:text-white hover:bg-slate-700/50"
+                      ? "bg-gradient-to-r from-cyan-400 to-blue-400 text-white shadow-lg shadow-cyan-400/25 cursor-pointer"
+                      : "text-slate-400 hover:text-white hover:bg-slate-700/50 cursor-pointer"
                   }`}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
