@@ -30,7 +30,7 @@ export default function Contributors({
   itemVariants: import("framer-motion").Variants;
 }) {
   const { data, isLoading, error } = useSWR<ApiResponse>(
-    "/api/stars",
+    `${process.env.NEXT_PUBLIC_LIVE_URL}/api/stars`,
     fetcher,
     {
       refreshInterval: 300000, // Refresh every 5 minutes
