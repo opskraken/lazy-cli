@@ -144,7 +144,7 @@ export default function Contribution({
                       </pre>
                       <button
                         onClick={() => copyToClipboard(step.code, `step-${index}`)}
-                        className="absolute top-3 right-3 p-2 bg-gray-800 hover:bg-gray-700 rounded transition-colors opacity-0 group-hover:opacity-100 sm:opacity-100"
+                        className="absolute top-3 right-3 p-2 bg-gray-800 hover:bg-gray-700 rounded transition-colors opacity-0 group-hover:opacity-100 sm:opacity-100 cursor-pointer"
                       >
                         <Copy className="w-4 h-4 text-gray-300" />
                       </button>

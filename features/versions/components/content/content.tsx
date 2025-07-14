@@ -271,7 +271,7 @@ export default function Content({
                     {searchQuery && (
                       <button
                         onClick={() => setSearchQuery("")}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white cursor-alias-pointer"
                       >
                         <X className="w-5 h-5" />
                       </button>

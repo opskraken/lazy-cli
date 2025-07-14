@@ -17,15 +17,15 @@ const InstallCommandButton = () => {
     <div className="text-center mt-16 relative">
       <motion.button
         onClick={handleCopy}
-        className="inline-flex items-center space-x-3 bg-gradient-to-r from-cyan-400 to-blue-400 hover:from-cyan-500 hover:to-blue-500 text-white px-8 py-4 rounded-xl font-medium transition-all duration-300 shadow-lg shadow-cyan-400/25"
+        className="inline-flex items-center space-x-3 bg-gradient-to-r from-cyan-400 to-blue-400 hover:from-cyan-500 hover:to-blue-500 text-white px-8 py-4 rounded-xl font-medium transition-all duration-300 shadow-lg shadow-cyan-400/25 cursor-pointer"
         whileHover={{ scale: 1.05, y: -2 }}
         whileTap={{ scale: 0.95 }}
       >
-        <Download className="w-5 h-5" />
+        <Download className="w-5 h-5 cursor-pointer" />
         <span>Copy Install Command</span>
-        <ChevronRight className="w-4 h-4" />
+        <ChevronRight className="w-4 h-4 " />
       </motion.button>
-
+ 
       {/* Feedback message */}
       <AnimatePresence>
         {copied && (
