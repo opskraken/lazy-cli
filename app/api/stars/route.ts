@@ -1,7 +1,63 @@
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const res = await fetch("https://api.github.com/repos/iammhador/lazycli");
-  const data = await res.json();
-  return NextResponse.json({ stars: data.stargazers_count });
+  try {
+    const headers = {
+      'Accept': 'application/vnd.github.v3+json',
+      'User-Agent': 'LazyCLI-Website',
+      ...(process.env.GITHUB_TOKEN && {
+        'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`
+      })
+    };
+
+    // Fetch repository data
+    const repoResponse = await fetch(
+      'https://api.github.com/repos/iammhador/lazycli',
+      {
+        headers,
+        next: { revalidate: 300 } // Cache for 5 minutes
+      }
+    );
+
+    if (!repoResponse.ok) {
+      throw new Error(`GitHub API error: ${repoResponse.status}`);
+    }
+
+    const repoData = await repoResponse.json();
+
+    // Fetch contributors data
+    const contributorsResponse = await fetch(
+      'https://api.github.com/repos/iammhador/lazycli/contributors',
+      {
+        headers,
+        next: { revalidate: 300 } // Cache for 5 minutes
+      }
+    );
+
+    if (!contributorsResponse.ok) {
+      throw new Error(`GitHub API error: ${contributorsResponse.status}`);
+    }
+
+    const contributorsData = await contributorsResponse.json();
+    
+    return NextResponse.json({
+      stars: repoData.stargazers_count,
+      forks: repoData.forks_count,
+      openIssues: repoData.open_issues_count,
+      contributors: contributorsData.slice(0, 12) // Limit to top 12 contributors
+    });
+  } catch (error) {
+    console.error('Error fetching GitHub data:', error);
+    return NextResponse.json(
+      { 
+        error: 'Failed to fetch GitHub data',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stars: 0,
+        forks: 0,
+        openIssues: 0,
+        contributors: []
+      },
+      { status: 500 }
+    );
+  }
 }

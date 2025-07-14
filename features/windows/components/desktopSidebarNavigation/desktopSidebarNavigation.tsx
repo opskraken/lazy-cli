@@ -61,8 +61,8 @@ export default function DesktopSidebarNavigation({
               onClick={() => setActiveSection(section.id)}
               className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${
                 activeSection === section.id
-                  ? "bg-gradient-to-r from-cyan-400 to-blue-400 text-white"
-                  : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                  ? "bg-gradient-to-r from-cyan-400 to-blue-400 text-white cursor-pointer"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800/50 cursor-pointer"
               }`}
             >
               {section.icon}

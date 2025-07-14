@@ -610,7 +610,7 @@ export default function MainContent({
                               : `faq-${index}`
                           )
                         }
-                        className="flex items-center justify-between w-full text-left"
+                        className="flex items-center justify-between w-full text-left cursor-pointer hover:text-cyan-400 transition-colors"
                       >
                         <span className="text-white font-medium text-sm sm:text-base">
                           {faq.question}

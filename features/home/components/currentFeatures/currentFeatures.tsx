@@ -181,7 +181,16 @@ export default function CurrentFeatures({
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => setActiveCommand(feature.id)}
+                      onClick={() => {
+                        setActiveCommand(feature.id);
+                        const commandsSection = document.getElementById('commands');
+                        if (commandsSection) {
+                          commandsSection.scrollIntoView({ 
+                            behavior: 'smooth',
+                            block: 'start'
+                          });
+                        }
+                      }}
                       className="text-cyan-400 hover:text-cyan-300 font-medium flex items-center group-hover:translate-x-1 transition-transform"
                     >
                       View Commands

@@ -405,7 +405,6 @@ function VersionContent() {
         [section as keyof typeof prev]: !prev[section as keyof typeof prev],
       }));
     };
-
     return (
       <div
         className="space-y-6"
@@ -430,7 +429,7 @@ function VersionContent() {
               onClick={() => copyInstallCommand(version.version)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="relative flex items-center space-x-2 px-4 py-2 bg-slate-700/50 hover:bg-cyan-500/20 rounded-lg transition-colors duration-300 overflow-hidden"
+              className="relative flex items-center space-x-2 px-4 py-2 bg-slate-700/50 hover:bg-cyan-500/20 rounded-lg transition-colors duration-300 overflow-hidden cursor-pointer"
             >
               <AnimatePresence>
                 {copiedVersion === version.version && (
@@ -446,7 +445,7 @@ function VersionContent() {
                   </motion.div>
                 )}
               </AnimatePresence>
-              <Download className="w-5 h-5 text-cyan-400" />
+              <Download className="w-5 h-5 text-cyan-400 cursor-pointer" />
               <span className="text-cyan-400 font-medium">
                 Copy Install Command
               </span>
@@ -459,12 +458,12 @@ function VersionContent() {
                 onClick={() => toggleSection("features")}
                 className="w-full text-left flex items-center justify-between text-lg font-semibold text-white mb-4"
               >
-                <div className="flex items-center">
-                  <Star className="w-5 h-5 mr-2 text-yellow-400" />
+                <div className="flex items-center cursor-pointer">
+                  <Star className="w-5 h-5 mr-2 text-yellow-400 " />
                   Key Features
                 </div>
                 <ChevronDown
-                  className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${
+                  className={`w-5 h-5 text-slate-400 transition-transform duration-300 cursor-pointer ${
                     expandedSections.features ? "rotate-180" : ""
                   }`}
                 />
@@ -716,8 +715,8 @@ function VersionContent() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center space-x-2 px-8 py-4 rounded-xl font-medium transition-all duration-300 ${
                     activeTab === tab.id
-                      ? "bg-gradient-to-r from-cyan-400 to-blue-400 text-white shadow-lg shadow-cyan-400/25"
-                      : "text-slate-400 hover:text-white hover:bg-slate-700/50"
+                      ? "bg-gradient-to-r from-cyan-400 to-blue-400 text-white shadow-lg shadow-cyan-400/25 cursor-pointer"
+                      : "text-slate-400 hover:text-white hover:bg-slate-700/50 cursor-pointer"
                   }`}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -743,7 +742,7 @@ function VersionContent() {
             {activeTab === "current" && renderVersionDetails(versions[0])}
 
             {activeTab === "history" && (
-              <div className="space-y-8">
+              <div className="space-y-8 ">
                 {/* Search and filter */}
                 <div className="flex flex-col items-center mb-8 space-y-4">
                   <div className="w-full max-w-md">
@@ -758,7 +757,7 @@ function VersionContent() {
                       {searchQuery && (
                         <button
                           onClick={() => setSearchQuery("")}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white"
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
                         >
                           <X className="w-5 h-5" />
                         </button>
