@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Github, Users, Star, GitFork } from "lucide-react";
 import Image from "next/image";
@@ -29,21 +30,39 @@ export default function Contributors({
   containerVariants: import("framer-motion").Variants;
   itemVariants: import("framer-motion").Variants;
 }) {
-  // Use window.location.origin as fallback when NEXT_PUBLIC_LIVE_URL is not available
-  const baseUrl =
-    process.env.NEXT_PUBLIC_LIVE_URL ||
-    (typeof window !== "undefined" ? window.location.origin : "");
+  // Track if component is mounted (client-side hydration check)
+  const [isMounted, setIsMounted] = useState(false);
 
-  const { data, isLoading, error } = useSWR<ApiResponse>(
-    `${baseUrl}/api/stars`,
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Use window.location.origin as fallback when NEXT_PUBLIC_LIVE_URL is not available
+  const apiUrl =
+    typeof window !== "undefined"
+      ? `${
+          process.env.NEXT_PUBLIC_LIVE_URL || window.location.origin
+        }/api/stars`
+      : "/api/stars";
+
+  const { data, isLoading, error, mutate } = useSWR<ApiResponse>(
+    apiUrl,
     fetcher,
     {
       refreshInterval: 300000, // Refresh every 5 minutes
       revalidateOnFocus: false,
       errorRetryCount: 3,
       errorRetryInterval: 5000,
+      suspense: false,
+      revalidateOnMount: true,
+      dedupingInterval: 10000, // Deduplicate requests within 10 seconds
     }
   );
+
+  // Force revalidation when component mounts
+  useEffect(() => {
+    mutate();
+  }, [mutate]);
 
   // Fallback data when API fails
   const fallbackData = {
@@ -53,7 +72,18 @@ export default function Contributors({
     contributors: [],
   };
 
+  // Use data if available, otherwise use fallback
   const displayData = data || fallbackData;
+
+  // Track if we've attempted to load data
+  const [dataAttempted, setDataAttempted] = useState(false);
+
+  // Mark data as attempted after first load attempt
+  useEffect(() => {
+    if (!dataAttempted && (data || error)) {
+      setDataAttempted(true);
+    }
+  }, [data, error, dataAttempted]);
 
   return (
     <section id="contributors" className="py-20 bg-slate-800/30">
@@ -109,7 +139,9 @@ export default function Contributors({
         )}
 
         {/* Contributors Grid */}
-        {displayData?.contributors && displayData.contributors.length > 0 ? (
+        {isMounted &&
+        displayData?.contributors &&
+        displayData.contributors.length > 0 ? (
           <motion.div
             variants={containerVariants}
             initial="hidden"
@@ -134,9 +166,17 @@ export default function Contributors({
                     alt={`${contributor.login} - ${contributor.contributions} contributions`}
                     width={64}
                     height={64}
-                    quality={95}
-                    priority={false}
+                    quality={100}
+                    priority={true}
+                    loading="eager"
                     className="w-16 h-16 rounded-full border-2 border-slate-600 group-hover:border-purple-400 transition-all duration-200 shadow-lg"
+                    onLoad={(e) => {
+                      // Ensure image is visible after load
+                      const img = e.target as HTMLImageElement;
+                      if (img.style.opacity !== "1") {
+                        img.style.opacity = "1";
+                      }
+                    }}
                   />
                   {/* Tooltip */}
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-20 border border-slate-600">
@@ -161,7 +201,7 @@ export default function Contributors({
           >
             <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700 rounded-xl p-8">
               <Users className="w-16 h-16 text-slate-400 mx-auto mb-4" />
-              {isLoading ? (
+              {isLoading && !dataAttempted ? (
                 <>
                   <h3 className="text-xl font-semibold text-white mb-2">
                     Loading Contributors...

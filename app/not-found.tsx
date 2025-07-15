@@ -68,7 +68,8 @@ export default function NotFound() {
           className="text-gray-400 mb-6"
         >
           The page you&lsquo;re looking for doesn&lsquo;t exist or has been
-          moved.
+          moved. If you were trying to access the home page, there might be a
+          temporary issue.
         </motion.p>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center mt-6">
@@ -78,7 +79,7 @@ export default function NotFound() {
               className="flex items-center justify-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-md transition-colors"
             >
               <Home className="w-4 h-4" />
-              Go home
+              Return to home
             </Link>
           </motion.div>
 
