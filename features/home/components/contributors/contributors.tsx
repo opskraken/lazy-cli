@@ -30,13 +30,6 @@ export default function Contributors({
   containerVariants: import("framer-motion").Variants;
   itemVariants: import("framer-motion").Variants;
 }) {
-  // Track if component is mounted (client-side hydration check)
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   const { data, isLoading, error, mutate } = useSWR<ApiResponse>(
     `  ${process.env.NEXT_PUBLIC_LIVE_URL}/api/stars`,
     fetcher,
@@ -131,9 +124,7 @@ export default function Contributors({
         )}
 
         {/* Contributors Grid */}
-        {isMounted &&
-        displayData?.contributors &&
-        displayData.contributors.length > 0 ? (
+        {displayData?.contributors && displayData.contributors.length > 0 ? (
           <motion.div
             variants={containerVariants}
             initial="hidden"
