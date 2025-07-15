@@ -1,17 +1,6 @@
-#!/bin/bash
-
-# ⚠️ SECURITY NOTICE ⚠️
-# You are about to execute a remote script. For enhanced security:
-# 1. Download this script first: curl -O https://lazycli.xyz/install.sh
-# 2. Inspect the script: cat install.sh
-# 3. Execute locally: bash install.sh
-# 
-# Script SHA256 checksum available at: https://lazycli.xyz/install.sh.sha256
-# Verify with: sha256sum install.sh && curl -s https://lazycli.xyz/install.sh.sha256
+ #!/bin/bash
 
 echo "🛠️ Installing LazyCLI..."
-echo "⚠️  For security best practices, consider downloading and inspecting scripts before execution."
-echo ""
 
 INSTALL_DIR="$HOME/.lazycli"
 LAZY_BINARY="$INSTALL_DIR/lazy"

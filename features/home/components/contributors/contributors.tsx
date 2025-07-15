@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Users, Star, GitFork, ExternalLink } from "lucide-react";
+import { Github, Users, Star, GitFork } from "lucide-react";
 import Image from "next/image";
 import useSWR from "swr";
 
@@ -30,9 +30,8 @@ export default function Contributors({
   containerVariants: import("framer-motion").Variants;
   itemVariants: import("framer-motion").Variants;
 }) {
-  const apiUrl = process.env.NEXT_PUBLIC_LIVE_URL ? `${process.env.NEXT_PUBLIC_LIVE_URL}/api/stars` : null;
   const { data, isLoading, error, mutate } = useSWR<ApiResponse>(
-    apiUrl,
+    `  ${process.env.NEXT_PUBLIC_LIVE_URL}/api/stars`,
     fetcher,
     {
       refreshInterval: 300000, // Refresh every 5 minutes
@@ -42,8 +41,6 @@ export default function Contributors({
       suspense: false,
       revalidateOnMount: true,
       dedupingInterval: 10000, // Deduplicate requests within 10 seconds
-      shouldRetryOnError: true,
-      fallbackData: { stars: 0, forks: 0, openIssues: 0, contributors: [] }
     }
   );
 
@@ -241,7 +238,7 @@ export default function Contributors({
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
           >
-            <ExternalLink className="w-5 h-5" />
+            <Github className="w-5 h-5" />
             <span>Contribute to LazyCLI</span>
           </motion.a>
         </motion.div>
