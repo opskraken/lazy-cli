@@ -70,6 +70,12 @@ export default function Contributors({
     }
   }, [data, error, dataAttempted]);
 
+  console.log(displayData?.contributors, "displayData?.contributors");
+  console.log(
+    displayData.contributors.length,
+    "displayData.contributors.length"
+  );
+
   return (
     <section id="contributors" className="py-20 bg-slate-800/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -100,21 +106,21 @@ export default function Contributors({
             className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16"
           >
             <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700 rounded-xl p-6 text-center">
-              <Star className="w-8 h-8 text-yellow-400 mx-auto mb-3" />
+              <Star className="w-8 h-8 text-cyan-400 mx-auto mb-3" />
               <div className="text-2xl font-bold text-white mb-1">
                 {displayData.stars}
               </div>
               <div className="text-slate-400">Stars</div>
             </div>
             <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700 rounded-xl p-6 text-center">
-              <GitFork className="w-8 h-8 text-blue-400 mx-auto mb-3" />
+              <GitFork className="w-8 h-8 text-indigo-400 mx-auto mb-3" />
               <div className="text-2xl font-bold text-white mb-1">
                 {displayData.forks}
               </div>
               <div className="text-slate-400">Forks</div>
             </div>
             <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700 rounded-xl p-6 text-center">
-              <Users className="w-8 h-8 text-green-400 mx-auto mb-3" />
+              <Users className="w-8 h-8 text-blue-400 mx-auto mb-3" />
               <div className="text-2xl font-bold text-white mb-1">
                 {displayData.contributors?.length || 0}
               </div>
@@ -124,7 +130,7 @@ export default function Contributors({
         )}
 
         {/* Contributors Grid */}
-        {displayData?.contributors && displayData.contributors.length > 0 ? (
+        {displayData ? (
           <motion.div
             variants={containerVariants}
             initial="hidden"
@@ -149,7 +155,7 @@ export default function Contributors({
                     alt={`${contributor.login} - ${contributor.contributions} contributions`}
                     width={64}
                     height={64}
-                    quality={100}
+                    quality={95}
                     priority={true}
                     loading="eager"
                     className="w-16 h-16 rounded-full border-2 border-slate-600 group-hover:border-purple-400 transition-all duration-200 shadow-lg"

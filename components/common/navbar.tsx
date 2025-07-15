@@ -119,6 +119,7 @@ export default function Navbar() {
     { name: "Features", href: "#features" },
     { name: "Installation", href: "#installation" },
     { name: "Commands", href: "#commands" },
+    { name: "Contributors", href: "#contributors" },
     { name: "Guideline", href: "/guideline" },
     { name: "Contribute", href: "/contribute" },
     { name: "Versions", href: "/versions" },
