@@ -64,6 +64,8 @@ export default function Home() {
         className={`min-h-screen bg-slate-900 text-white ${inter.className}`}
       >
         {/* Hero Section */}
+        // The Hero section with glowing effect
+        // The glowVariants are used to animate the hero section
         <Hero glowVariants={glowVariants} />
 
         {/* Installation Process Section */}
