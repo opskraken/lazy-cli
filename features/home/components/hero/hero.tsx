@@ -1,3 +1,5 @@
+"use client";
+
 import { motion } from "framer-motion";
 import {
   Download,
@@ -8,7 +10,7 @@ import {
   Rocket,
   BookOpen,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useSWR from "swr";
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -18,7 +20,13 @@ export default function Hero({
   glowVariants: import("framer-motion").Variants;
 }) {
   const [copiedCommand, setCopiedCommand] = useState<string>("");
+  const [isClient, setIsClient] = useState(false);
   const installCommand = "curl -s https://lazycli.xyz/install.sh | bash";
+  
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopiedCommand(text);
@@ -51,8 +59,8 @@ export default function Hero({
           {/* Grid Pattern */}
           <div className='absolute inset-0 bg-[url(&apos;data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23334155" fill-opacity="0.1"%3E%3Ccircle cx="3" cy="3" r="1"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E&apos;)] opacity-40' />
 
-          {/* Floating Elements */}
-          {typeof window !== "undefined" &&
+          {/* Floating Elements - Only render on client side */}
+          {isClient &&
             [...Array(15)].map((_, i) => {
               // Generate deterministic positions using index instead of random
               const left = 10 + ((i * 4.5) % 80); // Distribute evenly across 10-90%
@@ -65,7 +73,7 @@ export default function Hero({
                   style={{
                     left: `${left}%`,
                     top: `${top}%`,
-                  }}
+                  } as React.CSSProperties}
                   variants={floatingVariants}
                   initial="initial"
                   animate="animate"
@@ -79,15 +87,15 @@ export default function Hero({
               );
             })}
 
-          {/* Large Glowing Orbs */}
-          {typeof window !== "undefined" && (
+          {/* Large Glowing Orbs - Only render on client side */}
+          {isClient && (
             <>
               <motion.div
                 className="absolute w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl"
                 style={{
                   top: "20%",
                   left: "15%",
-                }}
+                } as React.CSSProperties}
                 variants={glowVariants}
                 initial="initial"
                 animate="animate"
@@ -97,7 +105,7 @@ export default function Hero({
                 style={{
                   bottom: "20%",
                   right: "15%",
-                }}
+                } as React.CSSProperties}
                 variants={glowVariants}
                 initial="initial"
                 animate="animate"
