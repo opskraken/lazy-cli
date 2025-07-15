@@ -33,10 +33,13 @@ export default function Hero({
   };
 
   const { data } = useSWR(
-    `${process.env.NEXT_PUBLIC_LIVE_URL}/api/stars`,
+    process.env.NEXT_PUBLIC_LIVE_URL ? `${process.env.NEXT_PUBLIC_LIVE_URL}/api/stars` : null,
     fetcher,
     {
       refreshInterval: 60000,
+      revalidateOnError: false,
+      shouldRetryOnError: false,
+      fallbackData: { stars: 0, forks: 0, openIssues: 0, contributors: [] }
     }
   );
 

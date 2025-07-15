@@ -38,9 +38,14 @@ export default function Footer() {
     (typeof window !== 'undefined' ? window.location.origin : '');
     
   const { data } = useSWR(
-    `${baseUrl}/api/stars`,
+    baseUrl ? `${baseUrl}/api/stars` : null, // Only make request if baseUrl exists
     fetcher,
-    { refreshInterval: 60000 }
+    { 
+      refreshInterval: 60000,
+      revalidateOnError: false,
+      shouldRetryOnError: false,
+      fallbackData: { stars: 0, forks: 0, openIssues: 0, contributors: [] }
+    }
   );
 
   return (
