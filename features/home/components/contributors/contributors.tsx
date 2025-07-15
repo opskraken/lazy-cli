@@ -29,8 +29,13 @@ export default function Contributors({
   containerVariants: import("framer-motion").Variants;
   itemVariants: import("framer-motion").Variants;
 }) {
+  // Use window.location.origin as fallback when NEXT_PUBLIC_LIVE_URL is not available
+  const baseUrl =
+    process.env.NEXT_PUBLIC_LIVE_URL ||
+    (typeof window !== "undefined" ? window.location.origin : "");
+
   const { data, isLoading, error } = useSWR<ApiResponse>(
-    `${process.env.NEXT_PUBLIC_LIVE_URL}/api/stars`,
+    `${baseUrl}/api/stars`,
     fetcher,
     {
       refreshInterval: 300000, // Refresh every 5 minutes
