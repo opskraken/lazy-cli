@@ -76,14 +76,7 @@ export default function UpcomingFeatures({
       status: "Planned",
       color: "from-teal-400 via-cyan-500 to-blue-500",
     },
-    {
-      title: "React Native",
-      description:
-        "Native mobile app development with React and automated store deployment",
-      icon: Layers,
-      status: "Planned",
-      color: "from-purple-400 via-pink-500 to-red-500",
-    },
+
     {
       title: "Rust Integration",
       description:

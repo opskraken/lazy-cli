@@ -35,6 +35,9 @@ Examples:
   lazy vite-js create
       Create a new Vite project, select framework, and optionally install common packages.
 
+  lazy react-native create
+      Scaffold a new React Native application with Expo or React Native CLI setup.
+
   lazy --version | -v
       Show current LazyCLI version.
 
@@ -58,6 +61,9 @@ Available Commands:
 
   vite-js       Vite project scaffolding:
                 - create     Create a Vite project with framework selection and optional packages
+
+  react-native  Mobile app development with React Native:
+                - create     Create React Native app with Expo or CLI, navigation, and essential packages
 
 For more details on each command, run:
   lazy [command] --help
@@ -2762,6 +2768,398 @@ EOF
   echo "✅ Vite project setup complete!"
 }
 
+# Create a new React Native application with Expo or React Native CLI
+# Supports both Expo and React Native CLI workflows with common packages
+# Includes: navigation, async storage, vector icons, state management, UI libraries
+react_native_create() {
+  echo "📱 Creating React Native app..."
+
+  read -p "📦 Enter project name (no spaces): " project_name
+  if [ -z "$project_name" ]; then
+    echo "❌ Project name cannot be empty."
+    return
+  fi
+
+  echo "🛠️ Choose React Native setup method:"
+  echo "1) Expo (Recommended for beginners - easier setup, managed workflow)"
+  echo "2) React Native CLI (Advanced - more control, native modules)"
+  read -p "🔧 Enter choice [1-2]: " setup_choice
+
+  case $setup_choice in
+    1) setup_method="expo" ;;
+    2) setup_method="cli" ;;
+    *) echo "❌ Invalid choice. Defaulting to Expo."; setup_method="expo" ;;
+  esac
+
+  detect_package_manager
+
+  echo ""
+  echo "🧠 LazyCLI Smart Stack Setup: Answer once and make yourself gloriously lazy"
+  echo "   1 = Yes, 0 = No, -1 = Skip all remaining prompts"
+
+  ask_package() {
+    local label="$1"
+    local var_name="$2"
+    local input
+    while true; do
+      read -p "➕ Install $label? (1/0/-1): " input
+      case $input in
+        1|0)
+          eval "$var_name=$input"
+          return 0
+          ;;
+        -1)
+          echo "🚫 Skipping all further package prompts."
+          SKIP_ALL=true
+          return 1
+          ;;
+        *) echo "Please enter 1, 0 or -1." ;;
+      esac
+    done
+  }
+
+  SKIP_ALL=false
+  
+  # Core navigation and essential packages
+  [[ "$SKIP_ALL" == false ]] && ask_package "React Navigation (tab/stack navigation)" INSTALL_NAVIGATION
+  [[ "$SKIP_ALL" == false ]] && ask_package "Async Storage (local data persistence)" INSTALL_ASYNC_STORAGE
+  [[ "$SKIP_ALL" == false ]] && ask_package "Vector Icons (icon library)" INSTALL_VECTOR_ICONS
+  
+  # State management
+  [[ "$SKIP_ALL" == false ]] && ask_package "Redux Toolkit (state management)" INSTALL_REDUX
+  [[ "$SKIP_ALL" == false ]] && ask_package "Zustand (lightweight state management)" INSTALL_ZUSTAND
+  
+  # UI and styling
+  [[ "$SKIP_ALL" == false ]] && ask_package "NativeWind (Tailwind for React Native)" INSTALL_NATIVEWIND
+  [[ "$SKIP_ALL" == false ]] && ask_package "React Native Elements (UI components)" INSTALL_RN_ELEMENTS
+  
+  # Utilities
+  [[ "$SKIP_ALL" == false ]] && ask_package "React Hook Form (form handling)" INSTALL_HOOK_FORM
+  [[ "$SKIP_ALL" == false ]] && ask_package "Axios (HTTP client)" INSTALL_AXIOS
+  [[ "$SKIP_ALL" == false ]] && ask_package "React Query/TanStack Query (data fetching)" INSTALL_REACT_QUERY
+  [[ "$SKIP_ALL" == false ]] && ask_package "Date-fns (date utilities)" INSTALL_DATE_FNS
+
+  # TypeScript option
+  if [[ "$setup_method" == "expo" ]]; then
+    [[ "$SKIP_ALL" == false ]] && ask_package "TypeScript template" INSTALL_TYPESCRIPT
+  fi
+
+  echo ""
+  echo "🚀 Creating React Native project with $setup_method..."
+
+  if [[ "$setup_method" == "expo" ]]; then
+    # Expo setup
+    if [[ "$INSTALL_TYPESCRIPT" == "1" ]]; then
+      echo "📦 Creating Expo app with TypeScript..."
+      npx create-expo-app "$project_name" --template blank-typescript
+    else
+      echo "📦 Creating Expo app with JavaScript..."
+      npx create-expo-app "$project_name" --template blank
+    fi
+  else
+    # React Native CLI setup
+    echo "📦 Creating React Native CLI app..."
+    npx react-native init "$project_name"
+  fi
+
+  cd "$project_name" || return
+
+  echo "📦 Installing base dependencies..."
+  if [[ "$PKG_MANAGER" == "npm" ]]; then
+    npm install
+  else
+    $PKG_MANAGER install
+  fi
+
+  # Prepare packages list based on setup method
+  packages=()
+  dev_packages=()
+
+  if [[ "$INSTALL_NAVIGATION" == "1" ]]; then
+    if [[ "$setup_method" == "expo" ]]; then
+      packages+=("@react-navigation/native" "@react-navigation/native-stack" "@react-navigation/bottom-tabs")
+      packages+=("react-native-screens" "react-native-safe-area-context")
+    else
+      packages+=("@react-navigation/native" "@react-navigation/native-stack" "@react-navigation/bottom-tabs")
+      packages+=("react-native-screens" "react-native-safe-area-context" "react-native-gesture-handler")
+    fi
+  fi
+
+  [[ "$INSTALL_ASYNC_STORAGE" == "1" ]] && packages+=("@react-native-async-storage/async-storage")
+  [[ "$INSTALL_VECTOR_ICONS" == "1" ]] && packages+=("react-native-vector-icons")
+  [[ "$INSTALL_REDUX" == "1" ]] && packages+=("@reduxjs/toolkit" "react-redux")
+  [[ "$INSTALL_ZUSTAND" == "1" ]] && packages+=("zustand")
+  [[ "$INSTALL_NATIVEWIND" == "1" ]] && packages+=("nativewind") && dev_packages+=("tailwindcss")
+  [[ "$INSTALL_RN_ELEMENTS" == "1" ]] && packages+=("react-native-elements" "react-native-ratings" "react-native-slider")
+  [[ "$INSTALL_HOOK_FORM" == "1" ]] && packages+=("react-hook-form")
+  [[ "$INSTALL_AXIOS" == "1" ]] && packages+=("axios")
+  [[ "$INSTALL_REACT_QUERY" == "1" ]] && packages+=("@tanstack/react-query")
+  [[ "$INSTALL_DATE_FNS" == "1" ]] && packages+=("date-fns")
+
+  # Install selected packages
+  if [[ ${#packages[@]} -gt 0 ]]; then
+    echo "📦 Installing selected packages: ${packages[*]}"
+    if [[ "$PKG_MANAGER" == "npm" ]]; then
+      npm install "${packages[@]}"
+    else
+      $PKG_MANAGER add "${packages[@]}"
+    fi
+  fi
+
+  # Install dev dependencies
+  if [[ ${#dev_packages[@]} -gt 0 ]]; then
+    echo "📦 Installing dev dependencies: ${dev_packages[*]}"
+    if [[ "$PKG_MANAGER" == "npm" ]]; then
+      npm install --save-dev "${dev_packages[@]}"
+    else
+      $PKG_MANAGER add -D "${dev_packages[@]}"
+    fi
+  fi
+
+  # Setup NativeWind if selected
+  if [[ "$INSTALL_NATIVEWIND" == "1" ]]; then
+    echo "🌬️ Setting up NativeWind (Tailwind CSS for React Native)..."
+    
+    # Create tailwind.config.js
+    cat > tailwind.config.js << 'EOF'
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: ["./App.{js,jsx,ts,tsx}", "./src/**/*.{js,jsx,ts,tsx}"],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+EOF
+    
+    # Create global.css
+    cat > global.css << 'EOF'
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+EOF
+    
+    echo "✅ NativeWind configured! Import './global.css' in your App.js"
+  fi
+
+  # Create basic navigation structure if navigation is selected
+  if [[ "$INSTALL_NAVIGATION" == "1" ]]; then
+    echo "🧭 Setting up basic navigation structure..."
+    
+    mkdir -p src/screens src/navigation src/components
+    
+    # Create basic screens
+    cat > src/screens/HomeScreen.js << 'EOF'
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+
+export default function HomeScreen({ navigation }) {
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Welcome to Your React Native App!</Text>
+      <Text style={styles.subtitle}>Built with LazyCLI</Text>
+      
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('Profile')}
+      >
+        <Text style={styles.buttonText}>Go to Profile</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 30,
+  },
+  button: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    borderRadius: 8,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
+EOF
+
+    cat > src/screens/ProfileScreen.js << 'EOF'
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+
+export default function ProfileScreen({ navigation }) {
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Profile Screen</Text>
+      <Text style={styles.subtitle}>This is your profile page</Text>
+      
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.goBack()}
+      >
+        <Text style={styles.buttonText}>Go Back</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 30,
+  },
+  button: {
+    backgroundColor: '#FF3B30',
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    borderRadius: 8,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
+EOF
+
+    # Create navigation file
+    cat > src/navigation/AppNavigator.js << 'EOF'
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import HomeScreen from '../screens/HomeScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+
+const Stack = createNativeStackNavigator();
+
+export default function AppNavigator() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Home">
+        <Stack.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{ title: 'LazyCLI App' }}
+        />
+        <Stack.Screen
+          name="Profile"
+          component={ProfileScreen}
+          options={{ title: 'Profile' }}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+EOF
+
+    # Update App.js to use navigation
+    if [[ "$setup_method" == "expo" ]]; then
+      cat > App.js << 'EOF'
+import React from 'react';
+import AppNavigator from './src/navigation/AppNavigator';
+
+export default function App() {
+  return <AppNavigator />;
+}
+EOF
+    else
+      cat > App.tsx << 'EOF'
+import React from 'react';
+import AppNavigator from './src/navigation/AppNavigator';
+
+function App(): JSX.Element {
+  return <AppNavigator />;
+}
+
+export default App;
+EOF
+    fi
+    
+    echo "✅ Basic navigation structure created!"
+  fi
+
+  # Platform-specific setup instructions
+  echo ""
+  echo "📱 Setup Instructions:"
+  if [[ "$setup_method" == "expo" ]]; then
+    echo "🚀 Run your Expo app:"
+    echo "   cd $project_name"
+    echo "   npx expo start"
+    echo ""
+    echo "📱 Download Expo Go app on your phone to test"
+    echo "🔗 Expo Go: https://expo.dev/client"
+  else
+    echo "🚀 Run your React Native app:"
+    echo "   cd $project_name"
+    echo ""
+    echo "📱 For iOS:"
+    echo "   npx react-native run-ios"
+    echo "   (Requires Xcode and iOS Simulator)"
+    echo ""
+    echo "🤖 For Android:"
+    echo "   npx react-native run-android"
+    echo "   (Requires Android Studio and emulator)"
+    echo ""
+    echo "⚠️  Additional setup may be required for React Native CLI:"
+    echo "   - iOS: https://reactnative.dev/docs/environment-setup"
+    echo "   - Android: https://reactnative.dev/docs/environment-setup"
+  fi
+
+  echo ""
+  echo "🎉 React Native project setup complete!"
+  echo "📁 Project structure:"
+  [[ "$INSTALL_NAVIGATION" == "1" ]] && echo "   src/screens/ - App screens"
+  [[ "$INSTALL_NAVIGATION" == "1" ]] && echo "   src/navigation/ - Navigation setup"
+  [[ "$INSTALL_NAVIGATION" == "1" ]] && echo "   src/components/ - Reusable components"
+  [[ "$INSTALL_NATIVEWIND" == "1" ]] && echo "   global.css - Tailwind styles"
+  echo "   App.js - Main app component"
+  echo ""
+  echo "🛠️ Installed packages:"
+  [[ "$INSTALL_NAVIGATION" == "1" ]] && echo "   ✓ React Navigation"
+  [[ "$INSTALL_ASYNC_STORAGE" == "1" ]] && echo "   ✓ Async Storage"
+  [[ "$INSTALL_VECTOR_ICONS" == "1" ]] && echo "   ✓ Vector Icons"
+  [[ "$INSTALL_REDUX" == "1" ]] && echo "   ✓ Redux Toolkit"
+  [[ "$INSTALL_ZUSTAND" == "1" ]] && echo "   ✓ Zustand"
+  [[ "$INSTALL_NATIVEWIND" == "1" ]] && echo "   ✓ NativeWind (Tailwind CSS)"
+  [[ "$INSTALL_RN_ELEMENTS" == "1" ]] && echo "   ✓ React Native Elements"
+  [[ "$INSTALL_HOOK_FORM" == "1" ]] && echo "   ✓ React Hook Form"
+  [[ "$INSTALL_AXIOS" == "1" ]] && echo "   ✓ Axios"
+  [[ "$INSTALL_REACT_QUERY" == "1" ]] && echo "   ✓ React Query"
+  [[ "$INSTALL_DATE_FNS" == "1" ]] && echo "   ✓ Date-fns"
+  
+  echo "✅ Your React Native app is ready to go! 🚀"
+}
+
 # Main CLI router
 case "$1" in
   --help | help )
@@ -2838,6 +3236,18 @@ case "$1" in
         ;;
       *)
         echo "❌ Unknown vite-js subcommand: $2"
+        show_help
+        exit 1
+        ;;
+    esac
+    ;;
+  react-native )
+    case "$2" in
+      create)
+        react_native_create
+        ;;
+      *)
+        echo "❌ Unknown react-native subcommand: $2"
         show_help
         exit 1
         ;;
