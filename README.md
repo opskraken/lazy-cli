@@ -182,4 +182,3 @@ This project is licensed under the [MIT License](LICENSE).
 
 Built and maintained by [iammhador](https://iammhador.xyz).
 Inspired by the simplicity of automation.
-Somewhere, the hurting must stop.
