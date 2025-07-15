@@ -33,8 +33,12 @@ export default function Footer() {
     },
   };
 
+  // Use window.location.origin as fallback when NEXT_PUBLIC_LIVE_URL is not available
+  const baseUrl = process.env.NEXT_PUBLIC_LIVE_URL || 
+    (typeof window !== 'undefined' ? window.location.origin : '');
+    
   const { data } = useSWR(
-    `${process.env.NEXT_PUBLIC_LIVE_URL}/api/stars`,
+    `${baseUrl}/api/stars`,
     fetcher,
     { refreshInterval: 60000 }
   );
