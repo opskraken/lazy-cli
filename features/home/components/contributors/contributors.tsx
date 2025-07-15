@@ -37,16 +37,8 @@ export default function Contributors({
     setIsMounted(true);
   }, []);
 
-  // Use window.location.origin as fallback when NEXT_PUBLIC_LIVE_URL is not available
-  const apiUrl =
-    typeof window !== "undefined"
-      ? `${
-          process.env.NEXT_PUBLIC_LIVE_URL || window.location.origin
-        }/api/stars`
-      : "/api/stars";
-
   const { data, isLoading, error, mutate } = useSWR<ApiResponse>(
-    apiUrl,
+    `  ${process.env.NEXT_PUBLIC_LIVE_URL}/api/stars`,
     fetcher,
     {
       refreshInterval: 300000, // Refresh every 5 minutes
