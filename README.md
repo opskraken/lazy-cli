@@ -136,7 +136,7 @@ We welcome contributions! LazyCLI is an open-source project built for the develo
 ### Quick Start
 
 ```bash
-git clone https://github.com/your-username/lazycli
+git clone https://github.com/iammhador//lazycli
 cd lazycli
 ```
 
