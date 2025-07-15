@@ -95,7 +95,7 @@ Run commands globally from anywhere in your terminal:
 lazy github init
 
 # Clone and setup project
-lazy github clone https://github.com/user/repo.git
+lazy github clone https://github.com/iammhador/repo.git
 
 # Quick commit and push
 lazy github push "Add new feature"
