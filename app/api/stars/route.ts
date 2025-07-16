@@ -1,5 +1,13 @@
 import { NextResponse } from "next/server";
 
+// Security headers to prevent common vulnerabilities
+const securityHeaders = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block',
+  'Referrer-Policy': 'strict-origin-when-cross-origin'
+};
+
 export async function GET() {
   try {
     const headers = {
@@ -45,6 +53,8 @@ export async function GET() {
       forks: repoData.forks_count,
       openIssues: repoData.open_issues_count,
       contributors: contributorsData.slice(0, 12) // Limit to top 12 contributors
+    }, {
+      headers: securityHeaders
     });
   } catch (error) {
     console.error('Error fetching GitHub data:', error);
@@ -57,7 +67,10 @@ export async function GET() {
         openIssues: 0,
         contributors: []
       },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: securityHeaders
+      }
     );
   }
 }
