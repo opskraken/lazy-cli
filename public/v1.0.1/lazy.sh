@@ -232,7 +232,7 @@ case "$1" in
   upgrade )
     echo "🔄 Upgrading LazyCLI..."
 
-    # Remove old version
+    # Remove old version /
     rm -f "$HOME/.lazycli/lazy"
 
     # Download new version
