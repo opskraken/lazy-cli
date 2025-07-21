@@ -5,7 +5,7 @@ echo "🛠️ Installing LazyCLI..."
 INSTALL_DIR="$HOME/.lazycli"
 LAZY_BINARY="$INSTALL_DIR/lazy"
 
-# Ensure install dir is writable
+# Ensure install dir is writable:
 if ! mkdir -p "$INSTALL_DIR" 2>/dev/null; then
   echo "❌ Failed to create install directory: $INSTALL_DIR"
   echo "👉 Try running this command instead:"
@@ -13,16 +13,16 @@ if ! mkdir -p "$INSTALL_DIR" 2>/dev/null; then
   exit 1
 fi
 
-# Download the latest CLI script
+# Download the latest CLI script:
 curl -fsSL https://lazycli.xyz/scripts/lazy.sh -o "$LAZY_BINARY" || {
   echo "❌ Failed to download LazyCLI."
   exit 1
 }
 
-# Make it executable
+# Make it executable:
 chmod +x "$LAZY_BINARY"
 
-# Add to PATH if not already added
+# Add to PATH if not already added:
 PROFILE_FILE="$HOME/.bashrc"
 if [[ "$OSTYPE" == "darwin"* ]]; then
   PROFILE_FILE="$HOME/.zshrc"
@@ -33,7 +33,7 @@ if ! grep -q 'export PATH="$HOME/.lazycli:$PATH"' "$PROFILE_FILE"; then
   echo "📎 Updated $PROFILE_FILE with LazyCLI path."
 fi
 
-# Apply to current session
+# Apply to current session:
 export PATH="$HOME/.lazycli:$PATH"
 
 echo "✅ LazyCLI installed! Run 'lazy --help' to begin. 😎"
