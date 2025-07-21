@@ -7,6 +7,7 @@ import {
   Command,
   CheckCircle,
   Copy,
+  Smartphone,
 } from "lucide-react";
 
 interface Command {
@@ -108,6 +109,20 @@ export default function InteractiveCommands({
         {
           command: "lazy vite-js create",
           description: "Create Vite project with framework selection (React/Vue/Svelte/Vanilla) and optional Tailwind CSS + DaisyUI setup",
+        },
+      ],
+    },
+    {
+      id: "reactnative",
+      title: "React Native Development",
+      description:
+        "Build cross-platform mobile apps with React Native, Expo setup, and essential packages for navigation and state management",
+      icon: Smartphone,
+      color: "from-indigo-400 via-purple-500 to-pink-500",
+      commands: [
+        {
+          command: "lazy react-native create",
+          description: "Create React Native app with Expo or CLI setup, including navigation, state management, and UI libraries (React Navigation, Redux/Zustand, NativeWind, Async Storage)",
         },
       ],
     },

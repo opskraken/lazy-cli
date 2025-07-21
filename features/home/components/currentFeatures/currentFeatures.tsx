@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowRight, Github, Settings, Zap, Terminal } from "lucide-react";
+import { ArrowRight, Github, Settings, Zap, Terminal, Smartphone } from "lucide-react";
 
 interface Command {
   command: string;
@@ -122,6 +122,28 @@ export default function CurrentFeatures({
         },
       ],
     },
+    {
+      id: "reactnative",
+      title: "React Native Development",
+      description:
+        "Build cross-platform mobile apps with React Native, Expo, and native navigation",
+      icon: Smartphone,
+      color: "from-indigo-400 via-purple-500 to-pink-500",
+      commands: [
+        {
+          command: "lazy react-native create",
+          description: "Create React Native app with Expo or CLI setup",
+        },
+        {
+          command: "lazy react-native init",
+          description: "Initialize project with navigation and state management",
+        },
+        {
+          command: "lazy react-native deploy",
+          description: "Configure app store deployment and distribution",
+        },
+      ],
+    },
   ];
   return (
     <>
@@ -150,7 +172,7 @@ export default function CurrentFeatures({
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8"
           >
             {currentFeatures.map((feature) => {
               const IconComponent = feature.icon;

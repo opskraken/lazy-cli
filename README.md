@@ -61,6 +61,15 @@ curl -s https://lazycli.xyz/install.sh | bash -s version_name
 - Optional packages: axios, clsx, zod, react-hot-toast, react-router-dom, lucide-react
 - Modern Tailwind CSS integration with DaisyUI support
 
+### 📱 React Native Development
+
+- **`lazy react-native create`** - Cross-platform mobile app creation
+- Supports: Expo (beginner-friendly) and React Native CLI (advanced)
+- Navigation: React Navigation with stack and tab navigation
+- State management: Redux Toolkit, Zustand options
+- UI libraries: NativeWind (Tailwind), React Native Elements
+- Essential packages: Async Storage, Vector Icons, React Hook Form, Axios
+
 ### 🔧 System Features
 
 - **`lazy --version`** - Show current version
@@ -115,6 +124,9 @@ lazy next-js create
 
 # Vite + React with Tailwind
 lazy vite-js create
+
+# React Native mobile app
+lazy react-native create
 ```
 
 ---
@@ -158,7 +170,7 @@ For detailed guidelines, visit [lazycli.xyz/contribute](https://lazycli.xyz/cont
 - 🐍 Python project scaffolding
 - 🐳 Docker containerization support
 - 🚀 Deployment automation (PM2, SSH)
-- 📱 Flutter & React Native support
+- 📱 Flutter mobile development support
 - 🦀 Rust & Go project templates
 - 🔐 Environment & secret management
 - 🌐 Multi-language support
