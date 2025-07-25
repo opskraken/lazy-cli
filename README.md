@@ -87,7 +87,7 @@ These features are planned for future updates:
 - Python project bootstrapping
 - Docker containerization support
 - Deployment via PM2 and SSH
-- Flutter, React Native, Go, Rust, .NET support
+- Flutter, Go, Rust, .NET support
 - Environment and secret management
 - Auto-updating CLI (`lazycli update`)
 
