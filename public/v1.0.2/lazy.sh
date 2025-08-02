@@ -1,10 +1,10 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 VERSION="1.0.1"
 
 show_help() {
   cat << EOF
-LazyCLI – Automate your dev flow like a lazy pro 💤
+LazyCLI â€“ Automate your dev flow like a lazy pro ðŸ’¤
 
 Usage:
   lazy [command] [subcommand]
@@ -52,6 +52,7 @@ Available Commands:
 
   node-js       Setup Node.js projects:
                 - init       Initialize Node.js project with optional boilerplate
+                - structure  Create comprehensive Node.js project structure with templates
 
   next-js       Next.js project scaffolding:
                 - create     Create Next.js app with TypeScript, Tailwind, ESLint defaults
@@ -79,16 +80,16 @@ detect_package_manager() {
 }
 
 github_init() {
-  echo "🛠️ Initializing new Git repository..."
+  echo "ðŸ› ï¸ Initializing new Git repository..."
 
   if [ -d ".git" ]; then
-    echo "⚠️ Git repository already initialized in this directory."
+    echo "âš ï¸ Git repository already initialized in this directory."
     exit 1
   fi
 
   git init
 
-  echo "✅ Git repository initialized successfully!"
+  echo "âœ… Git repository initialized successfully!"
 }
 
 github_clone() {
@@ -96,26 +97,26 @@ github_clone() {
   tech="$2"
 
   if [[ -z "$repo" ]]; then
-    echo "❌ Repo URL is required."
-    echo "👉 Usage: lazy github clone <repo-url> [tech]"
+    echo "âŒ Repo URL is required."
+    echo "ðŸ‘‰ Usage: lazy github clone <repo-url> [tech]"
     exit 1
   fi
 
-  echo "🔗 Cloning $repo ..."
-  git clone "$repo" || { echo "❌ Clone failed."; exit 1; }
+  echo "ðŸ”— Cloning $repo ..."
+  git clone "$repo" || { echo "âŒ Clone failed."; exit 1; }
 
   dir_name=$(basename "$repo" .git)
   cd "$dir_name" || exit 1
 
-  echo "📁 Entered directory: $dir_name"
+  echo "ðŸ“ Entered directory: $dir_name"
 
   if [[ -f package.json ]]; then
-    echo "📦 Installing dependencies..."
+    echo "ðŸ“¦ Installing dependencies..."
     
     # Use the detect_package_manager function
     detect_package_manager
     
-    echo "🔧 Using $PKG_MANAGER..."
+    echo "ðŸ”§ Using $PKG_MANAGER..."
     if [[ "$PKG_MANAGER" == "bun" ]]; then
       bun install
     elif [[ "$PKG_MANAGER" == "pnpm" ]]; then
@@ -128,7 +129,7 @@ github_clone() {
 
     # Check if build script exists
     if grep -q '"build"' package.json; then
-      echo "🏗️ Build script found. Building the project..."
+      echo "ðŸ—ï¸ Build script found. Building the project..."
       if [[ "$PKG_MANAGER" == "bun" ]]; then
         bun run build
       elif [[ "$PKG_MANAGER" == "pnpm" ]]; then
@@ -139,52 +140,52 @@ github_clone() {
         npm run build
       fi
     else
-      echo "ℹ️ No build script found; skipping build."
+      echo "â„¹ï¸ No build script found; skipping build."
     fi
   else
-    echo "⚠️ No package.json found; skipping dependency install & build."
+    echo "âš ï¸ No package.json found; skipping dependency install & build."
   fi
 
   if command -v code &> /dev/null; then
-    echo "🚀 Opening project in VS Code..."
+    echo "ðŸš€ Opening project in VS Code..."
     code .
   else
-    echo "💡 VS Code not found. You can manually open the project folder."
+    echo "ðŸ’¡ VS Code not found. You can manually open the project folder."
   fi
 
-  echo "✅ Clone setup complete! Don't forget to commit and push your changes."
+  echo "âœ… Clone setup complete! Don't forget to commit and push your changes."
 }
 
 github_push() {
-  echo "📦 Staging changes..."
+  echo "ðŸ“¦ Staging changes..."
   git add .
 
   msg="$1"
   if [[ -z "$msg" ]]; then
-    echo "⚠️ Commit message is required. Example:"
+    echo "âš ï¸ Commit message is required. Example:"
     echo "   lazy github push \"Your message here\""
     exit 1
   fi
 
-  echo "📝 Committing changes..."
+  echo "ðŸ“ Committing changes..."
   if ! git commit -m "$msg"; then
-    echo "❌ Commit failed. Nothing to commit or error occurred."
+    echo "âŒ Commit failed. Nothing to commit or error occurred."
     exit 1
   fi
 
   BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
   if [[ -z "$BRANCH" ]]; then
-    echo "❌ Could not detect branch. Are you in a git repo?"
+    echo "âŒ Could not detect branch. Are you in a git repo?"
     exit 1
   fi
 
-  echo "🚀 Pushing to origin/$BRANCH..."
+  echo "ðŸš€ Pushing to origin/$BRANCH..."
   if ! git push origin "$BRANCH"; then
-    echo "❌ Push failed. Please check your network or branch."
+    echo "âŒ Push failed. Please check your network or branch."
     exit 1
   fi
 
-  echo "✅ Changes pushed to origin/$BRANCH 🎉"
+  echo "âœ… Changes pushed to origin/$BRANCH ðŸŽ‰"
 }
 
 # Create a simple pull request from current branch to target branch
@@ -194,7 +195,7 @@ github_create_pull() {
   local PR_TITLE="$2"
 
   if [[ -z "$BASE_BRANCH" || -z "$PR_TITLE" ]]; then
-    echo "❌ Usage: lazy github pull <base-branch> \"<pr-title>\""
+    echo "âŒ Usage: lazy github pull <base-branch> \"<pr-title>\""
     return 1
   fi
 
@@ -202,29 +203,29 @@ github_create_pull() {
   local CURRENT_BRANCH
   CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
   if [[ -z "$CURRENT_BRANCH" ]]; then
-    echo "❌ Not inside a git repository."
+    echo "âŒ Not inside a git repository."
     return 1
   fi
 
   if [[ "$CURRENT_BRANCH" == "$BASE_BRANCH" ]]; then
-    echo "❌ Cannot create PR from $BASE_BRANCH to itself. Please switch to a feature branch."
+    echo "âŒ Cannot create PR from $BASE_BRANCH to itself. Please switch to a feature branch."
     return 1
   fi
 
-  echo "🔁 Creating pull request: $CURRENT_BRANCH → $BASE_BRANCH"
-  echo "📝 Title: $PR_TITLE"
+  echo "ðŸ” Creating pull request: $CURRENT_BRANCH â†’ $BASE_BRANCH"
+  echo "ðŸ“ Title: $PR_TITLE"
 
   if ! gh pr create --base "$BASE_BRANCH" --head "$CURRENT_BRANCH" --title "$PR_TITLE" --body "$PR_TITLE"; then
-    echo "❌ Pull request creation failed."
-    echo "⚠️ GitHub CLI (gh) is not installed or not found in PATH."
-    echo "👉 To enable automatic pull request creation:"
+    echo "âŒ Pull request creation failed."
+    echo "âš ï¸ GitHub CLI (gh) is not installed or not found in PATH."
+    echo "ðŸ‘‰ To enable automatic pull request creation:"
     echo "   1. Download and install GitHub CLI: https://cli.github.com/"
     echo "   2. If already installed, add it to your PATH to your gitbash:"
     echo "      export PATH=\"/c/Program Files/GitHub CLI:\$PATH\""
     return 1
   fi
 
-  echo "✅ Pull request created successfully! 🎉"
+  echo "âœ… Pull request created successfully! ðŸŽ‰"
 }
 
 # Create a pull request workflow: pull latest changes, install dependencies, commit, push, and create PR
@@ -235,88 +236,88 @@ github_create_pr() {
   local COMMIT_MSG="$2"
 
   if [[ -z "$BASE_BRANCH" || -z "$COMMIT_MSG" ]]; then
-    echo "❌ Usage: lazy github pull <base-branch> \"<commit-message>\" [tech]"
+    echo "âŒ Usage: lazy github pull <base-branch> \"<commit-message>\" [tech]"
     exit 1
   fi
 
   # Detect current branch
   CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
   if [[ -z "$CURRENT_BRANCH" ]]; then
-    echo "❌ Not in a git repo."
+    echo "âŒ Not in a git repo."
     exit 1
   fi
 
-  echo "📥 Pulling latest from $BASE_BRANCH..."
-  git pull origin "$BASE_BRANCH" || { echo "❌ Pull failed"; exit 1; }
+  echo "ðŸ“¥ Pulling latest from $BASE_BRANCH..."
+  git pull origin "$BASE_BRANCH" || { echo "âŒ Pull failed"; exit 1; }
 
   # Install dependencies based on package manager
   if [[ -f package.json ]]; then
-    echo "📦 Installing dependencies..."
+    echo "ðŸ“¦ Installing dependencies..."
     if command -v npm &> /dev/null; then
-      echo "🔧 Using npm..."
+      echo "ðŸ”§ Using npm..."
       npm run build
     elif command -v yarn &> /dev/null; then
-      echo "🔧 Using yarn..."
+      echo "ðŸ”§ Using yarn..."
       yarn
     elif command -v pnpm &> /dev/null; then
-      echo "🔧 Using pnpm..."
+      echo "ðŸ”§ Using pnpm..."
       pnpm install
     elif command -v bun &> /dev/null; then
-      echo "🔧 Using bun..."
+      echo "ðŸ”§ Using bun..."
       bun install
     else
-      echo "⚠️ No supported package manager found."
+      echo "âš ï¸ No supported package manager found."
     fi
   else
-    echo "⚠️ No package.json found. Skipping install step."
+    echo "âš ï¸ No package.json found. Skipping install step."
   fi
 
   # Stage and commit
-  echo "📦 Staging changes..."
+  echo "ðŸ“¦ Staging changes..."
   git add .
 
-  echo "📝 Committing with message: $COMMIT_MSG"
-  git commit -m "$COMMIT_MSG" || echo "⚠️ Nothing to commit"
+  echo "ðŸ“ Committing with message: $COMMIT_MSG"
+  git commit -m "$COMMIT_MSG" || echo "âš ï¸ Nothing to commit"
 
-  echo "🚀 Pushing to origin/$CURRENT_BRANCH"
-  git push origin "$CURRENT_BRANCH" || { echo "❌ Push failed"; exit 1; }
+  echo "ðŸš€ Pushing to origin/$CURRENT_BRANCH"
+  git push origin "$CURRENT_BRANCH" || { echo "âŒ Push failed"; exit 1; }
 
   # Create pull request
-  echo "🔁 Creating pull request: $CURRENT_BRANCH → $BASE_BRANCH"
+  echo "ðŸ” Creating pull request: $CURRENT_BRANCH â†’ $BASE_BRANCH"
   if ! gh pr create --base "$BASE_BRANCH" --head "$CURRENT_BRANCH" --title "$COMMIT_MSG" --body "$COMMIT_MSG"; then
-    echo "❌ Pull request creation failed."
-    echo "⚠️ GitHub CLI (gh) is not installed or not found in PATH."
-    echo "👉 To enable automatic pull request creation:"
+    echo "âŒ Pull request creation failed."
+    echo "âš ï¸ GitHub CLI (gh) is not installed or not found in PATH."
+    echo "ðŸ‘‰ To enable automatic pull request creation:"
     echo "   1. Download and install GitHub CLI: https://cli.github.com/"
     echo "   2. If already installed, add it to your PATH to your gitbash:"
     echo "      export PATH=\"/c/Program Files/GitHub CLI:\$PATH\""
     return 1
   fi
 
-  echo "✅ PR created successfully! 🎉"
+  echo "âœ… PR created successfully! ðŸŽ‰"
 }
 
 node_js_init() {
-  echo "🛠️ Initializing Node.js project..."
+  echo "ðŸ› ï¸ Initializing Node.js project..."
   
   # Ask user preference
-  read -p "🤔 Use simple setup (1) or TypeScript setup (2)? [1/2]: " setup_type
+  read -p "ðŸ¤” Use simple setup (1) or TypeScript setup (2)? [1/2]: " setup_type
   
   if [[ "$setup_type" == "1" ]]; then
     # Simple setup
     npm init -y
-    echo "📦 Suggested packages:"
+    echo "ðŸ“¦ Suggested packages:"
     echo "   npm install express nodemon"
     echo "   npm install -D @types/node"
   else
     # TypeScript setup (enhanced version)
-    echo "🛠️ Setting up TypeScript Node.js project..."
+    echo "ðŸ› ï¸ Setting up TypeScript Node.js project..."
     
     # Detect package manager
     detect_package_manager
     pkg_manager="$PKG_MANAGER"
     
-    echo "🧠 LazyCLI Smart Stack Setup: Answer once and make yourself gloriously lazy"
+    echo "ðŸ§  LazyCLI Smart Stack Setup: Answer once and make yourself gloriously lazy"
     echo "   1 = Yes, 0 = No, -1 = Skip all remaining prompts"
     
     prompt_or_exit() {
@@ -331,23 +332,23 @@ node_js_init() {
       done
     }
     
-    ans_nodemon=$(prompt_or_exit "➕ Install nodemon for development?")
-    [[ "$ans_nodemon" == "-1" ]] && echo "🚫 Setup skipped." && return
+    ans_nodemon=$(prompt_or_exit "âž• Install nodemon for development?")
+    [[ "$ans_nodemon" == "-1" ]] && echo "ðŸš« Setup skipped." && return
     
-    ans_express=$(prompt_or_exit "🌐 Install express?")
-    [[ "$ans_express" == "-1" ]] && echo "🚫 Setup skipped." && return
+    ans_express=$(prompt_or_exit "ðŸŒ Install express?")
+    [[ "$ans_express" == "-1" ]] && echo "ðŸš« Setup skipped." && return
     
-    ans_cors=$(prompt_or_exit "🔗 Install cors?")
-    [[ "$ans_cors" == "-1" ]] && echo "🚫 Setup skipped." && return
+    ans_cors=$(prompt_or_exit "ðŸ”— Install cors?")
+    [[ "$ans_cors" == "-1" ]] && echo "ðŸš« Setup skipped." && return
     
-    ans_dotenv=$(prompt_or_exit "🔐 Install dotenv?")
-    [[ "$ans_dotenv" == "-1" ]] && echo "🚫 Setup skipped." && return
+    ans_dotenv=$(prompt_or_exit "ðŸ” Install dotenv?")
+    [[ "$ans_dotenv" == "-1" ]] && echo "ðŸš« Setup skipped." && return
     
     # Initialize npm project
     npm init -y
     
     # Install TypeScript and related packages
-    echo "📦 Installing TypeScript and development dependencies..."
+    echo "ðŸ“¦ Installing TypeScript and development dependencies..."
     if [[ "$pkg_manager" == "npm" ]]; then
       npm install -D typescript @types/node ts-node
     else
@@ -364,7 +365,7 @@ node_js_init() {
     [[ "$ans_nodemon" == "1" ]] && dev_packages+=("nodemon")
     
     if [[ ${#packages[@]} -gt 0 ]]; then
-      echo "📦 Installing packages: ${packages[*]}"
+      echo "ðŸ“¦ Installing packages: ${packages[*]}"
       if [[ "$pkg_manager" == "npm" ]]; then
         npm install "${packages[@]}"
       else
@@ -373,7 +374,7 @@ node_js_init() {
     fi
     
     if [[ ${#dev_packages[@]} -gt 0 ]]; then
-      echo "📦 Installing dev packages: ${dev_packages[*]}"
+      echo "ðŸ“¦ Installing dev packages: ${dev_packages[*]}"
       if [[ "$pkg_manager" == "npm" ]]; then
         npm install -D "${dev_packages[@]}"
       else
@@ -382,7 +383,7 @@ node_js_init() {
     fi
     
     # Create TypeScript config
-    echo "⚙️ Creating tsconfig.json..."
+    echo "âš™ï¸ Creating tsconfig.json..."
     cat > tsconfig.json <<'EOF'
 {
   "compilerOptions": {
@@ -409,7 +410,7 @@ EOF
     mkdir -p src
     
     if [[ ! -f "src/index.ts" ]]; then
-      echo "📝 Creating src/index.ts..."
+      echo "ðŸ“ Creating src/index.ts..."
       if [[ "$ans_express" == "1" ]]; then
         # Express server template
         cat > src/index.ts <<'EOF'
@@ -431,7 +432,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.get('/', (req, res) => {
   res.json({
-    message: '🚀 LazyCLI Express Server is running!',
+    message: 'ðŸš€ LazyCLI Express Server is running!',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development'
   });
@@ -449,15 +450,15 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log('💤 Built with LazyCLI – stay lazy, code smart!');
+  console.log(`ðŸš€ Server running on http://localhost:${PORT}`);
+  console.log('ðŸ’¤ Built with LazyCLI â€“ stay lazy, code smart!');
 });
 EOF
       else
         # Simple Node.js template
         cat > src/index.ts <<'EOF'
-console.log('🚀 Hello from TypeScript Node.js!');
-console.log('💤 Built with LazyCLI – stay lazy, code smart!');
+console.log('ðŸš€ Hello from TypeScript Node.js!');
+console.log('ðŸ’¤ Built with LazyCLI â€“ stay lazy, code smart!');
 
 // Example function
 function greet(name: string): string {
@@ -468,13 +469,13 @@ console.log(greet('Developer'));
 EOF
       fi
     else
-      echo "ℹ️ src/index.ts already exists. Appending LazyCLI branding..."
-      echo 'console.log("🚀 Booted with LazyCLI – stay lazy, code smart 😴");' >> src/index.ts
+      echo "â„¹ï¸ src/index.ts already exists. Appending LazyCLI branding..."
+      echo 'console.log("ðŸš€ Booted with LazyCLI â€“ stay lazy, code smart ðŸ˜´");' >> src/index.ts
     fi
     
     # Create environment file if dotenv is installed
     if [[ "$ans_dotenv" == "1" && ! -f ".env" ]]; then
-      echo "🔐 Creating .env file..."
+      echo "ðŸ” Creating .env file..."
       cat > .env <<'EOF'
 # Environment variables
 NODE_ENV=development
@@ -494,7 +495,7 @@ EOF
     fi
     
     # Create a clean package.json with proper structure
-    echo "🛠️ Creating package.json with LazyCLI template..."
+    echo "ðŸ› ï¸ Creating package.json with LazyCLI template..."
     
     # Remove existing package.json to avoid conflicts
     rm -f package.json
@@ -596,21 +597,21 @@ EOF
       fi
     fi
     
-    echo "📁 Project structure created:"
+    echo "ðŸ“ Project structure created:"
     echo "   src/index.ts - Main TypeScript file"
     echo "   tsconfig.json - TypeScript configuration"
     [[ "$ans_dotenv" == "1" ]] && echo "   .env - Environment variables"
     echo ""
     
     if [[ "$ans_nodemon" == "1" ]]; then
-      echo "✅ Run with: $pkg_manager run dev (development with auto-reload)"
+      echo "âœ… Run with: $pkg_manager run dev (development with auto-reload)"
     else
-      echo "✅ Run with: $pkg_manager run dev (development)"
+      echo "âœ… Run with: $pkg_manager run dev (development)"
     fi
-    echo "✅ Build with: $pkg_manager run build"
-    echo "✅ Run production: $pkg_manager run start"
+    echo "âœ… Build with: $pkg_manager run build"
+    echo "âœ… Run production: $pkg_manager run start"
     
-    echo "✅ Node.js + TypeScript project is ready!"
+    echo "âœ… Node.js + TypeScript project is ready!"
   fi
 }
 
@@ -619,15 +620,15 @@ EOF
 # Uses create-next-app with predefined settings and interactive package selection
 # Supports: zod, bcrypt, js-cookie, swr, lucide-react, react-hot-toast, shadcn-ui
 next_js_create() {
-  echo "🛠️ Creating Next.js app..."
+  echo "ðŸ› ï¸ Creating Next.js app..."
 
-  read -p "📦 Enter project name (no spaces): " project_name
+  read -p "ðŸ“¦ Enter project name (no spaces): " project_name
   if [ -z "$project_name" ]; then
-    echo "❌ Project name cannot be empty."
+    echo "âŒ Project name cannot be empty."
     return
   fi
 
-  echo "⚙️ Next.js will use default options:"
+  echo "âš™ï¸ Next.js will use default options:"
   echo "- TypeScript: 1"
   echo "- ESLint: 1"
   echo "- Tailwind CSS: 1"
@@ -635,18 +636,18 @@ next_js_create() {
   echo "- src/: 0"
   echo "- Import alias: 1"
   echo "- Turbopack: 1"
-  read -p "✅ Continue with these settings? (1/0): " confirm_next
+  read -p "âœ… Continue with these settings? (1/0): " confirm_next
 
   if [[ "$confirm_next" != "1" ]]; then
-    echo "❌ Cancelled default setup. Let's go one-by-one instead."
+    echo "âŒ Cancelled default setup. Let's go one-by-one instead."
 
-    read -p "📂 Use src/ directory? (1/0): " use_src
-    read -p "✨ Use Tailwind CSS? (1/0): " use_tailwind
-    read -p "🧹 Use ESLint? (1/0): " use_eslint
-    read -p "⚙️ Use TypeScript? (1/0): " use_ts
-    read -p "🧪 Use App Router? (1/0): " use_app
-    read -p "📌 Use import alias '@/*'? (1/0): " use_alias
-    read -p "🚀 Use Turbopack for dev? (1/0): " use_turbo
+    read -p "ðŸ“‚ Use src/ directory? (1/0): " use_src
+    read -p "âœ¨ Use Tailwind CSS? (1/0): " use_tailwind
+    read -p "ðŸ§¹ Use ESLint? (1/0): " use_eslint
+    read -p "âš™ï¸ Use TypeScript? (1/0): " use_ts
+    read -p "ðŸ§ª Use App Router? (1/0): " use_app
+    read -p "ðŸ“Œ Use import alias '@/*'? (1/0): " use_alias
+    read -p "ðŸš€ Use Turbopack for dev? (1/0): " use_turbo
   else
     use_src=0
     use_tailwind=1
@@ -658,7 +659,7 @@ next_js_create() {
   fi
 
   echo ""
-  echo "🧠 LazyCLI Smart Stack Setup: Answer once and make yourself gloriously lazy"
+  echo "ðŸ§  LazyCLI Smart Stack Setup: Answer once and make yourself gloriously lazy"
 
   prompt_or_exit() {
     local prompt_text=$1
@@ -672,29 +673,29 @@ next_js_create() {
     done
   }
 
-  ans_zod=$(prompt_or_exit "➕ Install zod?")
-  [[ "$ans_zod" == "-1" ]] && echo "🚫 Setup skipped." && return
+  ans_zod=$(prompt_or_exit "âž• Install zod?")
+  [[ "$ans_zod" == "-1" ]] && echo "ðŸš« Setup skipped." && return
 
-  ans_bcrypt=$(prompt_or_exit "🔐 Install bcrypt?")
-  [[ "$ans_bcrypt" == "-1" ]] && echo "🚫 Setup skipped." && return
+  ans_bcrypt=$(prompt_or_exit "ðŸ” Install bcrypt?")
+  [[ "$ans_bcrypt" == "-1" ]] && echo "ðŸš« Setup skipped." && return
 
-  ans_cookie=$(prompt_or_exit "🍪 Install js-cookie?")
-  [[ "$ans_cookie" == "-1" ]] && echo "🚫 Setup skipped." && return
+  ans_cookie=$(prompt_or_exit "ðŸª Install js-cookie?")
+  [[ "$ans_cookie" == "-1" ]] && echo "ðŸš« Setup skipped." && return
 
-  ans_swr=$(prompt_or_exit "🔁 Install swr?")
-  [[ "$ans_swr" == "-1" ]] && echo "🚫 Setup skipped." && return
+  ans_swr=$(prompt_or_exit "ðŸ” Install swr?")
+  [[ "$ans_swr" == "-1" ]] && echo "ðŸš« Setup skipped." && return
 
-  ans_lucide=$(prompt_or_exit "✨ Install lucide-react icons?")
-  [[ "$ans_lucide" == "-1" ]] && echo "🚫 Setup skipped." && return
+  ans_lucide=$(prompt_or_exit "âœ¨ Install lucide-react icons?")
+  [[ "$ans_lucide" == "-1" ]] && echo "ðŸš« Setup skipped." && return
 
-  ans_toast=$(prompt_or_exit "🔥 Install react-hot-toast?")
-  [[ "$ans_toast" == "-1" ]] && echo "🚫 Setup skipped." && return
+  ans_toast=$(prompt_or_exit "ðŸ”¥ Install react-hot-toast?")
+  [[ "$ans_toast" == "-1" ]] && echo "ðŸš« Setup skipped." && return
 
-  ans_shadcn=$(prompt_or_exit "🎨 Setup shadcn-ui?")
-  [[ "$ans_shadcn" == "-1" ]] && echo "🚫 Setup skipped." && return
+  ans_shadcn=$(prompt_or_exit "ðŸŽ¨ Setup shadcn-ui?")
+  [[ "$ans_shadcn" == "-1" ]] && echo "ðŸš« Setup skipped." && return
 
   # Construct Next.js CLI command
-  echo "🚀 Creating Next.js project..."
+  echo "ðŸš€ Creating Next.js project..."
 
   cmd="npx create-next-app@latest \"$project_name\""
   [[ "$use_ts" == "1" ]] && cmd+=" --typescript" || cmd+=" --no-typescript"
@@ -722,7 +723,7 @@ next_js_create() {
   [[ "$ans_toast" == "1" ]] && packages+=("react-hot-toast")
 
   if [[ ${#packages[@]} -gt 0 ]]; then
-    echo "📦 Installing: ${packages[*]}"
+    echo "ðŸ“¦ Installing: ${packages[*]}"
     if [[ "$PKG_MANAGER" == "npm" ]]; then
       npm install "${packages[@]}"
     else
@@ -732,19 +733,19 @@ next_js_create() {
 
   # Setup shadcn-ui
   if [[ "$ans_shadcn" == "1" ]]; then
-    echo "🎨 Initializing shadcn-ui..."
+    echo "ðŸŽ¨ Initializing shadcn-ui..."
     if [[ "$PKG_MANAGER" == "npm" ]]; then
       npx shadcn-ui@latest init
     elif command -v bun &>/dev/null; then
       bun x shadcn-ui@latest init
     else
-      $PKG_MANAGER dlx shadcn-ui@latest init || echo "❌ shadcn-ui failed to init."
+      $PKG_MANAGER dlx shadcn-ui@latest init || echo "âŒ shadcn-ui failed to init."
     fi
   fi
 
   # Create custom page.tsx for Next.js App Router
   if [[ "$use_app" == "1" ]]; then
-    echo "🎨 Creating custom LazyCLI page.tsx..."
+    echo "ðŸŽ¨ Creating custom LazyCLI page.tsx..."
     
     # Remove default page.tsx if it exists
     [[ -f "app/page.tsx" ]] && rm app/page.tsx
@@ -862,7 +863,7 @@ function App() {
                       : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/30"
                   }`}
                 >
-                  🎮 Interactive Demo
+                  ðŸŽ® Interactive Demo
                 </button>
                 <button
                   onClick={() => setActiveTab("terminal")}
@@ -872,7 +873,7 @@ function App() {
                       : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/30"
                   }`}
                 >
-                  🖥️ Terminal Preview
+                  ðŸ–¥ï¸ Terminal Preview
                 </button>
                 <button
                   onClick={() => setActiveTab("features")}
@@ -882,7 +883,7 @@ function App() {
                       : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/30"
                   }`}
                 >
-                  ⚡ Features
+                  âš¡ Features
                 </button>
               </div>
 
@@ -892,7 +893,7 @@ function App() {
                   <div className="space-y-8">
                     <div className="text-center">
                       <h2 className="text-2xl font-bold text-slate-200 mb-4">
-                        🎉 Interactive Counter Demo
+                        ðŸŽ‰ Interactive Counter Demo
                       </h2>
                       <p className="text-slate-400 mb-8">
                         Experience the power of modern React with this
@@ -935,7 +936,7 @@ function App() {
                   <div className="space-y-6">
                     <div className="text-center">
                       <h2 className="text-2xl font-bold text-slate-200 mb-4">
-                        🖥️ Terminal Preview
+                        ðŸ–¥ï¸ Terminal Preview
                       </h2>
                       <p className="text-slate-400 mb-8">
                         See LazyCLI commands in action
@@ -954,13 +955,13 @@ function App() {
                       </div>
                       <div className="p-6 font-mono">
                         <div className="flex items-center space-x-2 mb-4">
-                          <span className="text-blue-400">➜</span>
+                          <span className="text-blue-400">âžœ</span>
                           <span className="text-green-400">~</span>
                           <span className="text-slate-300">{terminalText}</span>
                           {isTyping && <span className="animate-pulse">|</span>}
                         </div>
                         <div className="text-slate-400 text-sm mb-4">
-                          ✨ Initializing project with modern tooling...
+                          âœ¨ Initializing project with modern tooling...
                         </div>
                         <button
                           onClick={typeCommand}
@@ -977,52 +978,18 @@ function App() {
                   <div className="space-y-6">
                     <div className="text-center">
                       <h2 className="text-2xl font-bold text-slate-200 mb-4">
-                        ⚡ Tech Stack & Features
+                        âš¡ Features
                       </h2>
                       <p className="text-slate-400 mb-8">
                         Built with modern technologies for optimal performance
                       </p>
                     </div>
 
-                    {/* Tech Stack Grid */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="bg-blue-900/20 border border-blue-500/20 p-6 rounded-xl hover:bg-blue-900/30 transition-all duration-200 hover:scale-105">
-                        <div className="text-3xl mb-3">⚛️</div>
-                        <div className="text-sm font-medium text-blue-400">
-                          React
-                        </div>
-                        <div className="text-xs text-slate-400">UI Library</div>
-                      </div>
-                      <div className="bg-purple-900/20 border border-purple-500/20 p-6 rounded-xl hover:bg-purple-900/30 transition-all duration-200 hover:scale-105">
-                        <div className="text-3xl mb-3">⚡</div>
-                        <div className="text-sm font-medium text-purple-400">
-                          Vite
-                        </div>
-                        <div className="text-xs text-slate-400">Build Tool</div>
-                      </div>
-                      <div className="bg-cyan-900/20 border border-cyan-500/20 p-6 rounded-xl hover:bg-cyan-900/30 transition-all duration-200 hover:scale-105">
-                        <div className="text-3xl mb-3">🌊</div>
-                        <div className="text-sm font-medium text-cyan-400">
-                          Tailwind
-                        </div>
-                        <div className="text-xs text-slate-400">
-                          CSS Framework
-                        </div>
-                      </div>
-                      <div className="bg-yellow-900/20 border border-yellow-500/20 p-6 rounded-xl hover:bg-yellow-900/30 transition-all duration-200 hover:scale-105">
-                        <div className="text-3xl mb-3">💤</div>
-                        <div className="text-sm font-medium text-yellow-400">
-                          LazyCLI
-                        </div>
-                        <div className="text-xs text-slate-400">Automation</div>
-                      </div>
-                    </div>
-
                     {/* Features List */}
                     <div className="grid md:grid-cols-2 gap-6 mt-8">
                       <div className="bg-slate-900/50 rounded-xl p-6 border border-slate-700/30">
                         <h3 className="text-lg font-semibold text-slate-200 mb-3">
-                          🚀 GitHub Automation
+                          ðŸš€ GitHub Automation
                         </h3>
                         <p className="text-slate-400 text-sm">
                           Streamline your GitHub workflow with automated
@@ -1031,7 +998,7 @@ function App() {
                       </div>
                       <div className="bg-slate-900/50 rounded-xl p-6 border border-slate-700/30">
                         <h3 className="text-lg font-semibold text-slate-200 mb-3">
-                          📦 Project Scaffolding
+                          ðŸ“¦ Project Scaffolding
                         </h3>
                         <p className="text-slate-400 text-sm">
                           Bootstrap projects with modern tooling and best
@@ -1040,7 +1007,7 @@ function App() {
                       </div>
                       <div className="bg-slate-900/50 rounded-xl p-6 border border-slate-700/30">
                         <h3 className="text-lg font-semibold text-slate-200 mb-3">
-                          ⚡ Lightning Fast
+                          âš¡ Lightning Fast
                         </h3>
                         <p className="text-slate-400 text-sm">
                           Optimized performance with modern build tools
@@ -1048,7 +1015,7 @@ function App() {
                       </div>
                       <div className="bg-slate-900/50 rounded-xl p-6 border border-slate-700/30">
                         <h3 className="text-lg font-semibold text-slate-200 mb-3">
-                          🎨 Beautiful UI
+                          ðŸŽ¨ Beautiful UI
                         </h3>
                         <p className="text-slate-400 text-sm">
                           Modern design with smooth animations and interactions
@@ -1068,7 +1035,7 @@ function App() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-blue-500/25"
               >
-                🌐 Visit LazyCLI Website
+                ðŸŒ Visit LazyCLI Website
               </a>
               <a
                 href="https://github.com/iammhador/LazyCLI"
@@ -1076,14 +1043,14 @@ function App() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center px-8 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-all duration-200 hover:scale-105 shadow-lg"
               >
-                ⭐ Star on GitHub
+                â­ Star on GitHub
               </a>
             </div>
 
             {/* Footer */}
             <div className="text-center mt-12 text-slate-400 text-sm">
               <p>
-                Built with ❤️ using LazyCLI • Start editing{" "}
+                Built with â¤ï¸ using LazyCLI â€¢ Start editing{" "}
                 <code className="bg-slate-800 px-2 py-1 rounded text-slate-300">
                   src/App.jsx
                 </code>
@@ -1100,39 +1067,39 @@ export default App;
 
 EOF
     
-    echo "✅ Custom LazyCLI page.tsx created successfully!"
+    echo "âœ… Custom LazyCLI page.tsx created successfully!"
   fi
 
-  echo "✅ Your Next.js app is ready!"
+  echo "âœ… Your Next.js app is ready!"
 }
 
 vite_js_create() {
-  echo "🛠️ Creating Vite app for you..."
+  echo "ðŸ› ï¸ Creating Vite app for you..."
 
-  read -p "📦 Enter project name (no spaces): " project_name
+  read -p "ðŸ“¦ Enter project name (no spaces): " project_name
   if [ -z "$project_name" ]; then
-    echo "❌ Project name cannot be empty."
+    echo "âŒ Project name cannot be empty."
     return
   fi
 
-  echo "✨ Choose a framework:"
+  echo "âœ¨ Choose a framework:"
   echo "1) Vanilla"
   echo "2) React"
   echo "3) Vue"
   echo "4) Svelte"
-  read -p "🔧 Enter choice [1-4]: " choice
+  read -p "ðŸ”§ Enter choice [1-4]: " choice
 
   case $choice in
     1) framework="vanilla" ;;
     2) framework="react" ;;
     3) framework="vue" ;;
     4) framework="svelte" ;;
-    *) echo "❌ Invalid choice."; return ;;
+    *) echo "âŒ Invalid choice."; return ;;
   esac
 
   detect_package_manager
 
-  echo "🧠 LazyCLI Smart Stack Setup: Answer once and make yourself gloriously lazy"
+  echo "ðŸ§  LazyCLI Smart Stack Setup: Answer once and make yourself gloriously lazy"
   echo "   1 = Yes, 0 = No, -1 = Skip all remaining prompts"
 
   ask_package() {
@@ -1140,14 +1107,14 @@ vite_js_create() {
     local var_name="$2"
     local input
     while true; do
-      read -p "➕ Install $label? (1/0/-1): " input
+      read -p "âž• Install $label? (1/0/-1): " input
       case $input in
         1|0)
           eval "$var_name=$input"
           return 0
           ;;
         -1)
-          echo "🚫 Skipping all further package prompts."
+          echo "ðŸš« Skipping all further package prompts."
           SKIP_ALL=true
           return 1
           ;;
@@ -1170,12 +1137,12 @@ vite_js_create() {
   fi
 
   # Create the Vite project using npx (more stable in Git Bash / Windows)
-  echo "🚀 Scaffolding Vite + $framework..."
+  echo "ðŸš€ Scaffolding Vite + $framework..."
   npx create-vite "$project_name" --template "$framework"
 
   cd "$project_name" || return
 
-  echo "📦 Installing base dependencies..."
+  echo "ðŸ“¦ Installing base dependencies..."
   if [[ "$PKG_MANAGER" == "npm" ]]; then
     npm install
   else
@@ -1191,7 +1158,7 @@ vite_js_create() {
   [[ "$INSTALL_LUCIDE" == "1" ]] && packages+=("lucide-react")
 
   if [[ "${#packages[@]}" -gt 0 ]]; then
-    echo "📦 Installing selected packages: ${packages[*]}"
+    echo "ðŸ“¦ Installing selected packages: ${packages[*]}"
     if [[ "$PKG_MANAGER" == "npm" ]]; then
       npm install "${packages[@]}"
     else
@@ -1200,18 +1167,18 @@ vite_js_create() {
   fi
 
   if [[ "$INSTALL_TAILWIND" == "1" ]]; then
-    echo "🌬️ Setting up Tailwind CSS with modern Vite plugin..."
+    echo "ðŸŒ¬ï¸ Setting up Tailwind CSS with modern Vite plugin..."
     
     # Install modern Tailwind CSS packages
     if [[ "$INSTALL_DAISY" == "1" ]]; then
-      echo "📦 Installing Tailwind CSS with DaisyUI..."
+      echo "ðŸ“¦ Installing Tailwind CSS with DaisyUI..."
       if [[ "$PKG_MANAGER" == "npm" ]]; then
         npm install tailwindcss@latest @tailwindcss/vite@latest daisyui@latest
       else
         $PKG_MANAGER add tailwindcss@latest @tailwindcss/vite@latest daisyui@latest
       fi
     else
-      echo "📦 Installing Tailwind CSS..."
+      echo "ðŸ“¦ Installing Tailwind CSS..."
       if [[ "$PKG_MANAGER" == "npm" ]]; then
         npm install tailwindcss@latest @tailwindcss/vite@latest
       else
@@ -1220,7 +1187,7 @@ vite_js_create() {
     fi
 
     # Update vite.config.js with Tailwind plugin
-    echo "⚙️ Configuring vite.config.js..."
+    echo "âš™ï¸ Configuring vite.config.js..."
     if [[ "$framework" == "react" ]]; then
       cat > vite.config.js << 'EOF'
 import { defineConfig } from "vite";
@@ -1268,7 +1235,7 @@ EOF
     fi
 
     # Update CSS file with modern Tailwind imports
-    echo "🎨 Configuring CSS imports..."
+    echo "ðŸŽ¨ Configuring CSS imports..."
     if [[ -f "src/index.css" ]]; then
       if [[ "$INSTALL_DAISY" == "1" ]]; then
         cat > src/index.css << 'EOF'
@@ -1312,13 +1279,13 @@ EOF
     fi
 
     if [[ "$INSTALL_DAISY" == "1" ]]; then
-      echo "✅ Tailwind CSS with DaisyUI configured using modern Vite plugin"
+      echo "âœ… Tailwind CSS with DaisyUI configured using modern Vite plugin"
     else
-      echo "✅ Tailwind CSS configured using modern Vite plugin"
+      echo "âœ… Tailwind CSS configured using modern Vite plugin"
     fi
   else
     # When Tailwind is not installed, create custom index.css
-    echo "🎨 Creating custom index.css..."
+    echo "ðŸŽ¨ Creating custom index.css..."
     
     # Remove existing index.css if it exists
     [[ -f "src/index.css" ]] && rm src/index.css
@@ -1403,12 +1370,12 @@ EOF
       sed -i.bak "1i import './index.css'" src/main.tsx && rm src/main.tsx.bak
     fi
     
-    echo "✅ Custom index.css created and configured"
+    echo "âœ… Custom index.css created and configured"
   fi
 
   # Create custom App.jsx for React projects
   if [[ "$framework" == "react" ]]; then
-    echo "🎨 Creating custom LazyCLI App.jsx..."
+    echo "ðŸŽ¨ Creating custom LazyCLI App.jsx..."
     
     # Remove default App.jsx if it exists
     [[ -f "src/App.jsx" ]] && rm src/App.jsx
@@ -1519,7 +1486,7 @@ function App() {
                       : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/30"
                   }`}
                 >
-                  🎮 Interactive Demo
+                  ðŸŽ® Interactive Demo
                 </button>
                 <button
                   onClick={() => setActiveTab("terminal")}
@@ -1529,7 +1496,7 @@ function App() {
                       : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/30"
                   }`}
                 >
-                  🖥️ Terminal Preview
+                  ðŸ–¥ï¸ Terminal Preview
                 </button>
                 <button
                   onClick={() => setActiveTab("features")}
@@ -1539,7 +1506,7 @@ function App() {
                       : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/30"
                   }`}
                 >
-                  ⚡ Features
+                  âš¡ Features
                 </button>
               </div>
 
@@ -1549,7 +1516,7 @@ function App() {
                   <div className="space-y-8">
                     <div className="text-center">
                       <h2 className="text-2xl font-bold text-slate-200 mb-4">
-                        🎉 Interactive Counter Demo
+                        ðŸŽ‰ Interactive Counter Demo
                       </h2>
                       <p className="text-slate-400 mb-8">
                         Experience the power of modern React with this
@@ -1592,7 +1559,7 @@ function App() {
                   <div className="space-y-6">
                     <div className="text-center">
                       <h2 className="text-2xl font-bold text-slate-200 mb-4">
-                        🖥️ Terminal Preview
+                        ðŸ–¥ï¸ Terminal Preview
                       </h2>
                       <p className="text-slate-400 mb-8">
                         See LazyCLI commands in action
@@ -1611,13 +1578,13 @@ function App() {
                       </div>
                       <div className="p-6 font-mono">
                         <div className="flex items-center space-x-2 mb-4">
-                          <span className="text-blue-400">➜</span>
+                          <span className="text-blue-400">âžœ</span>
                           <span className="text-green-400">~</span>
                           <span className="text-slate-300">{terminalText}</span>
                           {isTyping && <span className="animate-pulse">|</span>}
                         </div>
                         <div className="text-slate-400 text-sm mb-4">
-                          ✨ Initializing project with modern tooling...
+                          âœ¨ Initializing project with modern tooling...
                         </div>
                         <button
                           onClick={typeCommand}
@@ -1634,7 +1601,7 @@ function App() {
                   <div className="space-y-6">
                     <div className="text-center">
                       <h2 className="text-2xl font-bold text-slate-200 mb-4">
-                        ⚡ Tech Stack & Features
+                        âš¡ Tech Stack & Features
                       </h2>
                       <p className="text-slate-400 mb-8">
                         Built with modern technologies for optimal performance
@@ -1644,21 +1611,21 @@ function App() {
                     {/* Tech Stack Grid */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="bg-blue-900/20 border border-blue-500/20 p-6 rounded-xl hover:bg-blue-900/30 transition-all duration-200 hover:scale-105">
-                        <div className="text-3xl mb-3">⚛️</div>
+                        <div className="text-3xl mb-3">âš›ï¸</div>
                         <div className="text-sm font-medium text-blue-400">
                           React
                         </div>
                         <div className="text-xs text-slate-400">UI Library</div>
                       </div>
                       <div className="bg-purple-900/20 border border-purple-500/20 p-6 rounded-xl hover:bg-purple-900/30 transition-all duration-200 hover:scale-105">
-                        <div className="text-3xl mb-3">⚡</div>
+                        <div className="text-3xl mb-3">âš¡</div>
                         <div className="text-sm font-medium text-purple-400">
                           Vite
                         </div>
                         <div className="text-xs text-slate-400">Build Tool</div>
                       </div>
                       <div className="bg-cyan-900/20 border border-cyan-500/20 p-6 rounded-xl hover:bg-cyan-900/30 transition-all duration-200 hover:scale-105">
-                        <div className="text-3xl mb-3">🌊</div>
+                        <div className="text-3xl mb-3">ðŸŒŠ</div>
                         <div className="text-sm font-medium text-cyan-400">
                           Tailwind
                         </div>
@@ -1667,7 +1634,7 @@ function App() {
                         </div>
                       </div>
                       <div className="bg-yellow-900/20 border border-yellow-500/20 p-6 rounded-xl hover:bg-yellow-900/30 transition-all duration-200 hover:scale-105">
-                        <div className="text-3xl mb-3">💤</div>
+                        <div className="text-3xl mb-3">ðŸ’¤</div>
                         <div className="text-sm font-medium text-yellow-400">
                           LazyCLI
                         </div>
@@ -1679,7 +1646,7 @@ function App() {
                     <div className="grid md:grid-cols-2 gap-6 mt-8">
                       <div className="bg-slate-900/50 rounded-xl p-6 border border-slate-700/30">
                         <h3 className="text-lg font-semibold text-slate-200 mb-3">
-                          🚀 GitHub Automation
+                          ðŸš€ GitHub Automation
                         </h3>
                         <p className="text-slate-400 text-sm">
                           Streamline your GitHub workflow with automated
@@ -1688,7 +1655,7 @@ function App() {
                       </div>
                       <div className="bg-slate-900/50 rounded-xl p-6 border border-slate-700/30">
                         <h3 className="text-lg font-semibold text-slate-200 mb-3">
-                          📦 Project Scaffolding
+                          ðŸ“¦ Project Scaffolding
                         </h3>
                         <p className="text-slate-400 text-sm">
                           Bootstrap projects with modern tooling and best
@@ -1697,7 +1664,7 @@ function App() {
                       </div>
                       <div className="bg-slate-900/50 rounded-xl p-6 border border-slate-700/30">
                         <h3 className="text-lg font-semibold text-slate-200 mb-3">
-                          ⚡ Lightning Fast
+                          âš¡ Lightning Fast
                         </h3>
                         <p className="text-slate-400 text-sm">
                           Optimized performance with modern build tools
@@ -1705,7 +1672,7 @@ function App() {
                       </div>
                       <div className="bg-slate-900/50 rounded-xl p-6 border border-slate-700/30">
                         <h3 className="text-lg font-semibold text-slate-200 mb-3">
-                          🎨 Beautiful UI
+                          ðŸŽ¨ Beautiful UI
                         </h3>
                         <p className="text-slate-400 text-sm">
                           Modern design with smooth animations and interactions
@@ -1725,7 +1692,7 @@ function App() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-blue-500/25"
               >
-                🌐 Visit LazyCLI Website
+                ðŸŒ Visit LazyCLI Website
               </a>
               <a
                 href="https://github.com/iammhador/LazyCLI"
@@ -1733,14 +1700,14 @@ function App() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center px-8 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-all duration-200 hover:scale-105 shadow-lg"
               >
-                ⭐ Star on GitHub
+                â­ Star on GitHub
               </a>
             </div>
 
             {/* Footer */}
             <div className="text-center mt-12 text-slate-400 text-sm">
               <p>
-                Built with ❤️ using LazyCLI • Start editing{" "}
+                Built with â¤ï¸ using LazyCLI â€¢ Start editing{" "}
                 <code className="bg-slate-800 px-2 py-1 rounded text-slate-300">
                   src/App.jsx
                 </code>
@@ -2222,9 +2189,9 @@ function App() {
                     }
                   }}
                 >
-                  {tab === "demo" && "🎮 Interactive Demo"}
-                  {tab === "terminal" && "🖥️ Terminal Preview"}
-                  {tab === "features" && "⚡ Features"}
+                  {tab === "demo" && "ðŸŽ® Interactive Demo"}
+                  {tab === "terminal" && "ðŸ–¥ï¸ Terminal Preview"}
+                  {tab === "features" && "âš¡ Features"}
                 </button>
               ))}
             </div>
@@ -2233,7 +2200,7 @@ function App() {
               {activeTab === "demo" && (
                 <div>
                   <h2 style={styles.sectionTitle}>
-                    🎉 Interactive Counter Demo
+                    ðŸŽ‰ Interactive Counter Demo
                   </h2>
                   <p style={styles.sectionSubtitle}>
                     Experience the power of modern React with this interactive
@@ -2306,7 +2273,7 @@ function App() {
 
               {activeTab === "terminal" && (
                 <div>
-                  <h2 style={styles.sectionTitle}>🖥️ Terminal Preview</h2>
+                  <h2 style={styles.sectionTitle}>ðŸ–¥ï¸ Terminal Preview</h2>
                   <p style={styles.sectionSubtitle}>
                     See LazyCLI commands in action
                   </p>
@@ -2326,7 +2293,7 @@ function App() {
                     </div>
                     <div style={styles.terminalContent}>
                       <div style={styles.terminalLine}>
-                        <span style={{ color: "#60a5fa" }}>➜</span>
+                        <span style={{ color: "#60a5fa" }}>âžœ</span>
                         <span style={{ color: "#22c55e" }}>~</span>
                         <span style={{ color: "#e2e8f0" }}>{terminalText}</span>
                         {isTyping && (
@@ -2336,7 +2303,7 @@ function App() {
                         )}
                       </div>
                       <div style={styles.terminalOutput}>
-                        ✨ Initializing project with modern tooling...
+                        âœ¨ Initializing project with modern tooling...
                       </div>
                       <button
                         style={styles.runCommandBtn}
@@ -2357,7 +2324,7 @@ function App() {
 
               {activeTab === "features" && (
                 <div>
-                  <h2 style={styles.sectionTitle}>⚡ Tech Stack & Features</h2>
+                  <h2 style={styles.sectionTitle}>âš¡ Tech Stack & Features</h2>
                   <p style={styles.sectionSubtitle}>
                     Built with modern technologies for optimal performance
                   </p>
@@ -2366,7 +2333,7 @@ function App() {
                     {[
                       {
                         name: "React",
-                        icon: "⚛️",
+                        icon: "âš›ï¸",
                         desc: "UI Library",
                         color: "#60a5fa",
                         bg: "rgba(59, 130, 246, 0.1)",
@@ -2374,7 +2341,7 @@ function App() {
                       },
                       {
                         name: "Vite",
-                        icon: "⚡",
+                        icon: "âš¡",
                         desc: "Build Tool",
                         color: "#a78bfa",
                         bg: "rgba(147, 51, 234, 0.1)",
@@ -2382,7 +2349,7 @@ function App() {
                       },
                       {
                         name: "CSS",
-                        icon: "🌊",
+                        icon: "ðŸŒŠ",
                         desc: "Styling",
                         color: "#22d3ee",
                         bg: "rgba(6, 182, 212, 0.1)",
@@ -2390,7 +2357,7 @@ function App() {
                       },
                       {
                         name: "LazyCLI",
-                        icon: "💤",
+                        icon: "ðŸ’¤",
                         desc: "Automation",
                         color: "#facc15",
                         bg: "rgba(234, 179, 8, 0.1)",
@@ -2444,19 +2411,19 @@ function App() {
                   <div style={styles.featuresGrid}>
                     {[
                       {
-                        title: "🚀 GitHub Automation",
+                        title: "ðŸš€ GitHub Automation",
                         desc: "Streamline your GitHub workflow with automated repository management",
                       },
                       {
-                        title: "📦 Project Scaffolding",
+                        title: "ðŸ“¦ Project Scaffolding",
                         desc: "Bootstrap projects with modern tooling and best practices",
                       },
                       {
-                        title: "⚡ Lightning Fast",
+                        title: "âš¡ Lightning Fast",
                         desc: "Optimized performance with modern build tools",
                       },
                       {
-                        title: "🎨 Beautiful UI",
+                        title: "ðŸŽ¨ Beautiful UI",
                         desc: "Modern design with smooth animations and interactions",
                       },
                     ].map((feature) => (
@@ -2497,7 +2464,7 @@ function App() {
                   "0 10px 25px -5px rgba(59, 130, 246, 0.25)";
               }}
             >
-              🌐 Visit LazyCLI Website
+              ðŸŒ Visit LazyCLI Website
             </a>
             <a
               href="https://github.com/iammhador/LazyCLI"
@@ -2513,13 +2480,13 @@ function App() {
                 e.target.style.background = "#475569";
               }}
             >
-              ⭐ Star on GitHub
+              â­ Star on GitHub
             </a>
           </div>
 
           <div style={styles.footer}>
             <p>
-              Built with ❤️ using LazyCLI • Start editing{" "}
+              Built with â¤ï¸ using LazyCLI â€¢ Start editing{" "}
               <code style={styles.footerCode}>src/App.jsx</code>
             </p>
           </div>
@@ -2756,10 +2723,761 @@ EOF
 EOF
     fi
     
-    echo "✅ Custom LazyCLI App.jsx created successfully!"
+    echo "âœ… Custom LazyCLI App.jsx created successfully!"
   fi
 
-  echo "✅ Vite project setup complete!"
+  echo "âœ… Vite project setup complete!"
+}
+
+# Create comprehensive Node.js project structure with predefined templates
+node_js_structure() {
+  echo "ðŸ—ï¸ Creating comprehensive Node.js project structure..."
+  
+  # Ask for project type
+  echo "ðŸ“‹ Choose your project structure:"
+  echo "1. Basic API (Express + TypeScript)"
+  echo "2. Full-stack API (Express + TypeScript + Database)"
+  echo "3. Microservice (Express + TypeScript + Docker)"
+  echo "4. CLI Tool (TypeScript + Commander)"
+  echo "5. Library (TypeScript + Rollup)"
+  echo "6. Custom (Manual selection)"
+  
+  read -p "ðŸ¤” Select structure (1-6): " structure_type
+  
+  # Detect package manager
+  detect_package_manager
+  pkg_manager="$PKG_MANAGER"
+  
+  case "$structure_type" in
+    1)
+      create_basic_api_structure
+      ;;
+    2)
+      create_fullstack_api_structure
+      ;;
+    3)
+      create_microservice_structure
+      ;;
+    4)
+      create_cli_tool_structure
+      ;;
+    5)
+      create_library_structure
+      ;;
+    6)
+      create_custom_structure
+      ;;
+    *)
+      echo "âŒ Invalid selection. Using basic API structure."
+      create_basic_api_structure
+      ;;
+  esac
+}
+
+create_basic_api_structure() {
+  echo "ðŸš€ Creating Basic API structure..."
+  
+  # Create directory structure
+  mkdir -p src/{controllers,models,routes,middleware,services,utils,config}
+  mkdir -p tests/{unit,integration}
+  mkdir -p docs
+  mkdir -p scripts
+  
+  # Initialize package.json
+  npm init -y
+  
+  # Install dependencies
+  echo "ðŸ“¦ Installing dependencies..."
+  $pkg_manager add express cors dotenv helmet morgan
+  $pkg_manager add -D typescript @types/node @types/express @types/cors @types/morgan ts-node nodemon
+  
+  # Create TypeScript config
+  cat > tsconfig.json <<'EOF'
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["*"],
+      "@/controllers/*": ["controllers/*"],
+      "@/models/*": ["models/*"],
+      "@/routes/*": ["routes/*"],
+      "@/middleware/*": ["middleware/*"],
+      "@/services/*": ["services/*"],
+      "@/utils/*": ["utils/*"],
+      "@/config/*": ["config/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "tests"]
+}
+EOF
+  
+  # Create main server file
+  cat > src/index.ts <<'EOF'
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import dotenv from 'dotenv';
+import { errorHandler } from './middleware/errorHandler';
+import { notFound } from './middleware/notFound';
+import routes from './routes';
+
+// Load environment variables
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// Middleware
+app.use(helmet());
+app.use(cors());
+app.use(morgan('combined'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Routes
+app.use('/api', routes);
+
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
+// Error handling
+app.use(notFound);
+app.use(errorHandler);
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`ðŸš€ Server running on http://localhost:${PORT}`);
+  console.log('ðŸ’¤ Built with LazyCLI â€“ stay lazy, code smart!');
+});
+EOF
+  
+  # Create route files
+  cat > src/routes/index.ts <<'EOF'
+import { Router } from 'express';
+import userRoutes from './userRoutes';
+
+const router = Router();
+
+router.use('/users', userRoutes);
+
+export default router;
+EOF
+  
+  cat > src/routes/userRoutes.ts <<'EOF'
+import { Router } from 'express';
+import { getUsers, getUserById, createUser, updateUser, deleteUser } from '../controllers/userController';
+
+const router = Router();
+
+router.get('/', getUsers);
+router.get('/:id', getUserById);
+router.post('/', createUser);
+router.put('/:id', updateUser);
+router.delete('/:id', deleteUser);
+
+export default router;
+EOF
+  
+  # Create controller
+  cat > src/controllers/userController.ts <<'EOF'
+import { Request, Response, NextFunction } from 'express';
+
+export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    res.json({ message: 'Get all users', data: [] });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    res.json({ message: `Get user ${id}`, data: { id } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    res.status(201).json({ message: 'User created', data: req.body });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    res.json({ message: `Update user ${id}`, data: req.body });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    res.json({ message: `Delete user ${id}` });
+  } catch (error) {
+    next(error);
+  }
+};
+EOF
+  
+  # Create middleware
+  cat > src/middleware/errorHandler.ts <<'EOF'
+import { Request, Response, NextFunction } from 'express';
+
+export const errorHandler = (
+  err: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  console.error(err.stack);
+  
+  res.status(500).json({
+    error: 'Internal Server Error',
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong!'
+  });
+};
+EOF
+  
+  cat > src/middleware/notFound.ts <<'EOF'
+import { Request, Response, NextFunction } from 'express';
+
+export const notFound = (req: Request, res: Response, next: NextFunction) => {
+  res.status(404).json({
+    error: 'Not Found',
+    message: `Route ${req.originalUrl} not found`
+  });
+};
+EOF
+  
+  # Create config
+  cat > src/config/database.ts <<'EOF'
+// Database configuration
+export const dbConfig = {
+  host: process.env.DB_HOST || 'localhost',
+  port: parseInt(process.env.DB_PORT || '5432'),
+  database: process.env.DB_NAME || 'myapp',
+  username: process.env.DB_USER || 'postgres',
+  password: process.env.DB_PASSWORD || '',
+};
+
+export const connectDB = async () => {
+  // Database connection logic here
+  console.log('ðŸ“¦ Database connection configured');
+};
+EOF
+  
+  # Create utils
+  cat > src/utils/logger.ts <<'EOF'
+export const logger = {
+  info: (message: string) => console.log(`[INFO] ${new Date().toISOString()}: ${message}`),
+  error: (message: string) => console.error(`[ERROR] ${new Date().toISOString()}: ${message}`),
+  warn: (message: string) => console.warn(`[WARN] ${new Date().toISOString()}: ${message}`),
+};
+EOF
+  
+  # Create environment file
+  cat > .env <<'EOF'
+# Environment variables
+NODE_ENV=development
+PORT=5000
+
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=myapp
+DB_USER=postgres
+DB_PASSWORD=
+
+# JWT
+JWT_SECRET=your-secret-key
+JWT_EXPIRES_IN=7d
+EOF
+  
+  # Create .gitignore
+  cat > .gitignore <<'EOF'
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build output
+dist/
+build/
+
+# Logs
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# nyc test coverage
+.nyc_output
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+EOF
+  
+  # Update package.json scripts
+  node -e "
+    const pkg = require('./package.json');
+    pkg.scripts = {
+      ...pkg.scripts,
+      'start': 'node dist/index.js',
+      'dev': 'nodemon src/index.ts',
+      'build': 'tsc',
+      'clean': 'rm -rf dist',
+      'test': 'jest',
+      'test:watch': 'jest --watch',
+      'lint': 'eslint src/**/*.ts',
+      'lint:fix': 'eslint src/**/*.ts --fix'
+    };
+    fs.writeFileSync('./package.json', JSON.stringify(pkg, null, 2));
+  "
+  
+  echo "âœ… Basic API structure created successfully!"
+  echo "ðŸ“ Project structure:"
+  echo "   src/controllers/ - Route controllers"
+  echo "   src/models/ - Data models"
+  echo "   src/routes/ - Route definitions"
+  echo "   src/middleware/ - Custom middleware"
+  echo "   src/services/ - Business logic"
+  echo "   src/utils/ - Utility functions"
+  echo "   src/config/ - Configuration files"
+  echo "   tests/ - Test files"
+  echo ""
+  echo "ðŸš€ Run with: $pkg_manager run dev"
+  echo "ðŸ—ï¸ Build with: $pkg_manager run build"
+}
+
+create_fullstack_api_structure() {
+  echo "ðŸš€ Creating Full-stack API structure..."
+  create_basic_api_structure
+  
+  # Add database dependencies
+  echo "ðŸ“¦ Installing database dependencies..."
+  $pkg_manager add prisma @prisma/client bcryptjs jsonwebtoken
+  $pkg_manager add -D @types/bcryptjs @types/jsonwebtoken
+  
+  # Initialize Prisma
+  npx prisma init
+  
+  # Create Prisma schema
+  cat > prisma/schema.prisma <<'EOF'
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+EOF
+  
+  # Update .env with database URL
+  echo "DATABASE_URL=\"postgresql://user:password@localhost:5432/myapp\"" >> .env
+  
+  echo "âœ… Full-stack API structure created with Prisma!"
+}
+
+create_microservice_structure() {
+  echo "ðŸš€ Creating Microservice structure..."
+  create_basic_api_structure
+  
+  # Add microservice dependencies
+  echo "ðŸ“¦ Installing microservice dependencies..."
+  $pkg_manager add redis amqplib
+  $pkg_manager add -D @types/amqplib
+  
+  # Create Docker files
+  cat > Dockerfile <<'EOF'
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci --only=production
+
+COPY . .
+RUN npm run build
+
+EXPOSE 5000
+
+CMD ["npm", "start"]
+EOF
+  
+  cat > docker-compose.yml <<'EOF'
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - redis
+      - postgres
+  
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+  
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: myapp
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+EOF
+  
+  echo "âœ… Microservice structure created with Docker!"
+}
+
+create_cli_tool_structure() {
+  echo "ðŸš€ Creating CLI Tool structure..."
+  
+  mkdir -p src/{commands,utils,config}
+  mkdir -p tests
+  
+  npm init -y
+  
+  # Install CLI dependencies
+  echo "ðŸ“¦ Installing CLI dependencies..."
+  $pkg_manager add commander chalk inquirer ora
+  $pkg_manager add -D typescript @types/node ts-node nodemon @types/inquirer
+  
+  # Create TypeScript config
+  cat > tsconfig.json <<'EOF'
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
+EOF
+  
+  # Create main CLI file
+  cat > src/index.ts <<'EOF'
+#!/usr/bin/env node
+
+import { Command } from 'commander';
+import chalk from 'chalk';
+import { version } from '../package.json';
+
+const program = new Command();
+
+program
+  .name('mycli')
+  .description('A CLI tool created with LazyCLI')
+  .version(version);
+
+program
+  .command('hello')
+  .description('Say hello')
+  .argument('[name]', 'name to say hello to')
+  .action((name) => {
+    console.log(chalk.green(`Hello ${name || 'World'}!`));
+  });
+
+program.parse();
+EOF
+  
+  # Create command example
+  cat > src/commands/example.ts <<'EOF'
+import { Command } from 'commander';
+import chalk from 'chalk';
+
+export const exampleCommand = new Command('example')
+  .description('Example command')
+  .option('-f, --file <file>', 'file to process')
+  .action((options) => {
+    console.log(chalk.blue('Example command executed!'));
+    if (options.file) {
+      console.log(chalk.yellow(`Processing file: ${options.file}`));
+    }
+  });
+EOF
+  
+  # Update package.json
+  node -e "
+    const pkg = require('./package.json');
+    pkg.bin = { 'mycli': './dist/index.js' };
+    pkg.scripts = {
+      ...pkg.scripts,
+      'start': 'node dist/index.js',
+      'dev': 'nodemon src/index.ts',
+      'build': 'tsc',
+      'clean': 'rm -rf dist',
+      'link': 'npm run build && npm link'
+    };
+    fs.writeFileSync('./package.json', JSON.stringify(pkg, null, 2));
+  "
+  
+  echo "âœ… CLI Tool structure created!"
+  echo "ðŸ”— Run 'npm run link' to make CLI globally available"
+}
+
+create_library_structure() {
+  echo "ðŸš€ Creating Library structure..."
+  
+  mkdir -p src/{core,utils,types}
+  mkdir -p tests
+  mkdir -p examples
+  
+  npm init -y
+  
+  # Install library dependencies
+  echo "ðŸ“¦ Installing library dependencies..."
+  $pkg_manager add -D typescript rollup @rollup/plugin-node-resolve @rollup/plugin-commonjs @rollup/plugin-typescript rollup-plugin-terser
+  
+  # Create TypeScript config
+  cat > tsconfig.json <<'EOF'
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["ES2020"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "tests"]
+}
+EOF
+  
+  # Create Rollup config
+  cat > rollup.config.js <<'EOF'
+import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import typescript from '@rollup/plugin-typescript';
+import { terser } from 'rollup-plugin-terser';
+
+export default {
+  input: 'src/index.ts',
+  output: [
+    {
+      file: 'dist/index.js',
+      format: 'cjs',
+      sourcemap: true
+    },
+    {
+      file: 'dist/index.esm.js',
+      format: 'es',
+      sourcemap: true
+    },
+    {
+      file: 'dist/index.min.js',
+      format: 'umd',
+      name: 'MyLibrary',
+      sourcemap: true,
+      plugins: [terser()]
+    }
+  ],
+  plugins: [
+    resolve(),
+    commonjs(),
+    typescript({ tsconfig: './tsconfig.json' })
+  ],
+  external: []
+};
+EOF
+  
+  # Create main library file
+  cat > src/index.ts <<'EOF'
+// Main library export
+export * from './core';
+export * from './utils';
+export * from './types';
+EOF
+  
+  # Create core functionality
+  cat > src/core/index.ts <<'EOF'
+export class MyLibrary {
+  private name: string;
+
+  constructor(name: string) {
+    this.name = name;
+  }
+
+  greet(): string {
+    return `Hello from ${this.name}!`;
+  }
+}
+EOF
+  
+  # Create types
+  cat > src/types/index.ts <<'EOF'
+export interface LibraryConfig {
+  name: string;
+  version?: string;
+}
+EOF
+  
+  # Create utils
+  cat > src/utils/index.ts <<'EOF'
+export const formatMessage = (message: string): string => {
+  return `[MyLibrary] ${message}`;
+};
+EOF
+  
+  # Update package.json
+  node -e "
+    const pkg = require('./package.json');
+    pkg.main = 'dist/index.js';
+    pkg.module = 'dist/index.esm.js';
+    pkg.types = 'dist/index.d.ts';
+    pkg.files = ['dist'];
+    pkg.scripts = {
+      ...pkg.scripts,
+      'build': 'rollup -c',
+      'dev': 'rollup -c -w',
+      'test': 'jest',
+      'prepublishOnly': 'npm run build'
+    };
+    fs.writeFileSync('./package.json', JSON.stringify(pkg, null, 2));
+  "
+  
+  echo "âœ… Library structure created!"
+}
+
+create_custom_structure() {
+  echo "ðŸ”§ Creating custom structure..."
+  
+  echo "ðŸ“ Available directories to create:"
+  echo "1. src/controllers/ - Route controllers"
+  echo "2. src/models/ - Data models"
+  echo "3. src/routes/ - Route definitions"
+  echo "4. src/middleware/ - Custom middleware"
+  echo "5. src/services/ - Business logic"
+  echo "6. src/utils/ - Utility functions"
+  echo "7. src/config/ - Configuration files"
+  echo "8. tests/ - Test files"
+  echo "9. docs/ - Documentation"
+  echo "10. scripts/ - Build/deployment scripts"
+  
+  read -p "ðŸ¤” Enter directory numbers to create (e.g., 1,2,3): " dirs
+  
+  IFS=',' read -ra DIR_ARRAY <<< "$dirs"
+  
+  for dir in "${DIR_ARRAY[@]}"; do
+    case $dir in
+      1) mkdir -p src/controllers ;;
+      2) mkdir -p src/models ;;
+      3) mkdir -p src/routes ;;
+      4) mkdir -p src/middleware ;;
+      5) mkdir -p src/services ;;
+      6) mkdir -p src/utils ;;
+      7) mkdir -p src/config ;;
+      8) mkdir -p tests ;;
+      9) mkdir -p docs ;;
+      10) mkdir -p scripts ;;
+    esac
+  done
+  
+  echo "âœ… Custom structure created!"
 }
 
 # Main CLI router
@@ -2771,7 +3489,7 @@ case "$1" in
     echo "LazyCLI v$VERSION"
     ;;
   upgrade )
-    echo "🔄 Upgrading LazyCLI..."
+    echo "ðŸ”„ Upgrading LazyCLI..."
 
     # Remove old version
     rm -f "$HOME/.lazycli/lazy"
@@ -2780,7 +3498,7 @@ case "$1" in
     curl -s https://lazycli.vercel.app/scripts/lazy.sh -o "$HOME/.lazycli/lazy"
     chmod +x "$HOME/.lazycli/lazy"
 
-    echo "✅ LazyCLI upgraded to latest version!"
+    echo "âœ… LazyCLI upgraded to latest version!"
     exit 0
     ;;
   github )
@@ -2801,7 +3519,7 @@ case "$1" in
         github_create_pr "$3" "$4"
         ;;
       *)
-        echo "❌ Unknown github subcommand: $2"
+        echo "âŒ Unknown github subcommand: $2"
         show_help
         exit 1
         ;;
@@ -2812,8 +3530,11 @@ case "$1" in
       init)
         node_js_init
         ;;
+      structure)
+        node_js_structure
+        ;;
       *)
-        echo "❌ Unknown node-js subcommand: $2"
+        echo "âŒ Unknown node-js subcommand: $2"
         show_help
         exit 1
         ;;
@@ -2825,7 +3546,7 @@ case "$1" in
         next_js_create
         ;;
       *)
-        echo "❌ Unknown next-js subcommand: $2"
+        echo "âŒ Unknown next-js subcommand: $2"
         show_help
         exit 1
         ;;
@@ -2837,14 +3558,14 @@ case "$1" in
         vite_js_create
         ;;
       *)
-        echo "❌ Unknown vite-js subcommand: $2"
+        echo "âŒ Unknown vite-js subcommand: $2"
         show_help
         exit 1
         ;;
     esac
     ;;
   *)
-    echo "❌ Unknown command: $1"
+    echo "âŒ Unknown command: $1"
     show_help
     exit 1
     ;;

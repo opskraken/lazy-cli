@@ -43,9 +43,42 @@ curl -s https://lazycli.xyz/install.sh | bash -s version_name
 ### 📦 Node.js Development
 
 - **`lazy node-js init`** - Initialize Node.js + TypeScript project
-- Auto-detects package manager (bun > pnpm > yarn > npm)
-- Optional boilerplate with TypeScript setup
-- Nodemon integration for development
+- **`lazy node-js structure`** - Create comprehensive Node.js project structure with templates
+  - **6 Project Templates Available:**
+    1. **Basic API** - Express + TypeScript + Essential middleware
+    2. **Full-stack API** - Express + TypeScript + Database integration
+    3. **Microservice** - Express + TypeScript + Docker setup
+    4. **CLI Tool** - TypeScript + Commander.js framework
+    5. **Library** - TypeScript + Rollup bundling
+    6. **Custom** - Manual structure selection
+  - **Complete Project Structure:**
+    ```
+    src/
+    ├── controllers/     # Route controllers
+    ├── models/         # Data models
+    ├── routes/         # Route definitions
+    ├── middleware/     # Custom middleware
+    ├── services/       # Business logic
+    ├── utils/          # Utility functions
+    ├── config/         # Configuration files
+    └── index.ts        # Main server entry
+    tests/
+    ├── unit/           # Unit tests
+    └── integration/    # Integration tests
+    docs/               # Documentation
+    scripts/            # Build/deployment scripts
+    ```
+  - **Built-in Features:**
+    - ✅ Auto-detects package manager (bun > pnpm > yarn > npm)
+    - ✅ Complete TypeScript setup with all necessary type definitions
+    - ✅ Ready-to-run server with hot reloading (nodemon)
+    - ✅ Express.js with essential middleware (cors, helmet, morgan)
+    - ✅ Environment variables (.env) configuration
+    - ✅ Error handling middleware
+    - ✅ Health check endpoint
+    - ✅ Git ignore and TypeScript config
+    - ✅ NPM scripts: dev, build, start, test, lint
+    - ✅ All dependencies installed automatically
 
 ### ⚛️ Next.js Scaffolding
 
@@ -118,6 +151,9 @@ lazy github pr main "Implement user authentication"
 ```bash
 # Node.js with TypeScript
 lazy node-js init
+
+# Node.js with comprehensive structure (6 templates)
+lazy node-js structure
 
 # Next.js with modern stack
 lazy next-js create
