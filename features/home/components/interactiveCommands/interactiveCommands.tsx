@@ -7,6 +7,7 @@ import {
   Command,
   CheckCircle,
   Copy,
+  Smartphone,
 } from "lucide-react";
 
 interface Command {
@@ -45,21 +46,25 @@ export default function InteractiveCommands({
       color: "from-purple-500 via-pink-500 to-red-500",
       commands: [
         {
-          command: "lazycli github init",
+          command: "lazy github init",
           description:
-            "Initialize a new GitHub repository with standard configuration",
+            "Initialize a new Git repository in the current directory",
         },
         {
-          command: "lazycli github clone",
-          description: "Clone a GitHub repository and setup the project",
+          command: "lazy github clone <repo-url>",
+          description: "Clone a GitHub repository and auto-detect tech stack for setup",
         },
         {
-          command: "lazycli github push",
-          description: "Push changes to GitHub with automated commit messages",
+          command: "lazy github push \"<commit-message>\"",
+          description: "Stage all changes, commit with message, and push to current branch",
         },
         {
-          command: "lazycli github pull",
-          description: "Create pull requests with predefined templates",
+          command: "lazy github pull <base-branch> \"<pr-title>\"",
+          description: "Create a simple pull request from current branch to specified base branch",
+        },
+        {
+          command: "lazy github pr <base-branch> \"<commit-message>\"",
+          description: "Pull latest changes, install dependencies, commit, push, and create PR",
         },
       ],
     },
@@ -67,23 +72,14 @@ export default function InteractiveCommands({
       id: "nodejs",
       title: "Node.js Project Setup",
       description:
-        "Bootstrap Node.js projects with best practices, TypeScript, and modern configurations",
+        "Bootstrap Node.js projects with TypeScript, Express, and interactive package selection",
       icon: Settings,
       color: "from-green-400 via-emerald-500 to-teal-500",
       commands: [
         {
-          command: "lazycli node-js init",
+          command: "lazy node-js init",
           description:
-            "Create a new Node.js project with package.json and basic structure",
-        },
-        {
-          command: "lazycli node-js deps",
-          description: "Install common dependencies and dev tools",
-        },
-        {
-          command: "lazycli node-js scripts",
-          description:
-            "Add standard npm scripts for development and production",
+            "Initialize Node.js project with TypeScript and interactive package selection (Express, dotenv, nodemon, cors, zod)",
         },
       ],
     },
@@ -91,22 +87,14 @@ export default function InteractiveCommands({
       id: "nextjs",
       title: "Next.js Scaffolding",
       description:
-        "Generate optimized Next.js applications with TypeScript, Tailwind, and modern tooling",
+        "Generate optimized Next.js applications with TypeScript, Tailwind, and interactive package selection",
       icon: Zap,
       color: "from-blue-400 via-cyan-500 to-teal-500",
       commands: [
         {
-          command: "lazycli next-js i",
+          command: "lazy next-js create",
           description:
-            "Initialize a new Next.js project with TypeScript and Tailwind CSS",
-        },
-        {
-          command: "lazycli next-js api",
-          description: "Generate API routes with authentication boilerplate",
-        },
-        {
-          command: "lazycli next-js deploy",
-          description: "Configure deployment settings for Vercel",
+            "Create Next.js app with TypeScript, Tailwind, ESLint defaults and optional packages (zod, bcrypt, js-cookie, swr, lucide-react, react-hot-toast, shadcn-ui)",
         },
       ],
     },
@@ -114,21 +102,27 @@ export default function InteractiveCommands({
       id: "vitejs",
       title: "Vite.js Project Setup",
       description:
-        "Create lightning-fast Vite.js projects with modern tooling and optimized builds",
+        "Create lightning-fast Vite.js projects with framework selection and modern Tailwind/DaisyUI integration",
       icon: Terminal,
       color: "from-orange-400 via-red-500 to-pink-500",
       commands: [
         {
-          command: "lazycli vite init",
-          description: "Bootstrap a new Vite project with React or Vue",
+          command: "lazy vite-js create",
+          description: "Create Vite project with framework selection (React/Vue/Svelte/Vanilla) and optional Tailwind CSS + DaisyUI setup",
         },
+      ],
+    },
+    {
+      id: "reactnative",
+      title: "React Native Development",
+      description:
+        "Build cross-platform mobile apps with React Native, Expo setup, and essential packages for navigation and state management",
+      icon: Smartphone,
+      color: "from-indigo-400 via-purple-500 to-pink-500",
+      commands: [
         {
-          command: "lazycli vite config",
-          description: "Configure build optimization and environment variables",
-        },
-        {
-          command: "lazycli vite preview",
-          description: "Set up local preview server with hot reload",
+          command: "lazy react-native create",
+          description: "Create React Native app with Expo or CLI setup, including navigation, state management, and UI libraries (React Navigation, Redux/Zustand, NativeWind, Async Storage)",
         },
       ],
     },
@@ -172,23 +166,25 @@ export default function InteractiveCommands({
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setActiveCommand(feature.id)}
-                    className={`flex-1 min-w-0 py-6 px-6 text-center font-medium transition-all ${
+                    className={`flex-1 min-w-0 py-4 px-3 sm:py-6 sm:px-6 text-center font-medium transition-all ${
                       activeCommand === feature.id
-                        ? "text-cyan-400 border-b-2 border-cyan-400 bg-slate-700/50"
-                        : "text-slate-400 hover:text-white hover:bg-slate-700/30"
+                        ? "text-cyan-400 border-b-2 border-cyan-400 bg-slate-700/50 cursor-pointer"
+                        : "text-slate-400 hover:text-white hover:bg-slate-700/30 cursor-pointer"
                     }`}
                   >
-                    <IconComponent className="w-5 h-5 mx-auto mb-2" />
-                    <span className="hidden sm:inline text-sm">
-                      {feature.title}
-                    </span>
+                    <div className="flex flex-col items-center">
+                      <IconComponent className="w-4 h-4 sm:w-5 sm:h-5 mb-1 sm:mb-2 flex-shrink-0" />
+                      <span className="text-xs sm:text-sm leading-tight truncate w-full">
+                        {feature.title}
+                      </span>
+                    </div>
                   </motion.button>
                 );
               })}
             </div>
 
             {/* Command Content */}
-            <div className="p-8">
+            <div className="p-4 sm:p-8">
               <AnimatePresence mode="wait">
                 {currentFeatures.map((feature) => (
                   <motion.div
@@ -201,25 +197,25 @@ export default function InteractiveCommands({
                       activeCommand === feature.id ? "block" : "hidden"
                     }`}
                   >
-                    <div className="mb-8">
-                      <div className="flex items-center mb-4">
+                    <div className="mb-6 sm:mb-8">
+                      <div className="flex items-start sm:items-center mb-4">
                         <div
-                          className={`w-10 h-10 rounded-xl bg-gradient-to-r ${feature.color} flex items-center justify-center mr-4`}
+                          className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-r ${feature.color} flex items-center justify-center mr-3 sm:mr-4 flex-shrink-0`}
                         >
-                          <feature.icon className="w-5 h-5 text-white" />
+                          <feature.icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                         </div>
-                        <div>
-                          <h3 className="text-2xl font-bold text-white">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-0">
                             {feature.title}
                           </h3>
-                          <p className="text-slate-400">
+                          <p className="text-slate-400 text-sm sm:text-base">
                             {feature.description}
                           </p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="space-y-6">
+                    <div className="space-y-4 sm:space-y-6">
                       {feature.commands.map((cmd, index) => (
                         <motion.div
                           key={index}
@@ -227,36 +223,38 @@ export default function InteractiveCommands({
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.1, duration: 0.5 }}
                           whileHover={{ scale: 1.02 }}
-                          className="bg-slate-900/50 backdrop-blur-xl border border-slate-700 rounded-xl p-6 group hover:border-cyan-400/50 transition-all"
+                          className="bg-slate-900/50 backdrop-blur-xl border border-slate-700 rounded-xl p-4 sm:p-6 group hover:border-cyan-400/50 transition-all"
                         >
-                          <div className="flex items-center justify-between mb-4">
-                            <span className="text-slate-400 text-sm flex items-center">
-                              <Command className="w-4 h-4 mr-2" />
+                          <div className="flex items-center justify-between mb-3 sm:mb-4">
+                            <span className="text-slate-400 text-xs sm:text-sm flex items-center">
+                              <Command className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
                               Command
                             </span>
                             <motion.button
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                               onClick={() => copyToClipboard(cmd.command)}
-                              className="text-cyan-400 hover:text-cyan-300 text-sm flex items-center px-3 py-1 bg-cyan-400/10 rounded-lg border border-cyan-400/20 transition-colors"
+                              className="text-cyan-400 hover:text-cyan-300 text-xs sm:text-sm flex items-center px-2 sm:px-3 py-1 bg-cyan-400/10 rounded-lg border border-cyan-400/20 transition-colors flex-shrink-0"
                             >
                               {copiedCommand === cmd.command ? (
                                 <>
-                                  <CheckCircle className="w-4 h-4 mr-1" />
-                                  Copied!
+                                  <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
+                                  <span className="hidden xs:inline">
+                                    Copied!
+                                  </span>
                                 </>
                               ) : (
                                 <>
-                                  <Copy className="w-4 h-4 mr-1" />
-                                  Copy
+                                  <Copy className="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0 cursor-pointer" />
+                                  <span className="hidden xs:inline">Copy</span>
                                 </>
                               )}
                             </motion.button>
                           </div>
-                          <code className="text-cyan-400 text-lg font-mono block mb-4 group-hover:text-cyan-300 transition-colors">
+                          <code className="text-cyan-400 text-sm sm:text-lg font-mono block mb-3 sm:mb-4 group-hover:text-cyan-300 transition-colors break-all">
                             $ {cmd.command}
                           </code>
-                          <p className="text-slate-300 text-sm leading-relaxed">
+                          <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
                             {cmd.description}
                           </p>
                         </motion.div>

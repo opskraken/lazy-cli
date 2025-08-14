@@ -109,7 +109,7 @@ export default function Installation() {
                         {copiedCommand === step.command ? (
                           <CheckCircle className="w-3 h-3" />
                         ) : (
-                          <Copy className="w-3 h-3" />
+                          <Copy className="w-3 h-3 cursor-pointer" />
                         )}
                       </motion.button>
                     </div>

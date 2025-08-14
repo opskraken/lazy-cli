@@ -1,139 +1,145 @@
 #!/bin/bash
+echo "🛠️ Installing LazyCLI..."
+INSTALL_DIR="$HOME/.lazycli"
+LAZY_BINARY="$INSTALL_DIR/lazy"
 
-# LazyCLI Cross-Platform Installer
-# Works on Linux, macOS, and Windows (Git Bash/WSL)
+# Ensure install dir is writable:
+if ! mkdir -p "$INSTALL_DIR" 2>/dev/null; then
+  echo "❌ Failed to create install directory: $INSTALL_DIR"
+  echo "👉 Try running this command instead:"
+  echo "   curl -s https://lazycli.xyz/install.sh | sudo HOME=$HOME bash"
+  exit 1
+fi
 
-set -euo pipefail
-
-RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
-
-print_status() { echo -e "${BLUE}🛠️  $1${NC}"; }
-print_success() { echo -e "${GREEN}✅ $1${NC}"; }
-print_warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
-print_error() { echo -e "${RED}❌ $1${NC}"; }
-
-detect_os() {
-    case "$OSTYPE" in
-        linux*) echo "linux" ;;
-        darwin*) echo "macos" ;;
-        msys*|cygwin*) echo "windows" ;;
-        *) echo "unknown" ;;
-    esac
+# Download the latest CLI script:
+curl -fsSL https://lazycli.xyz/scripts/lazy.sh -o "$LAZY_BINARY" || {
+  echo "❌ Failed to download LazyCLI."
+  exit 1
 }
 
-get_shell_config() {
-    if [[ -n "${ZSH_VERSION:-}" ]]; then
-        echo "$HOME/.zshrc"
-    elif [[ -n "${BASH_VERSION:-}" ]]; then
-        [[ "$(detect_os)" == "macos" && -f "$HOME/.bash_profile" ]] && echo "$HOME/.bash_profile" || echo "$HOME/.bashrc"
-    else
-        echo "$HOME/.bashrc"
+# Make it executable:
+chmod +x "$LAZY_BINARY"
+
+# Detect current shell and determine profile file
+detect_shell_profile() {
+  local current_shell
+  local profile_files=()
+  
+  # Get current shell (remove path, keep only shell name)
+  current_shell=$(basename "$SHELL" 2>/dev/null || echo "bash")
+  
+  case "$current_shell" in
+    bash)
+      profile_files=("$HOME/.bashrc" "$HOME/.bash_profile" "$HOME/.profile")
+      ;;
+    zsh)
+      profile_files=("$HOME/.zshrc" "$HOME/.zprofile" "$HOME/.profile")
+      ;;
+    fish)
+      profile_files=("$HOME/.config/fish/config.fish")
+      ;;
+    ksh|mksh)
+      profile_files=("$HOME/.kshrc" "$HOME/.profile")
+      ;;
+    tcsh|csh)
+      profile_files=("$HOME/.tcshrc" "$HOME/.cshrc")
+      ;;
+    dash)
+      profile_files=("$HOME/.profile")
+      ;;
+    *)
+      # Fallback: try common profile files
+      profile_files=("$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.profile")
+      echo "⚠️  Unknown shell: $current_shell. Trying common profile files..."
+      ;;
+  esac
+  
+  # Find the first existing profile file, or create the primary one
+  for profile in "${profile_files[@]}"; do
+    if [[ -f "$profile" ]]; then
+      echo "$profile"
+      return 0
     fi
+  done
+  
+  # If no profile file exists, create the primary one
+  echo "${profile_files[0]}"
 }
 
-check_requirements() {
-    local missing=()
-    command -v git >/dev/null || missing+=("git")
-    command -v curl >/dev/null || command -v wget >/dev/null || missing+=("curl or wget")
-    (( ${#missing[@]} )) && {
-        print_error "Missing: ${missing[*]}"
-        print_status "Please install them first."
-        exit 1
-    }
+# Function to add PATH export based on shell type
+add_to_path() {
+  local profile_file="$1"
+  local path_export_line
+  
+  # Determine the correct syntax based on shell
+  local shell_name=$(basename "$SHELL" 2>/dev/null || echo "bash")
+  
+  case "$shell_name" in
+    fish)
+      # Fish shell uses different syntax
+      path_export_line='set -gx PATH "$HOME/.lazycli" $PATH'
+      ;;
+    tcsh|csh)
+      # C shell family uses setenv
+      path_export_line='setenv PATH "$HOME/.lazycli:$PATH"'
+      ;;
+    *)
+      # POSIX-compatible shells (bash, zsh, dash, ksh, etc.)
+      path_export_line='export PATH="$HOME/.lazycli:$PATH"'
+      ;;
+  esac
+  
+  # Check if PATH is already configured
+  if [[ -f "$profile_file" ]] && grep -q "$HOME/.lazycli" "$profile_file" 2>/dev/null; then
+    echo "📎 PATH already configured in $profile_file"
+    return 0
+  fi
+  
+  # Add the export line
+  echo "$path_export_line" >> "$profile_file"
+  echo "📎 Updated $profile_file with LazyCLI path."
+  
+  # For fish shell, also update the current session differently
+  if [[ "$shell_name" == "fish" ]]; then
+    # Fish users would need to restart their shell or source the config
+    echo "🐟 Fish shell detected. Please restart your terminal or run: source ~/.config/fish/config.fish"
+  fi
 }
 
-install_lazycli() {
-    local version="${1:-latest}"
-    print_status "Installing LazyCLI (${version})..."
-    check_requirements
+# Detect and configure profile
+PROFILE_FILE=$(detect_shell_profile)
 
-    local os=$(detect_os)
-    local install_dir="$HOME/.lazycli"
-    local binary_path="$install_dir/lazy"
+if [[ -n "$PROFILE_FILE" ]]; then
+  add_to_path "$PROFILE_FILE"
+else
+  echo "⚠️  Could not determine appropriate profile file."
+  echo "📝 Please manually add this line to your shell's profile file:"
+  echo "   export PATH=\"\$HOME/.lazycli:\$PATH\""
+fi
 
-    [[ -f "$binary_path" ]] && { print_status "Removing old version..."; rm -f "$binary_path"; }
-    mkdir -p "$install_dir" || { print_error "Permission denied to create $install_dir"; exit 1; }
+# Apply to current session (works for POSIX-compatible shells)
+export PATH="$HOME/.lazycli:$PATH"
 
-    local url=""
-    if [[ "$version" == "latest" ]]; then
-        url="https://lazycli.vercel.app/scripts/lazy.sh"
-    else
-        url="https://lazycli.vercel.app/versions/$version/lazy.sh"
-    fi
+# Final check
+if command -v lazy >/dev/null 2>&1; then
+  echo "✅ LazyCLI installed successfully! Run 'lazy --help' to begin. 😎"
+else
+  echo "✅ LazyCLI installed! Please restart your terminal or run:"
+  echo "   source $PROFILE_FILE"
+  echo "   Then run 'lazy --help' to begin. 😎"
+fi
 
-    print_status "Downloading from: $url"
-    if command -v curl >/dev/null; then
-        curl -fsSL "$url" -o "$binary_path" || { print_error "Download failed."; exit 1; }
-    else
-        wget -q "$url" -O "$binary_path" || { print_error "Download failed."; exit 1; }
-    fi
-
-    chmod +x "$binary_path"
-
-    local shell_config=$(get_shell_config)
-    local path_export='export PATH="$HOME/.lazycli:$PATH"'
-
-    if [[ -f "$shell_config" ]]; then
-        grep -qF "$path_export" "$shell_config" || {
-            echo "" >> "$shell_config"
-            echo "# LazyCLI" >> "$shell_config"
-            echo "$path_export" >> "$shell_config"
-            print_success "Added LazyCLI to PATH in $shell_config"
-        }
-    else
-        echo "$path_export" > "$shell_config"
-        print_success "Created $shell_config and added PATH"
-    fi
-
-    [[ ":$PATH:" != *":$HOME/.lazycli:"* ]] && export PATH="$HOME/.lazycli:$PATH"
-    print_success "LazyCLI $version installed!"
-
-    echo
-    print_status "Next steps:"
-    echo "1. Restart terminal or run: source $shell_config"
-    echo "2. Then run: lazy --help"
-}
-
-uninstall_lazycli() {
-    print_status "Uninstalling LazyCLI..."
-    local install_dir="$HOME/.lazycli"
-    local shell_config=$(get_shell_config)
-
-    [[ -f "$install_dir/lazy" ]] && { rm -f "$install_dir/lazy"; print_success "Removed binary"; }
-    [[ -d "$install_dir" && -z "$(ls -A "$install_dir")" ]] && rmdir "$install_dir" && print_success "Removed directory"
-
-    if [[ -f "$shell_config" ]]; then
-        cp "$shell_config" "$shell_config.backup"
-        sed -i '/# LazyCLI/,+1d' "$shell_config" 2>/dev/null || {
-            sed '/# LazyCLI/,+1d' "$shell_config" > "$shell_config.tmp" && mv "$shell_config.tmp" "$shell_config"
-        }
-        print_success "Removed PATH from $shell_config"
-    fi
-
-    print_success "Uninstalled LazyCLI!"
-    print_status "Run: source $shell_config or restart terminal"
-}
-
-main() {
-    case "${1:-install}" in
-        install)
-            install_lazycli "${2:-latest}"
-            ;;
-        uninstall)
-            uninstall_lazycli
-            ;;
-        --help | help)
-            echo "LazyCLI Installer"
-            echo "Usage:"
-            echo "  $0 [install] [version]   Install LazyCLI (default: latest)"
-            echo "  $0 uninstall             Uninstall LazyCLI"
-            ;;
-        *)
-            print_error "Unknown command: $1"
-            echo "Use --help for usage"
-            exit 1
-            ;;
-    esac
-}
-
-main "$@"
+# Display shell-specific instructions if needed
+shell_name=$(basename "$SHELL" 2>/dev/null || echo "bash")
+case "$shell_name" in
+  fish)
+    echo ""
+    echo "🐟 Fish shell users: If the command isn't available immediately,"
+    echo "   please restart your terminal or run: source ~/.config/fish/config.fish"
+    ;;
+  tcsh|csh)
+    echo ""
+    echo "🐚 C shell users: If the command isn't available immediately,"
+    echo "   please restart your terminal or run: source $PROFILE_FILE"
+    ;;
+esac

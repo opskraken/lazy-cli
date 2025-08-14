@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Inter, Roboto_Mono } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import Script from "next/script";
 // import Navbar from "@/components/common/navbar";
 // import Footer from "@/components/common/footer";
 
@@ -196,15 +199,6 @@ export const metadata: Metadata = {
   // App-specific metadata
   applicationName: siteConfig.name,
   category: "Developer Tools",
-
-  // Viewport is handled by Next.js automatically
-  // But you can override if needed
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
 };
 
 // JSON-LD structured data
@@ -249,6 +243,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Vercel Analytics */}
+        <Analytics />
+
+        {/* Vercel Speed Insights */}
+        <SpeedInsights />
+
         {/* JSON-LD structured data */}
         <script
           type="application/ld+json"
@@ -257,16 +257,43 @@ export default function RootLayout({
           }}
         />
 
-        {/* Preconnect to external domains for performance */}
+        {/* Google Analytics - Optimized Loading */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-9BDSR091HN"
+          strategy="afterInteractive"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-9BDSR091HN', {
+                page_title: document.title,
+                page_location: window.location.href,
+                enhanced_measurement: true,
+                anonymize_ip: true,
+                allow_google_signals: true,
+                send_page_view: true
+              });
+            `,
+          }}
+        />
+
+        {/* Performance Optimizations */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
           href="https://fonts.gstatic.com"
-          crossOrigin=""
+          crossOrigin="anonymous"
         />
+        <link rel="preconnect" href="https://www.google-analytics.com" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
 
         {/* DNS prefetch for better performance */}
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+        <link rel="dns-prefetch" href="https://analytics.google.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
 
         {/* Preload critical resources */}
         <link
@@ -274,7 +301,87 @@ export default function RootLayout({
           href="/fonts/inter-var.woff2"
           as="font"
           type="font/woff2"
-          crossOrigin=""
+          crossOrigin="anonymous"
+        />
+
+        {/* Additional SEO and Performance Meta Tags */}
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, viewport-fit=cover"
+        />
+        <meta name="theme-color" content="#0891b2" />
+        <meta name="color-scheme" content="dark light" />
+
+        {/* Prefetch for likely navigation */}
+        <link rel="prefetch" href="/guideline" />
+        <link rel="prefetch" href="/contribute" />
+        <link rel="prefetch" href="/windows" />
+
+        {/* Global Styles */}
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              html {
+                scroll-behavior: smooth;
+              }
+
+              /* Custom scrollbar styles */
+              ::-webkit-scrollbar {
+                width: 8px;
+              }
+
+              ::-webkit-scrollbar-track {
+                background: #1e293b;
+              }
+
+              ::-webkit-scrollbar-thumb {
+                background: linear-gradient(to bottom, #06b6d4, #3b82f6);
+                border-radius: 4px;
+              }
+
+              ::-webkit-scrollbar-thumb:hover {
+                background: linear-gradient(to bottom, #0891b2, #2563eb);
+              }
+
+              /* Hide scrollbar for Chrome, Safari and Opera */
+              .hide-scrollbar::-webkit-scrollbar {
+                display: none;
+              }
+
+              /* Hide scrollbar for IE, Edge and Firefox */
+              .hide-scrollbar {
+                -ms-overflow-style: none; /* IE and Edge */
+                scrollbar-width: none; /* Firefox */
+              }
+
+              /* Loading animation for better UX */
+              @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+              }
+
+              .animate-fade-in {
+                animation: fadeIn 0.6s ease-out;
+              }
+
+              /* Focus styles for better accessibility */
+              .focus-ring:focus {
+                outline: 2px solid #06b6d4;
+                outline-offset: 2px;
+              }
+
+              /* Selection styles */
+              ::selection {
+                background-color: #06b6d4;
+                color: white;
+              }
+
+              ::-moz-selection {
+                background-color: #06b6d4;
+                color: white;
+              }
+            `,
+          }}
         />
       </head>
       <body

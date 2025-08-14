@@ -6,7 +6,9 @@ import {
   Database,
   Layers,
   Cpu,
-  Diamond,
+  Server,
+  Cloud,
+  HardDrive,
 } from "lucide-react";
 
 interface UpcomingFeature {
@@ -27,6 +29,22 @@ export default function UpcomingFeatures({
   // Upcoming features data with Lucide icons
   const upcomingFeatures: UpcomingFeature[] = [
     {
+      title: "XAMPP Setup",
+      description:
+        "Local development environment with Apache, MySQL, PHP, and automated configuration",
+      icon: HardDrive,
+      status: "Available Next",
+      color: "from-red-400 via-pink-500 to-rose-500",
+    },
+    {
+      title: "PM2 Automation",
+      description:
+        "Process management, application monitoring, and automated deployment for Node.js applications",
+      icon: Server,
+      status: "Coming Soon",
+      color: "from-green-400 via-emerald-500 to-teal-500",
+    },
+    {
       title: "Python Environment",
       description:
         "Virtual environment setup, package management, and ML project scaffolding",
@@ -35,11 +53,19 @@ export default function UpcomingFeatures({
       color: "from-yellow-400 via-orange-500 to-red-500",
     },
     {
+      title: "AWS Integration",
+      description:
+        "Cloud deployment, infrastructure automation, and serverless application management",
+      icon: Cloud,
+      status: "Planned",
+      color: "from-orange-400 via-yellow-500 to-amber-500",
+    },
+    {
       title: "Docker Automation",
       description:
         "Container deployment, orchestration tools, and Kubernetes integration",
       icon: Container,
-      status: "In Development",
+      status: "Planned",
       color: "from-blue-400 via-indigo-500 to-purple-500",
     },
     {
@@ -50,14 +76,7 @@ export default function UpcomingFeatures({
       status: "Planned",
       color: "from-teal-400 via-cyan-500 to-blue-500",
     },
-    {
-      title: "React Native",
-      description:
-        "Native mobile app development with React and automated store deployment",
-      icon: Layers,
-      status: "Planned",
-      color: "from-purple-400 via-pink-500 to-red-500",
-    },
+
     {
       title: "Rust Integration",
       description:
@@ -74,14 +93,6 @@ export default function UpcomingFeatures({
       status: "Planned",
       color: "from-cyan-400 via-blue-500 to-indigo-500",
     },
-    {
-      title: ".NET Support",
-      description:
-        "Enterprise application development with C#, ASP.NET, and Azure integration",
-      icon: Diamond,
-      status: "Planned",
-      color: "from-indigo-400 via-purple-500 to-pink-500",
-    },
   ];
   return (
     <>
@@ -95,7 +106,7 @@ export default function UpcomingFeatures({
             className="text-center mb-16"
           >
             <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
                 Coming Soon
               </span>
             </h2>
