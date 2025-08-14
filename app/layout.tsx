@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Roboto_Mono } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/common/navbar";
-import Footer from "@/components/common/footer";
+// import Navbar from "@/components/common/navbar";
+// import Footer from "@/components/common/footer";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -281,9 +281,9 @@ export default function RootLayout({
         className={`${inter.variable} ${robotoMono.variable} antialiased`}
         suppressHydrationWarning={true}
       >
-        <Navbar />
+        {/* <Navbar /> */}
         <main>{children}</main>
-        <Footer />
+        {/* <Footer /> */}
       </body>
     </html>
   );
