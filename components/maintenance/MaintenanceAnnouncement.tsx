@@ -297,7 +297,7 @@ export default function MaintenanceAnnouncement() {
             <p className="text-slate-400 text-sm">
               For real-time updates, follow us on{" "}
               <a
-                href="https://github.com/lazycli/lazycli"
+                href="https://github.com/iammhador/lazycli"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-cyan-400 hover:text-cyan-300 transition-colors"
