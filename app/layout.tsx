@@ -4,8 +4,8 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
-// import Navbar from "@/components/common/navbar";
-// import Footer from "@/components/common/footer";
+import Navbar from "@/components/common/navbar";
+import Footer from "@/components/common/footer";
 
 const inter = Inter({
   variable: "--font-inter",
