@@ -80,6 +80,27 @@ curl -s https://lazycli.xyz/install.sh | bash -s version_name
     - ✅ NPM scripts: dev, build, start, test, lint
     - ✅ All dependencies installed automatically
 
+### 🐍 Django Development
+
+- **`curl -s https://lazycli.xyz/mahamudh472/lazy.sh | bash -s django_init <project_name>`** - Complete Django project initialization
+  - **Smart Virtual Environment Management:**
+    - ✅ Auto-detects existing virtual environments
+    - ✅ Creates new venv only when needed (virtualenv or python3 -m venv)
+    - ✅ Activates environment automatically
+  - **Complete Project Setup:**
+    - ✅ Django installation and project creation
+    - ✅ Pre-configured project structure with essential directories
+    - ✅ Static files directory (`static/`)
+    - ✅ Templates directory (`templates/`)
+    - ✅ Media files directory (`media/`)
+  - **Auto-configured Settings:**
+    - ✅ Static files configuration
+    - ✅ Templates directory setup
+    - ✅ Media files handling
+    - ✅ Ready-to-run Django project
+
+**Contributed by:** [mahamudh472](https://github.com/mahamudh472)
+
 ### ⚛️ Next.js Scaffolding
 
 - **`lazy next-js create`** - Create Next.js app with modern defaults
