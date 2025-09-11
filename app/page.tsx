@@ -7,6 +7,7 @@ import Installation from "@/features/home/components/installation/installation";
 import CurrentFeatures from "@/features/home/components/currentFeatures/currentFeatures";
 import UpcomingFeatures from "@/features/home/components/upcomingFeatures/upcomingFeatures";
 import InteractiveCommands from "@/features/home/components/interactiveCommands/interactiveCommands";
+import Contributors from "@/features/home/components/contributors/contributors";
 
 // Initialize Inter font with Next.js optimization
 const inter = Inter({ subsets: ["latin"] });
@@ -86,6 +87,12 @@ export default function Home() {
           activeCommand={activeCommand}
           copyToClipboard={copyToClipboard}
           copiedCommand={copiedCommand}
+        />
+
+        {/* Contributors Section */}
+        <Contributors
+          copyToClipboard={copyToClipboard}
+          copiedText={copiedCommand}
         />
       </div>
 

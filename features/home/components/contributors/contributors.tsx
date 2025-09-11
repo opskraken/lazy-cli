@@ -1,248 +1,307 @@
-"use client";
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Github, Users, Star, GitFork } from "lucide-react";
-import Image from "next/image";
-import useSWR from "swr";
-
-interface Contributor {
-  id: number;
-  login: string;
-  avatar_url: string;
-  html_url: string;
-  contributions: number;
-  type: string;
-}
-
-interface ApiResponse {
-  stars: number;
-  forks: number;
-  openIssues: number;
-  contributors: Contributor[];
-}
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
-
-export default function Contributors({
-  containerVariants,
-  itemVariants,
+import {
+  GitBranch,
+  FolderPlus,
+  TerminalSquare,
+  Code2,
+  Github,
+  Copy,
+  ExternalLink,
+  Download,
+} from "lucide-react";
+export default function Contribution({
+  copyToClipboard,
+  copiedText,
 }: {
-  containerVariants: import("framer-motion").Variants;
-  itemVariants: import("framer-motion").Variants;
+  copyToClipboard: (text: string, label?: string) => void;
+  copiedText: string;
 }) {
-  const { data, isLoading, error, mutate } = useSWR<ApiResponse>(
-    `  ${process.env.NEXT_PUBLIC_LIVE_URL}/api/stars`,
-    fetcher,
+  const contributionSteps = [
     {
-      refreshInterval: 300000, // Refresh every 5 minutes
-      revalidateOnFocus: false,
-      errorRetryCount: 3,
-      errorRetryInterval: 5000,
-      suspense: false,
-      revalidateOnMount: true,
-      dedupingInterval: 10000, // Deduplicate requests within 10 seconds
-    }
-  );
-
-  // Force revalidation when component mounts
-  useEffect(() => {
-    mutate();
-  }, [mutate]);
-
-  // Fallback data when API fails
-  const fallbackData = {
-    stars: 0,
-    forks: 0,
-    openIssues: 0,
-    contributors: [],
-  };
-
-  // Use data if available, otherwise use fallback
-  const displayData = data || fallbackData;
-
-  // Track if we've attempted to load data
-  const [dataAttempted, setDataAttempted] = useState(false);
-
-  // Mark data as attempted after first load attempt
-  useEffect(() => {
-    if (!dataAttempted && (data || error)) {
-      setDataAttempted(true);
-    }
-  }, [data, error, dataAttempted]);
-
-  console.log(displayData?.contributors, "displayData?.contributors");
-  console.log(
-    displayData.contributors.length,
-    "displayData.contributors.length"
-  );
-
+      icon: GitBranch,
+      title: "Fork the Repository",
+      description:
+        "Start by forking the main LazyCLI repository to your GitHub account.",
+      action: "Fork on GitHub",
+      link: "https://github.com/iammhador/lazycli",
+    },
+    {
+      icon: Code2,
+      title: "Clone & Create Branch",
+      description:
+        "Clone your fork locally and create a new feature branch for your contribution.",
+      code: "git clone https://github.com/your-username/lazycli.git\ncd lazycli\ngit checkout -b feature/your-command",
+    },
+    {
+      icon: FolderPlus,
+      title: "Add Your Script",
+      description: "Create a new folder under /public with your custom script.",
+      structure: true,
+    },
+    {
+      icon: TerminalSquare,
+      title: "Test Your Command",
+      description:
+        "Test your script from your own repository before submitting to ensure it works as expected.",
+      code: "# Test from your GitHub fork\ncurl -s https://raw.githubusercontent.com/your-username/lazycli/your-branch/public/scripts/lazy.sh | bash\n\n# Or test locally\nbash /path/to/your/lazy.sh",
+    },
+    {
+      icon: Github,
+      title: "Submit Pull Request",
+      description:
+        "Push your changes and create a pull request with a clear description.",
+      code: "git add .\ngit commit -m 'Add: new command for [feature]'\ngit push origin feature/your-command",
+    },
+    {
+      icon: Download,
+      title: "Install Your Custom Version",
+      description:
+        "Once your version is available, users can install your custom LazyCLI version directly.",
+      code: "curl -s https://lazycli.xyz/install.sh | bash",
+      customInstall: true,
+    },
+  ];
   return (
-    <section id="contributors" className="py-20 bg-slate-800/30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-3xl md:text-5xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-              Our Contributors
-            </span>
+    <>
+      {" "}
+      <motion.section
+        className="mb-20"
+        variants={{
+          hidden: { y: 30, opacity: 0 },
+          visible: {
+            y: 0,
+            opacity: 1,
+            transition: {
+              type: "tween",
+              duration: 0.6,
+              ease: "easeOut",
+            },
+          },
+        }}
+      >
+        <div className="text-center mb-12">
+          <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent mb-3 sm:mb-4">
+            How to Contribute
           </h2>
-          <p className="text-xl text-slate-400 max-w-3xl mx-auto">
-            Meet the amazing developers who help make LazyCLI better every day
+          <p className="text-lg text-slate-300 max-w-2xl mx-auto">
+            Follow these steps to add your custom commands or improvements to
+            LazyCLI.
           </p>
-        </motion.div>
+        </div>
 
-        {/* Repository Stats */}
-        {displayData && (
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16"
-          >
-            <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700 rounded-xl p-6 text-center">
-              <Star className="w-8 h-8 text-cyan-400 mx-auto mb-3" />
-              <div className="text-2xl font-bold text-white mb-1">
-                {displayData.stars}
-              </div>
-              <div className="text-slate-400">Stars</div>
-            </div>
-            <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700 rounded-xl p-6 text-center">
-              <GitFork className="w-8 h-8 text-indigo-400 mx-auto mb-3" />
-              <div className="text-2xl font-bold text-white mb-1">
-                {displayData.forks}
-              </div>
-              <div className="text-slate-400">Forks</div>
-            </div>
-            <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700 rounded-xl p-6 text-center">
-              <Users className="w-8 h-8 text-blue-400 mx-auto mb-3" />
-              <div className="text-2xl font-bold text-white mb-1">
-                {displayData.contributors?.length || 0}
-              </div>
-              <div className="text-slate-400">Contributors</div>
-            </div>
-          </motion.div>
-        )}
+        <div className="space-y-8">
+          {contributionSteps.map((step, index) => (
+            <motion.div
+              key={index}
+              className="bg-slate-800/50 backdrop-blur-xl border border-slate-700 rounded-xl p-4 sm:p-6 md:p-8 hover:bg-slate-800/70 transition-all"
+              variants={{
+                hidden: { y: 30, opacity: 0 },
+                visible: {
+                  y: 0,
+                  opacity: 1,
+                  transition: {
+                    type: "tween",
+                    duration: 0.6,
+                    ease: "easeOut",
+                  },
+                },
+              }}
+            >
+              <div className="flex flex-col sm:flex-row items-start sm:space-x-6 space-y-4 sm:space-y-0">
+                <div className="bg-cyan-400/10 p-3 rounded-lg self-center sm:self-start">
+                  <step.icon className="w-8 h-8 text-cyan-400" />
+                </div>
 
-        {/* Contributors Grid */}
-        {displayData ? (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="flex flex-wrap justify-center items-center gap-2 max-w-4xl mx-auto"
-          >
-            {displayData.contributors
-              .filter((contributor) => contributor.type === "User")
-              .slice(0, 20) // Show more contributors in compact view
-              .map((contributor) => (
-                <motion.div
-                  key={contributor.id}
-                  variants={itemVariants}
-                  whileHover={{ scale: 1.1, zIndex: 10 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="relative group cursor-pointer"
-                  onClick={() => window.open(contributor.html_url, "_blank")}
-                >
-                  <Image
-                    src={contributor.avatar_url}
-                    alt={`${contributor.login} - ${contributor.contributions} contributions`}
-                    width={64}
-                    height={64}
-                    quality={95}
-                    priority={true}
-                    loading="eager"
-                    className="w-16 h-16 rounded-full border-2 border-slate-600 group-hover:border-purple-400 transition-all duration-200 shadow-lg"
-                    onLoad={(e) => {
-                      // Ensure image is visible after load
-                      const img = e.target as HTMLImageElement;
-                      if (img.style.opacity !== "1") {
-                        img.style.opacity = "1";
-                      }
-                    }}
-                  />
-                  {/* Tooltip */}
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-20 border border-slate-600">
-                    <div className="font-medium">{contributor.login}</div>
-                    <div className="text-slate-400 text-xs">
-                      {contributor.contributions} contribution
-                      {contributor.contributions !== 1 ? "s" : ""}
-                    </div>
-                    {/* Tooltip arrow */}
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-slate-800"></div>
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-center mb-3">
+                    <span className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mr-4">
+                      {index + 1}
+                    </span>
+                    <h3 className="text-lg sm:text-xl font-semibold text-white">
+                      {step.title}
+                    </h3>
                   </div>
-                </motion.div>
-              ))}
-          </motion.div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center py-12"
-          >
-            <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700 rounded-xl p-8">
-              <Users className="w-16 h-16 text-slate-400 mx-auto mb-4" />
-              {isLoading && !dataAttempted ? (
-                <>
-                  <h3 className="text-xl font-semibold text-white mb-2">
-                    Loading Contributors...
-                  </h3>
-                  <p className="text-slate-400">
-                    Fetching the latest contributor information from GitHub
-                  </p>
-                </>
-              ) : error ? (
-                <>
-                  <h3 className="text-xl font-semibold text-red-400 mb-2">
-                    Failed to Load Contributors
-                  </h3>
-                  <p className="text-slate-400">
-                    Unable to fetch contributor data. Please try again later.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <h3 className="text-xl font-semibold text-white mb-2">
-                    No Contributors Found
-                  </h3>
-                  <p className="text-slate-400">
-                    No contributor data available at the moment.
-                  </p>
-                </>
-              )}
-            </div>
-          </motion.div>
-        )}
 
-        {/* Call to Action */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-center mt-16"
-        >
-          <motion.a
-            href="https://github.com/iammhador/lazycli"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center space-x-2 bg-gradient-to-r from-purple-400/10 to-pink-400/10 hover:from-purple-400/20 hover:to-pink-400/20 border border-purple-400/20 hover:border-purple-400/40 text-slate-600 hover:text-white px-8 py-4 rounded-xl font-medium transition-all duration-300 backdrop-blur-sm"
-            whileHover={{ scale: 1.05, y: -2 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Github className="w-5 h-5" />
-            <span>Contribute to LazyCLI</span>
-          </motion.a>
-        </motion.div>
-      </div>
-    </section>
+                  <p className="text-slate-300 mb-4 leading-relaxed">
+                    {step.description}
+                  </p>
+
+                  {step.link && (
+                    <a
+                      href={step.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center text-cyan-400 hover:text-cyan-300 font-medium"
+                    >
+                      {step.action}
+                      <ExternalLink className="w-4 h-4 ml-2" />
+                    </a>
+                  )}
+
+                  {step.code && (
+                    <div className="bg-gray-900 rounded-lg p-4 relative group w-full">
+                      <pre className="text-green-400 text-sm overflow-x-auto whitespace-pre-wrap break-words max-w-full">
+                        <code className="block w-full">{step.code}</code>
+                      </pre>
+                      <button
+                        onClick={() =>
+                          copyToClipboard(step.code, `step-${index}`)
+                        }
+                        className="absolute top-3 right-3 p-2 bg-gray-800 hover:bg-gray-700 rounded transition-colors opacity-0 group-hover:opacity-100 sm:opacity-100 cursor-pointer"
+                      >
+                        <Copy className="w-4 h-4 text-gray-300" />
+                      </button>
+                      {copiedText === `step-${index}` && (
+                        <span className="absolute top-3 right-16 text-green-400 text-sm">
+                          Copied!
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {step.structure && (
+                    <div className="bg-slate-900/50 rounded-lg p-4 sm:p-6 border border-slate-600">
+                      <h4 className="font-semibold text-white mb-3">
+                        Directory Structure:
+                      </h4>
+                      <div className="bg-black/30 rounded-lg p-3 sm:p-4 font-mono text-xs sm:text-sm overflow-x-auto">
+                        <div className="text-blue-400">/public</div>
+                        <div className="text-slate-400 ml-2 sm:ml-4">
+                          └── myscript/
+                        </div>
+                        <div className="text-green-400 ml-4 sm:ml-8">
+                          └── lazy.sh
+                        </div>
+                      </div>
+                      <p className="text-slate-300 mt-4 text-sm">
+                        During development, test from your own repository:
+                      </p>
+                      <div className="bg-gray-900 rounded-lg p-3 mt-2 relative group w-full">
+                        <code className="text-green-400 text-sm block whitespace-pre-wrap break-words max-w-full">
+                          curl -s
+                          https://raw.githubusercontent.com/your-username/lazycli/your-branch/public/scripts/lazy.sh
+                          | bash
+                        </code>
+                        <button
+                          onClick={() =>
+                            copyToClipboard(
+                              "curl -s https://raw.githubusercontent.com/your-username/lazycli/your-branch/public/scripts/lazy.sh | bash",
+                              "install-command"
+                            )
+                          }
+                          className="absolute top-2 right-2 p-1 bg-gray-800 hover:bg-gray-700 rounded transition-colors opacity-0 group-hover:opacity-100 sm:opacity-100"
+                        >
+                          <Copy className="w-3 h-3 text-gray-300" />
+                        </button>
+                        {copiedText === "install-command" && (
+                          <span className="absolute top-2 right-12 text-green-400 text-xs">
+                            Copied!
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-slate-300 mt-3 text-sm">
+                        After merging, it will be available at:
+                      </p>
+                      <div className="bg-gray-900 rounded-lg p-3 mt-2 relative group w-full">
+                        <code className="text-green-400 text-sm block whitespace-pre-wrap break-words max-w-full">
+                          curl -s https://lazycli.xyz/scripts/myscript/lazy.sh |
+                          bash
+                        </code>
+                        <button
+                          onClick={() =>
+                            copyToClipboard(
+                              "curl -s https://lazycli.xyz/scripts/myscript/lazy.sh | bash",
+                              "final-install-command"
+                            )
+                          }
+                          className="absolute top-2 right-2 p-1 bg-gray-800 hover:bg-gray-700 rounded transition-colors opacity-0 group-hover:opacity-100 sm:opacity-100"
+                        >
+                          <Copy className="w-3 h-3 text-gray-300" />
+                        </button>
+                        {copiedText === "final-install-command" && (
+                          <span className="absolute top-2 right-12 text-green-400 text-xs">
+                            Copied!
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {step.customInstall && (
+                    <div className="bg-slate-900/50 rounded-lg p-4 sm:p-6 border border-slate-600">
+                      <h4 className="font-semibold text-white mb-3">
+                        Custom Version Installation:
+                      </h4>
+                      <p className="text-slate-300 mb-4 text-sm">
+                        Users can install your custom LazyCLI version using:
+                      </p>
+                      <div className="space-y-3">
+                        <div className="bg-gray-900 rounded-lg p-3 relative group w-full">
+                          <div className="text-slate-400 text-xs mb-1">
+                            Standard Installation:
+                          </div>
+                          <code className="text-green-400 text-sm block whitespace-pre-wrap break-words max-w-full">
+                            curl -s https://lazycli.xyz/install.sh | bash
+                          </code>
+                          <button
+                            onClick={() =>
+                              copyToClipboard(
+                                "curl -s https://lazycli.xyz/install.sh | bash",
+                                "standard-install"
+                              )
+                            }
+                            className="absolute top-2 right-2 p-1 bg-gray-800 hover:bg-gray-700 rounded transition-colors opacity-0 group-hover:opacity-100 sm:opacity-100"
+                          >
+                            <Copy className="w-3 h-3 text-gray-300" />
+                          </button>
+                          {copiedText === "standard-install" && (
+                            <span className="absolute top-2 right-12 text-green-400 text-xs">
+                              Copied!
+                            </span>
+                          )}
+                        </div>
+                        <div className="bg-gray-900 rounded-lg p-3 relative group w-full">
+                          <div className="text-slate-400 text-xs mb-1">
+                            Custom Version Installation:
+                          </div>
+                          <code className="text-green-400 text-sm block whitespace-pre-wrap break-words max-w-full">
+                            curl -s https://lazycli.xyz/install.sh | bash -s
+                            version_name
+                          </code>
+                          <button
+                            onClick={() =>
+                              copyToClipboard(
+                                "curl -s https://lazycli.xyz/install.sh | bash -s version_name",
+                                "custom-install"
+                              )
+                            }
+                            className="absolute top-2 right-2 p-1 bg-gray-800 hover:bg-gray-700 rounded transition-colors opacity-0 group-hover:opacity-100 sm:opacity-100"
+                          >
+                            <Copy className="w-3 h-3 text-gray-300" />
+                          </button>
+                          {copiedText === "custom-install" && (
+                            <span className="absolute top-2 right-12 text-green-400 text-xs">
+                              Copied!
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-slate-300 mt-4 text-sm">
+                        Replace{" "}
+                        <span className="text-cyan-400 font-mono">
+                          version_name
+                        </span>{" "}
+                        with your custom version identifier (e.g., v1.0.2,
+                        custom-branch, etc.)
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </motion.section>
+    </>
   );
 }
