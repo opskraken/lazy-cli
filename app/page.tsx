@@ -91,8 +91,8 @@ export default function Home() {
 
         {/* Contributors Section */}
         <Contributors
-          copyToClipboard={copyToClipboard}
-          copiedText={copiedCommand}
+          containerVariants={containerVariants}
+          itemVariants={itemVariants}
         />
       </div>
 
@@ -133,10 +133,3 @@ export default function Home() {
     </>
   );
 }
-
-// import MaintenanceAnnouncement from "@/components/maintenance/MaintenanceAnnouncement";
-// import React from "react";
-
-// export default function Home() {
-//   return <MaintenanceAnnouncement />;
-// }
